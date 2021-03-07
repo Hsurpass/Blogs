@@ -50,12 +50,15 @@
 + **双击bin目录下的mongo.exe**
 
   ![1613365102442](image/1613365102442.png)
+- **添加环境变量**
+
+  `.......\MongoDB\Server\4.2\bin`
 
 + **安装compass**
 
   https://github.com/mongodb-js/compass/releases
-
-
+  
+  
 
 # 配置文件
 
