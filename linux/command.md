@@ -14,8 +14,43 @@
 
   
 
+- **references:**
+
+  https://www.binarytides.com/linux-scp-command/
+
+## grep
+
+- **-A<显示行数> 或 --after-context=<显示行数>** : 除了显示符合范本样式的那一列之外，并显示该行之后的内容。
+- **-B<显示行数> 或 --before-context=<显示行数>** : 除了显示符合样式的那一行之外，并显示该行之前的内容。
+
+- **-E 或 --extended-regexp** : 将样式为延伸的正则表达式来使用。
+
+- **-n 或 --line-number** : 在显示符合样式的那一行之前，标示出该行的列数编号。
 
 
-**references:**
+- **-o 或 --only-matching** : 只显示匹配PATTERN 部分。
+- **-P, --perl-regexp** : PATTERN is a Perl regular expression
 
-https://www.binarytides.com/linux-scp-command/
+
+
+- **匹配关键字之前和之后的N个字符**
+
+```
+grep -E -o ".{0,5}test_pattern.{0,5}" test.txt 
+cat test.txt | grep -E -o ".{0,5}test_pattern.{0,5}"
+grep -P -o ".{0,5}test_pattern.{0,5}" test.txt 
+```
+
+
+
+- references:
+
+   https://cloud.tencent.com/developer/ask/29626
+
+## cut
+
+- 
+
+- references: 
+
+  http://linux.51yip.com/search/cut
