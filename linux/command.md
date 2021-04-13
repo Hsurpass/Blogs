@@ -54,3 +54,64 @@ grep -P -o ".{0,5}test_pattern.{0,5}" test.txt
 - references: 
 
   http://linux.51yip.com/search/cut
+
+
+
+## head
+
+- 
+
+- 查看文件前几行内容
+
+  ```
+  head -n 10 xx.txt
+  ```
+
+- 
+
+## tail
+
+- 
+
+- 查看文件的最后几行内容
+
+  ```
+  tail -n 10 xxx.txt
+  ```
+
+
+
+## sed
+
+- 
+
+- 查看文件第a行到第b行的内容。
+
+  - 第一种方法：
+
+    ```
+    sed -n 'a,bp' xxx.txt
+    sed -n '5,10p' xxx.txt	//查看第5行到第10行的内容
+    ```
+
+  - 第二种方法
+
+    ```
+    cat xxx.txt | tail -n +a | head -n b-a
+    cat xxx.txt | tail -n +3000 | head -n 1000 	// 显示从第3000行到3999行
+    ```
+
+    ```
+    cat xxx.txt | head -n b | tail -n +a
+    cat xxx.txt | head -n 4000 | tail -n +3000	// 显示从第3000行到4000行
+    ```
+
+
+  ```
+  tail -n 1000 	// 显示最后1000行的内容。
+  tail -n +1000	// 从第1000行开始显示，显示之后的内容。
+  head -n 1000 	// 显示前面1000行内容。
+  ```
+
+  
+
