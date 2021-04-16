@@ -4,6 +4,20 @@ https://www.jianshu.com/p/a24c88c0526a
 
 https://www.jianshu.com/p/b33ca81b19b5
 
-http://www.cppblog.com/sunicdavy/archive/2014/12/16/209189.html
+http://www.cppblog.com/sunicdavy/archive/2014/12/16/209189.html    // pb language service
 
 https://blog.csdn.net/majianfei1023/article/details/45371743
+
+https://cloud.tencent.com/developer/article/1056432
+
+https://cloud.tencent.com/developer/article/1602549
+
+https://blog.csdn.net/liangjisheng/article/details/84646949
+
+https://blog.csdn.net/liangjisheng/article/details/84646949
+
+https://www.freesion.com/article/8599353804/
+
+https://blog.csdn.net/huakai16/article/details/79583150
+
+https://blog.csdn.net/liangjisheng/article/details/84646949
