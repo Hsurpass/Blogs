@@ -21,3 +21,34 @@ https://www.freesion.com/article/8599353804/
 https://blog.csdn.net/huakai16/article/details/79583150
 
 https://blog.csdn.net/liangjisheng/article/details/84646949
+
+
+
+
+
+```
+cd protobuf
+cd cmake
+mkdir build & cd build
+```
+
+```
+mkdir release & cd release
+cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../../../install/release ../..
+```
+
+```
+mkdir debug & cd debug
+cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../../../install/debug ../..
+```
+
+```
+mkdir solution & cd solution
+cmake -G "Visual Studio 12 2013" -DCMAKE_INSTALL_PREFIX=../../../../install ../..
+```
+
+```
+nmake
+nmake install
+```
+
