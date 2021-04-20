@@ -113,5 +113,30 @@ grep -P -o ".{0,5}test_pattern.{0,5}" test.txt
   head -n 1000 	// 显示前面1000行内容。
   ```
 
+- 批量替换文件中指定的字符串
+
+  ```
+  sed -i 's/Search_String/Replacement_String/g' Input_File
   
+  sudo sed -i 's/archive.ubuntu.com/mirrors.163.com/g' sources.list
+  sudo sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' sources.list
+  ```
+
+
+
+**references:** 
+
+https://linux.cn/article-11367-1.html
+
+https://www.linuxprobe.com/sed-find-replace.html
+
+## cp
+
+- 复制某个文件并且重命名
+
+```
+cp a.txt /tmp/b.txt
+```
+
+
 
