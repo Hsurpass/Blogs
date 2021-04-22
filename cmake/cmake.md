@@ -1,0 +1,1 @@
+https://cmake.org/cmake/help/v3.20/manual/cmake-generators.7.html#visual-studio-generators
