@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-
+#include <sstream>
 #include "person.pb.h"
 
 using namespace std;
@@ -63,6 +63,12 @@ int main()
     char array[1024];
     addressBook.SerializeToArray(array, addressBook.ByteSize());
     cout << array << endl;
+
+	// write To test.json
+	fstream testOut("test.json", ios::out | ios::trunc | ios::binary);
+	testOut << originStr;
+	testOut.close();
+
     cout << "#############################" << endl;
 
     // parse stream
@@ -82,6 +88,18 @@ int main()
     AddressBook addressBookFromArray;
     addressBookFromArray.ParseFromArray(array, addressBook.ByteSize());
     listPerson(addressBookFromArray);
+	cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+
+	// read from test.json
+	AddressBook addressBookFromTestJson;
+	fstream testIn("test.json", ios::in | ios::binary);
+	ostringstream a;
+	a << testIn.rdbuf();
+	string b = a.str();
+	cout << b << endl;
+	addressBookFromTestJson.ParseFromString(b);
+	//addressBookFromTestJson.ParseFromIstream(&testIn);
+	listPerson(addressBookFromTestJson);
 
     return 0;
 }
