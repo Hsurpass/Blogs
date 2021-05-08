@@ -69,6 +69,14 @@ int main()
 	testOut << originStr;
 	testOut.close();
 
+	// convert string to vector<uchar>
+	std::vector<unsigned char> inputUcharStream;
+	inputUcharStream.assign(originStr.begin(), originStr.end());
+	for (auto &i: inputUcharStream)
+	{
+		cout << i;
+	}
+	cout << endl;
     cout << "#############################" << endl;
 
     // parse stream
@@ -100,6 +108,16 @@ int main()
 	addressBookFromTestJson.ParseFromString(b);
 	//addressBookFromTestJson.ParseFromIstream(&testIn);
 	listPerson(addressBookFromTestJson);
+	cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
+
+	// parse vector<uchar>
+	AddressBook addressBookFromucharStream;
+	string outUcharStream;
+	outUcharStream.assign(inputUcharStream.begin(), inputUcharStream.end());
+	cout << outUcharStream << endl;
+	//addressBookFromucharStream.ParseFromArray(&inputUcharStream, inputUcharStream.size());
+	addressBookFromucharStream.ParseFromString(outUcharStream);
+	listPerson(addressBookFromucharStream);
 
     return 0;
 }
