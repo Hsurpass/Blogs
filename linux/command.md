@@ -140,3 +140,75 @@ cp a.txt /tmp/b.txt
 
 
 
+## strip
+
+移除可执行程序中的调试信息。
+
+
+
+## whatis
+
+- 可以使用 `whatis` 查看某个命令都有哪些功能。
+
+  ```
+  whatis sleep
+  ```
+
+  ![image-20210516110024368](image/image-20210516110024368.png)
+
+
+
+## man
+
+
+
+![image-20210516110533025](image/image-20210516110533025.png)
+
+1. **用户命令**
+
+   ```
+   man 1 cd
+   ```
+
+2. 系统调用
+
+   ```
+   man 2 read
+   ```
+
+3. 标准库调用
+
+   ```
+   man 3 sleep
+   ```
+
+4. 特殊文件(设备文件)
+
+   ```
+   man 4 tty
+   ```
+
+5. 文件格式(配置文件的语法)
+
+   ```
+   man 5 passwd
+   ```
+
+6. 游戏
+
+7. 杂项
+
+8. 系统管理员命令
+
+   ```
+   man 8 fdisk
+   ```
+
+9. 和内核有关的文件
+
+
+
+references: https://cloud.tencent.com/developer/article/1725969?from=information.detail.linux%20man%201%202%203
+
+
+
