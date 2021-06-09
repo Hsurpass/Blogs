@@ -12,9 +12,19 @@
    ./bootstrapsh
    ```
 
-   
+2. ``` 
+   ./b2 --help
+   ```
 
-2. install or stage
+   ![image-20210609230132294](image/image-20210609230132294.png)
+
+   ![image-20210609230215737](image/image-20210609230215737.png)
+
+   ![image-20210609230257136](image/image-20210609230257136.png)
+
+   ![image-20210609230318655](image/image-20210609230318655.png)
+
+1. install or stage
 
    + install: 会拷贝头文件并编译所有库 (会在linux目录下生成include、lib子目录)
 
