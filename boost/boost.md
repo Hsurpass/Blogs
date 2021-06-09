@@ -29,13 +29,13 @@
    + install: 会拷贝头文件并编译所有库 (会在linux目录下生成include、lib子目录)
 
    ```
-   ./b2 --prefix=../build --build-dir=../linux install
+   ./b2 --prefix=../linux --build-dir=../linux install
    ```
 
    + stage: 只会编译库（只会生成lib目录）
 
    ```
-   ./b2 --stagedir=../build --build-dir=../linux stage
+   ./b2 --stagedir=../linux --build-dir=../linux stage
    ```
 
    
