@@ -28,6 +28,18 @@ https://www.cnblogs.com/shine-lee/p/10741786.html
 
 http://doc.okbase.net/doclist/archive/264711.html#%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90
 
+https://blog.51cto.com/u_9291927/2331980
+
+https://zhuanlan.zhihu.com/p/60608963
+
+https://blog.csdn.net/sanshengshui/article/details/82950531
+
+https://www.cnblogs.com/tohxyblog/p/8974763.html
+
+https://blog.csdn.net/qq_22660775/article/details/89163881
+
+
+
 ```
 cd protobuf
 cd cmake
