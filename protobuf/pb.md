@@ -38,7 +38,9 @@ https://www.cnblogs.com/tohxyblog/p/8974763.html
 
 https://blog.csdn.net/qq_22660775/article/details/89163881
 
+https://www.cntofu.com/book/116/reference/java/oneof.md
 
+https://www.kaifaxueyuan.com/basic/protobuf3/oneof.html
 
 ```
 cd protobuf
