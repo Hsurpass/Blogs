@@ -65,11 +65,36 @@ g++ -L/home/libfolder -ltest test.cpp
 
 **-D**：定义宏
 
-在使用gcc/g++编译的时候定义宏
+​	在使用gcc/g++编译的时候定义宏
 
-常用场景：
+​	常用场景：
 
--DDEBUG 定义DEBUG宏，可能文件中有DEBUG宏部分的相关信息，用个DDEBUG来选择开启或关闭DEBUG
+​	-DDEBUG 定义DEBUG宏，可能文件中有DEBUG宏部分的相关信息，用个DDEBUG来选择开启或关闭DEBUG
+
+```
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    #ifdef DEBUG
+        cout << "DEBUG LOG" << endl;
+    #endif
+
+    #ifdef TEST
+        cout << "TEST" << endl;
+    #endif
+
+    cout << "gcc_g++" << endl;
+
+    return 0;
+}
+```
+
+```
+g++ -DDEBUG -DTEST test.cpp
+./a.out ==> DEBUG LOG TEST gcc_g++
+```
 
 
 
