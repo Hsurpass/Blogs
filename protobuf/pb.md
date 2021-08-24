@@ -42,6 +42,12 @@ https://www.cntofu.com/book/116/reference/java/oneof.md
 
 https://www.kaifaxueyuan.com/basic/protobuf3/oneof.html
 
+https://wenfh2020.com/2020/10/28/protobuf-convert-json/
+
+https://www.coder.work/article/121306
+
+https://wenku.baidu.com/view/3c3aa22eaeaad1f347933faf.html
+
 ```
 cd protobuf
 cd cmake
