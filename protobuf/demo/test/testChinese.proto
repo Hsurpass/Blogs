@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message chinese {
+    int32 old = 1;
+    string name = 2;
+    bytes company = 3;
+    int32 number = 4;
+
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+option java_package = "com.aerozhonghuan.navi.route";
+
+message route_links {
+    int32 length = 1; //路径总长度	单位为米
+    int32 destnum = 2; //目的地数量	用户设置的目的地数量（包括起点，途经点及最终目的地）
+    message Point {
+        int32 lon = 1; //经度
+        int32 lat = 2; //纬度
+		int32 seq = 3; //形状点序号（形状点在整个route中的唯一序号）
+    }
+    repeated Point destpt = 3;//目的地点序列	目的地点为在路径上匹配过的坐标
+    int32 linknum = 4;//link数量
+    message Link{
+        int32 length = 1; //link长度	单位为米
+        int32 level = 2;//	道路等级
+        int32 usage = 3;//道路用途
+        string name = 4;//道路名
+        int32 num = 5;//形状点数量
+        repeated Point linkpt = 6;//形状点序列
+		bool isStartNodeCross = 7; //起始node是否为交叉点
+		bool isEndNodeCross = 8;//终止node是否为交叉点
+		int32 roadLayerNumber = 9; //道路分层
+    }
+    repeated Link links = 5;//link属性
+
+}

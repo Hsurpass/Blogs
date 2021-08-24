@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message Result {
+    string url = 1;
+    int32 title = 2;
+    repeated string snippets = 3;
+  }
+
+message SampleMessage {
+    oneof test_oneof {
+      string name = 1;
+      int32 number = 2;
+      Result result = 3;
+    }
+}
