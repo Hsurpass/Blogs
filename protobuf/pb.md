@@ -48,6 +48,10 @@ https://www.coder.work/article/121306
 
 https://wenku.baidu.com/view/3c3aa22eaeaad1f347933faf.html
 
+
+
+## windows安装protobuf
+
 ```
 cd protobuf
 cd cmake
@@ -80,3 +84,18 @@ nmake install
 g++ addressbook.pb.cc main.cpp `pkg-config --cflags --libs protobuf` -std=c++11
 ```
 
+
+
+## linux安装protobuf
+
+```
+sudo apt-get install autoconf automake libtool curl make g++ unzip
+```
+
+
+
+
+
+reference:
+
+​	https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
