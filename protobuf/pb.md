@@ -92,7 +92,52 @@ g++ addressbook.pb.cc main.cpp `pkg-config --cflags --libs protobuf` -std=c++11
 sudo apt-get install autoconf automake libtool curl make g++ unzip
 ```
 
+```
+./configure # 默认安装在 /usr/local 目录下。/usr/local/include /usr/local/lib /usr/local/bin
+	可以指定安装路径：./configure --prefix=/usr
+ make
+ make check
+ sudo make install
+ sudo ldconfig # refresh shared library cache. This is very important.
+```
 
+
+
+### 配置编译选项
+
+To compile a package that uses Protocol Buffers, you need to pass various flags to your compiler and linker. As of version 2.2.0, Protocol Buffers integrates with pkg-config to manage this. If you have pkg-config installed, then you can invoke it to get a list of flags like so:
+
+```
+pkg-config --cflags protobuf         # print compiler flags
+	-pthread -I/usr/local/include
+pkg-config --libs protobuf           # print linker flags
+	-L/usr/local/lib -lprotobuf -pthread -lpthread
+pkg-config --cflags --libs protobuf  # print both
+```
+
+```
+sudo apt install pkg-config
+```
+
+
+
+##### example:
+
+linux平台下编译代码：
+
+```
+g++ main.cpp *.cc `pkg-config --cflags --libs protobuf` -std=c++11
+```
+
+```
+g++ main.cpp *.cc -pthread -I/usr/local/include -L/usr/local/lib -lprotobuf -pthread -lpthread -std=c++11
+```
+
+
+
+windows平台下（VS013）编译：
+
+​	需要配置include路径(-I)，lib库路径 (-L) , 静态库名称(-l)
 
 
 
