@@ -1,12 +1,15 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/util/json_util.h>
 
 //#include "SDPath.pb.h"
-#include "testoneof.pb.h"
 //#include "routing/routingResponse.pb.h"
+
+#include "testoneof.pb.h"
 #include "testChinese.pb.h"
-#include <google/protobuf/util/json_util.h>
 
 using namespace std;
 
@@ -84,7 +87,9 @@ void testChinese()
 	options.always_print_primitive_fields = true;
 	google::protobuf::util::MessageToJsonString(chi, &json_string, options);
 	cout << json_string << endl;
-	//fstream file(;
+	ofstream file("test.json", std::ofstream::out | std::ofstream::trunc);
+	file << json_string;
+	file.close();
 
 	cout << "---------json to pb---------" << endl;
 	chinese chi2;
@@ -100,6 +105,11 @@ void testChinese()
 
 int main()
 {
+	cout << GOOGLE_PROTOBUF_VERSION << endl;
+	cout << GOOGLE_PROTOBUF_MIN_LIBRARY_VERSION << endl;
+	cout << GOOGLE_PROTOBUF_MIN_PROTOC_VERSION << endl;
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
 	//testOneOf();
 	testChinese();
     return 0;
