@@ -71,6 +71,7 @@ cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../..
 ```
 C:\Path\to\protobuf\cmake\build> mkdir solution & cd solution
 cmake -G "Visual Studio 12 2013" -DCMAKE_INSTALL_PREFIX=../../../../install ../..
+cmake -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=../../../../install ../..
 ```
 
 ```
