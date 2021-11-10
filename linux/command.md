@@ -20,32 +20,91 @@
 
 ## grep
 
-- **-A<显示行数> 或 --after-context=<显示行数>** : 除了显示符合范本样式的那一列之外，并显示该行之后的内容。
-- **-B<显示行数> 或 --before-context=<显示行数>** : 除了显示符合样式的那一行之外，并显示该行之前的内容。
+- **-A<显示行数> 或 --after-context=<显示行数>** : print NUM lines of leading context  (除了显示符合范本样式的那一列之外，并显示该行之后的内容。)
+- **-B<显示行数> 或 --before-context=<显示行数>** :  print NUM lines of trailing context (除了显示符合样式的那一行之外，并显示该行之前的内容。)
+- **-E 或 --extended-regexp** : PATTERN is an extended regular expression (将样式为延伸的正则表达式来使用。)
+- **-i 或 --ignore-case** : ignore case distinctions (忽略字符大小写的差别。)
+- **-n 或 --line-number** :print line number with output lines (在显示符合样式的那一行之前，标示出该行的列数编号。)
 
-- **-E 或 --extended-regexp** : 将样式为延伸的正则表达式来使用。
 
-- **-n 或 --line-number** : 在显示符合样式的那一行之前，标示出该行的列数编号。
-
-
-- **-o 或 --only-matching** : 只显示匹配PATTERN 部分。
-- **-P, --perl-regexp** : PATTERN is a Perl regular expression
+- **-o 或 --only-matching** :show only the part of a line matching PATTERN (只显示匹配PATTERN 部分。)
+- **-P 或 --perl-regexp** : PATTERN is a Perl regular expression
+- **-r 或 --recursive**: like --directories=recurse (此参数的效果和指定"-d recurse"参数相同。)
+- **-v 或 --invert-match** : select non-matching lines (显示不包含匹配文本的所有行。)
 
 
 
 - **匹配关键字之前和之后的N个字符**
 
 ```
+这种适用于一个大文件中只有一行的情况下查找匹配项
 grep -E -o ".{0,5}test_pattern.{0,5}" test.txt 
 cat test.txt | grep -E -o ".{0,5}test_pattern.{0,5}"
 grep -P -o ".{0,5}test_pattern.{0,5}" test.txt 
 ```
 
+example:
 
+```
+这将匹配"string"的前三个字符和后四个字符
+echo "some123_string_and_another" | grep -o -P '.{0,3}string.{0,4}'
+23_string_and
+```
+
+```
+test.txt:
+
+abcd
+0123_45_6789
+efgh
+```
+
+```
+这将匹配 test.txt文件中 “45” 的前4个字符和后5个字符
+grep -E -o ".{0,4}45.{0,5}" test.txt
+123_45_6789
+```
+
+
+
+- **匹配关键字之前的n行和之后的n行**
+
+  ```
+  grep -Bn An "test_pattern" test.txt
+  ```
+
+  example:
+
+  ```
+  test.txt:
+  
+  eretrtrt
+  sdsdfsddf
+  abcd
+  0123_45_6789
+  efgh
+  errterer
+  vdghdbdvsd
+  vvdhbrfwewec
+  ```
+
+  
+
+  ```
+  grep -B1 -A1 "45" test.txt
+  
+  abcd
+  0123_45_6789
+  efgh
+  ```
+
+  
 
 - references:
 
    https://cloud.tencent.com/developer/ask/29626
+
+   https://www.runoob.com/linux/linux-comm-grep.html
 
 ## cut
 
