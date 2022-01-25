@@ -345,9 +345,9 @@ void testChinese()
 {
 	chinese chi;
 	chi.set_old(12);
-	//chi.set_name("Ð¡Ã÷");
+	//chi.set_name("Ð¡ï¿½ï¿½");
 	chi.set_name("abcdefg");
-	chi.set_company("¹È¸è");
+	chi.set_company("ï¿½È¸ï¿½");
 	chi.set_number(0);
 	cout << chi.old() << endl;
 	cout << chi.name() << endl;
@@ -357,6 +357,10 @@ void testChinese()
 
 	string str;
 	chi.SerializeToString(&str);
+
+	// std::fstream fileOut("routingRequest.binary", std::ios::out | std::ios::trunc | std::ios::binary);
+	// fileOut << str;
+	// fileOut.close();
 
 	/*char* p = (char*)malloc(chi.ByteSize());
 	memset(p, 0, chi.ByteSize());
@@ -384,7 +388,9 @@ void testChinese()
 	options.always_print_primitive_fields = true;
 	google::protobuf::util::MessageToJsonString(chi, &json_string, options);
 	cout << json_string << endl;
-	//fstream file(;
+	// std::fstream outfs("routingRequestPbPostData.json", std::fstream::out | std::fstream::trunc);
+	// outfs << json_string;
+	// outfs.close();
 
 	cout << "---------json to pb---------" << endl;
 	chinese chi2;
