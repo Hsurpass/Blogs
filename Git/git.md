@@ -80,7 +80,7 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
 ## 丢弃工作区的修改
 
-`git restore readme.txt`
+`git restore readme.txt` (新)
 
 `git checkout —- readme.txt` (新版本好像废弃了)
 
@@ -98,7 +98,7 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
 `git reset head readme.txt` OR
 
-`git rm -–cached readme.txt`
+`git restore --staged readme.txt`
 
  `git reset`命令既可以回退版本，也可以把暂存区的修改回退到工作区。当我们用`HEAD`时，表示最新的版本。 
 
