@@ -8,6 +8,16 @@
 
 `git config –global user.email “Your Email”`
 
+## 查看name 和 email
+`git config --global --list (-l)`
+
+`git config --local -l`
+
+`git config --system -l`
+
+
+
+
 ## 初始化git仓库
 
 `git init`
