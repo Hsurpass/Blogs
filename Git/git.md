@@ -15,8 +15,9 @@
 
 `git config --system -l`
 
+`git config --global user.name`
 
-
+`git config --global user.email`
 
 ## 初始化git仓库
 
@@ -81,7 +82,7 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
 `git restore readme.txt`
 
-`git checkout — readme.txt` (新版本好像废弃了)
+`git checkout —- readme.txt` (新版本好像废弃了)
 
 命令git checkout(restore) -- readme.txt意思就是，把`readme.txt`文件在工作区的修改全部撤销，这里有两种情况：
 
@@ -93,7 +94,7 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
  `git checkout -- file`命令中的`--`很重要，没有`--`，就变成了“切换到另一个分支”的命令 。
 
-## 撤销暂存区的修改
+## 撤销暂存区到工作区
 
 `git reset head readme.txt` OR
 
