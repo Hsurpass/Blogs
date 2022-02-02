@@ -60,6 +60,32 @@ eaadf4e385e865d25c48e7ca9c8395c3f7dfaef0 wrote a readme file
 
  需要友情提示的是，你看到的一大串类似`1094adb...`的是`commit id`（版本号）。
 
+显示5行
+
+`git log --online -5`
+
+显示某个提交者
+
+`git log --online --author ="xxx"`
+
+搜寻某个显示：
+
+`git log --oneline –-grep='xxx'`
+
+显示某个时间之前的log:
+
+`git log --before='2022-01-30 --after='2022-01-01 --oneline' `
+
+`git log --oneline --before='2020-01-01'`
+
+`git log --oneline --before='1 week'` // 查找一周之前的log
+
+`git log --oneline --before='3 days'`
+
+显示图形化:
+
+`git log --graph`
+
 ## 回退版本
 
 `git reset –-hard head^` or `git reset —hard commit Id` 
