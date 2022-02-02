@@ -27,11 +27,11 @@
 
 `git status`
 
-## 添加文件
+## 添加工作区文件到暂存区
 
 `git add .`
 
-## 提交到本地仓库
+## 提交暂存区文件到本地仓库
 
 `git commit  -m  “message”`
 
@@ -126,7 +126,7 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
 `git reset head readme.txt` OR
 
-`git restore --staged readme.txt`
+`git restore --staged readme.txt`（新）
 
  `git reset`命令既可以回退版本，也可以把暂存区的修改回退到工作区。当我们用`HEAD`时，表示最新的版本。 
 
