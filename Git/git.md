@@ -90,7 +90,7 @@ eaadf4e385e865d25c48e7ca9c8395c3f7dfaef0 wrote a readme file
 
 ## 回退版本
 
-`git reset –-hard head^` or `git reset —hard commit Id` 
+`git reset –-hard head^` or `git reset —-hard commit Id` 
 
 head^ 代表上一个版本，head^^代表上上个版本，网上100个版本head~100。
 
