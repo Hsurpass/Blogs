@@ -142,6 +142,8 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
 强制删除分支：`git branch -D dev`
 
+删除远程分支： `git branch -d -r/--remotes origin/dev `
+
 ## 删除文件
 
 `git rm readme.txt`
