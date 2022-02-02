@@ -1,4 +1,4 @@
-# Gittest
+# Git
 
 [TOC]
 
@@ -127,18 +127,6 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 `git restore --staged readme.txt`
 
  `git reset`命令既可以回退版本，也可以把暂存区的修改回退到工作区。当我们用`HEAD`时，表示最新的版本。 
-
-## 分支
-
-创建分支`git branch dev`
-
-切换分支： `git checkout dev`
-
-创建并切换分支：`git checkout -b dev`
-
-删除分支：`git branch -d dev`
-
-强制删除分支：`git branch -D dev`
 
 ## 删除文件
 
