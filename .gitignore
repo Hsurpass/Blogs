@@ -2,4 +2,5 @@
 *.h
 *.exe
 protobuf/protobufTest/*
+pbTest
 
