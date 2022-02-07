@@ -101,6 +101,24 @@ http {
     sendfile_max_chunk 100k;  #每个进程每次调用传输数量不能大于设定的值，默认为0，即不设上限。
     keepalive_timeout 65;  #连接超时时间，默认为75s，可以在http，server，location块。
 
+	#Gzip Compression
+    gzip on; #开启gzip压缩功能，目的：提高传输效率，节约带宽。
+    gzip_buffers 16 8k;
+    gzip_comp_level 6;	#定义压缩的级别（压缩比，文件越大，压缩越多，但是cpu使用越多）
+    gzip_http_version 1.1;
+    gzip_min_length 256;	#限制最小压缩，小于256字节不会压缩
+    gzip_proxied any;
+    gzip_vary on;
+    # 定义压缩文件的类型
+    gzip_types
+        text/xml application/xml application/atom+xml application/rss+xml application/xhtml+xml image/svg+xml
+        text/javascript application/javascript application/x-javascript
+        text/x-json application/json application/x-web-app-manifest+json
+        text/css text/plain text/x-component
+        font/opentype application/x-font-ttf application/vnd.ms-fontobject
+        image/x-icon;
+    gzip_disable "MSIE [1-6]\.(?!.*SV1)";
+
     upstream mysvr {   
       server 127.0.0.1:7878;
       server 192.168.10.121:3333 backup;  #热备
@@ -109,7 +127,8 @@ http {
     server {
         keepalive_requests 120; #单连接请求上限次数。
         listen       4545;   #监听端口
-        server_name  127.0.0.1;   #监听地址       
+        server_name  127.0.0.1;   #监听地址    
+        # ^~ 以某个字符路径开头请求
         location  ~*^.+$ {       #请求的url过滤，正则匹配，~为区分大小写，~*为不区分大小写。
            #root path;  #根目录
            #index vv.txt;  #设置默认页
@@ -120,6 +139,28 @@ http {
     }
 }
 ```
+
+location的匹配规则
+
+```
+空格：默认匹配，普通匹配
+location / {
+	root /home
+}
+
+=：精确匹配
+location = /imooc/img/face1.png {
+	root /home
+}
+
+~*:匹配正则表达式，不区分，大小写
+
+~：匹配正则表达式，区分大小写
+
+^~:以某个字符路径开头
+```
+
+
 
 上面是nginx的基本配置，需要注意的有以下几点：
 
