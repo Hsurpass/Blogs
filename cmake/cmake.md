@@ -1,3 +1,5 @@
+#### references:
+
 https://cmake.org/cmake/help/v3.20/manual/cmake-generators.7.html#visual-studio-generators
 
 https://cmake.org/cmake/help/git-stage/index.html#
@@ -7,6 +9,10 @@ https://mp.weixin.qq.com/s?__biz=MzU5MzcyMjI4MA==&mid=2247494287&idx=1&sn=7f3835
 https://cloud.tencent.com/developer/article/1446788
 
 https://zhuanlan.zhihu.com/p/50829542
+
+https://www.hahack.com/codes/cmake/
+
+
 
 ### 1.1 语法特性介绍
 
@@ -167,3 +173,31 @@ https://zhuanlan.zhihu.com/p/50829542
 - **CMAKE_CXX_COMPILER：指定C++编译器**
 - **EXECUTABLE_OUTPUT_PATH：可执行文件输出的存放路径**
 - **LIBRARY_OUTPUT_PATH：库文件输出的存放路径**
+
+
+
+
+
+## CMake Generators
+
+#### Visual Studio Generators
+
+- Visual Studio 11 2012
+  - `cmake -G "Visual Studio 10 2010" -A Win32`
+  - `cmake -G "Visual Studio 10 2010" -A x64`
+  - `cmake -G "Visual Studio 10 2010" -A Itanium`
+  - `cmake -G "Visual Studio 10 2010 Win64 `
+  -  `cmake -G Visual Studio 10 2010 IA64`
+
+- Visual Studio 12 2013
+  - `cmake -G "Visual Studio 12 2013" -A Win32`
+  - `cmake -G "Visual Studio 12 2013" -A x64`
+  - `cmake -G "Visual Studio 12 2013" -A ARM`
+  - `cmake -G "Visual Studio 12 2013 Win64"`
+  - `cmake -G "Visual Studio 12 2013 ARM"`
+
+- Visual Studio 16 2019
+  - `cmake -G "Visual Studio 16 2019" -A Win32`
+  - `cmake -G "Visual Studio 16 2019" -A x64`
+  - `cmake -G "Visual Studio 16 2019" -A ARM`
+  - `cmake -G "Visual Studio 16 2019" -A ARM64`
