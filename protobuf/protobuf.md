@@ -124,6 +124,13 @@ sudo apt install pkg-config
 
 ##### example:
 
+  使用 **protoc** 将**.proto** 文件生成**.h .cpp** 文件的命令：
+```
+protoc -I=$SRC_DIR --cpp_out=$DST_DIR $SRC_DIR/addressbook.proto
+```
+
+
+
 linux平台下编译代码：
 
 ```
