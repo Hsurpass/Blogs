@@ -1,22 +1,23 @@
-## SCP
 
-- 从远程拷贝多个文件到本地
 
-  ```
-  scp USER@HOST:/\{ 1.txt,2.json,3.py,4.sh \}
-  ```
-  
-- 从远程拷贝多个文件，多个文件夹到本地
+## cut
 
-  ```
-  scp -r USER@HOST:/\{ 1.txt,2.json,3.py,4.sh,folder \}
-  ```
+- 
 
-  
+- references: 
 
-- **references:**
+  http://linux.51yip.com/search/cut
 
-  https://www.binarytides.com/linux-scp-command/
+## cp
+
+- 复制某个文件并且重命名
+
+```
+cp a.txt /tmp/b.txt
+```
+
+
+
 
 ## grep
 
@@ -106,14 +107,6 @@ grep -E -o ".{0,4}45.{0,5}" test.txt
 
    https://www.runoob.com/linux/linux-comm-grep.html
 
-## cut
-
-- 
-
-- references: 
-
-  http://linux.51yip.com/search/cut
-
 
 
 ## head
@@ -126,139 +119,6 @@ grep -E -o ".{0,4}45.{0,5}" test.txt
   head -n 10 xx.txt
   ```
 
-- 
-
-## tail
-
-- 
-
-- 查看文件的最后几行内容
-
-  ```
-  tail -n 10 xxx.txt
-  ```
-
-
-
-## sed
-
-- 
-
-- 查看文件第a行到第b行的内容。
-
-  - 第一种方法：
-
-    ```
-    sed -n 'a,bp' xxx.txt
-    sed -n '5,10p' xxx.txt	//查看第5行到第10行的内容
-    ```
-
-  - 第二种方法
-
-    ```
-    cat xxx.txt | tail -n +a | head -n b-a
-    cat xxx.txt | tail -n +3000 | head -n 1000 	// 显示从第3000行到3999行
-    ```
-
-    ```
-    cat xxx.txt | head -n b | tail -n +a
-    cat xxx.txt | head -n 4000 | tail -n +3000	// 显示从第3000行到4000行
-    ```
-
-
-  ```
-  tail -n 1000 	// 显示最后1000行的内容。
-  tail -n +1000	// 从第1000行开始显示，显示之后的内容。
-  head -n 1000 	// 显示前面1000行内容。
-  ```
-
-- 批量替换文件中指定的字符串
-
-  ```
-  sed -i 's/Search_String/Replacement_String/g' Input_File
-  
-  sudo sed -i 's/archive.ubuntu.com/mirrors.163.com/g' sources.list
-  sudo sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' sources.list
-  ```
-
-
-
-**references:** 
-
-https://linux.cn/article-11367-1.html
-
-https://www.linuxprobe.com/sed-find-replace.html
-
-## cp
-
-- 复制某个文件并且重命名
-
-```
-cp a.txt /tmp/b.txt
-```
-
-
-
-## strip
-
-移除可执行程序中的调试信息。
-
-
-
-## tcpdump
-
-- -c: 仅抓取指定数量的数据包。
-- -e: 显示以太网帧头部信息。
-- -i: 指定要监听的网卡接口。“-i any” 表示抓取所有网卡接口上的数据包。
-- -n: 使用IP地址表示主机，而不是主机名；使用数字表示端口号，而不是服务名称。
-- -r: 从文件读取数据包信息并显示之。
-- -s: 设置抓包时的抓取长度。当数据包的长度超过抓取长度时，tcpdump抓取到的将是被截断的数据包。在4.0以及之前的版本中，默认的抓包长度是68字节。这对于IP、TCP和UDP等协议就已经足够了，但对于像DNS、NFS这样的协议，68字节通常不能容纳一个完整的数据包。不过4.0之后的版本，默认的抓包长度被修改为65535字节，因此不用再担心抓包长度的问题了。
-- -t：不打印时间戳。
-- -v: 输出一个稍微详细的信息，例如，显示IP数据包中的TTL和TOS信息。
-- -w: 将tcpdump的输出已特殊的格式定向到某个文件。
-- -x: 以十六进制数显示数据包的内容，但不显示包中以太网帧的头部信息。
-- -X: 与-x选项类似，不过还打印每个十六进制字节对应的ASCII字符。
-- -XX, 与-X相同，不过还打印以太网帧的头部信息。
-
-```
-tcpdump -nt -i eth0 port 12345 -w tmp.pcap
-```
-
-
-
-## nc (可以快速构建网络连接。既可以以服务器的方式运行，也可以以客户端的方式运行。默认以客户端的方式运行)
-
--p: 当nc命令以客户端的方式运行时，强制其使用指定的端口号。
-
-```
-nc -p 12345 SERVERHOST PORT
-```
-
--l: 以服务器方式运行，监听指定端口
-
-```
-nc -l 12345
-```
-
-
-
-## time
-
-time + 可执行程序：可以统计程序的运行时间
-
-
-
-
-
-## whatis
-
-- 可以使用 `whatis` 查看某个命令都有哪些功能。
-
-  ```
-  whatis sleep
-  ```
-
-  ![image-20210516110024368](image/image-20210516110024368.png)
 
 
 
@@ -313,6 +173,165 @@ time + 可执行程序：可以统计程序的运行时间
 
 
 references: https://cloud.tencent.com/developer/article/1725969?from=information.detail.linux%20man%201%202%203
+
+
+
+## nc (可以快速构建网络连接。既可以以服务器的方式运行，也可以以客户端的方式运行。默认以客户端的方式运行)
+
+-p: 当nc命令以客户端的方式运行时，强制其使用指定的端口号。
+
+```
+nc -p 12345 SERVERHOST PORT
+```
+
+-l: 以服务器方式运行，监听指定端口
+
+```
+nc -l 12345
+```
+
+
+
+## scp
+
+- 从远程拷贝多个文件到本地
+
+  ```
+  scp USER@HOST:/\{ 1.txt,2.json,3.py,4.sh \}
+  ```
+
+- 从远程拷贝多个文件，多个文件夹到本地
+
+  ```
+  scp -r USER@HOST:/\{ 1.txt,2.json,3.py,4.sh,folder \}
+  ```
+
+
+- **references:**
+
+  https://www.binarytides.com/linux-scp-command/
+
+
+
+## sed
+
+- 
+
+- 查看文件第a行到第b行的内容。
+
+  - 第一种方法：
+
+    ```
+    sed -n 'a,bp' xxx.txt
+    sed -n '5,10p' xxx.txt	//查看第5行到第10行的内容
+    ```
+
+  - 第二种方法
+
+    ```
+    cat xxx.txt | tail -n +a | head -n b-a
+    cat xxx.txt | tail -n +3000 | head -n 1000 	// 显示从第3000行到3999行
+    ```
+
+    ```
+    cat xxx.txt | head -n b | tail -n +a
+    cat xxx.txt | head -n 4000 | tail -n +3000	// 显示从第3000行到4000行
+    ```
+
+
+  ```
+  tail -n 1000 	// 显示最后1000行的内容。
+  tail -n +1000	// 从第1000行开始显示，显示之后的内容。
+  head -n 1000 	// 显示前面1000行内容。
+  ```
+
+- 批量替换文件中指定的字符串
+
+  ```
+  sed -i 's/Search_String/Replacement_String/g' Input_File
+  
+  sudo sed -i 's/archive.ubuntu.com/mirrors.163.com/g' sources.list
+  sudo sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' sources.list
+  ```
+
+
+
+**references:** 
+
+https://linux.cn/article-11367-1.html
+
+https://www.linuxprobe.com/sed-find-replace.html
+
+
+
+## strip
+
+移除可执行程序中的调试信息。
+
+
+
+## tail
+
+- 
+
+- 查看文件的最后几行内容
+
+  ```
+  tail -n 10 xxx.txt
+  ```
+
+
+
+## tcpdump
+
+- -c: 仅抓取指定数量的数据包。
+- -e: 显示以太网帧头部信息。
+- -i: 指定要监听的网卡接口。“-i any” 表示抓取所有网卡接口上的数据包。
+- -n: 使用IP地址表示主机，而不是主机名；使用数字表示端口号，而不是服务名称。
+- -r: 从文件读取数据包信息并显示之。
+- -s: 设置抓包时的抓取长度。当数据包的长度超过抓取长度时，tcpdump抓取到的将是被截断的数据包。在4.0以及之前的版本中，默认的抓包长度是68字节。这对于IP、TCP和UDP等协议就已经足够了，但对于像DNS、NFS这样的协议，68字节通常不能容纳一个完整的数据包。不过4.0之后的版本，默认的抓包长度被修改为65535字节，因此不用再担心抓包长度的问题了。
+- -t：不打印时间戳。
+- -v: 输出一个稍微详细的信息，例如，显示IP数据包中的TTL和TOS信息。
+- -w: 将tcpdump的输出已特殊的格式定向到某个文件。
+- -x: 以十六进制数显示数据包的内容，但不显示包中以太网帧的头部信息。
+- -X: 与-x选项类似，不过还打印每个十六进制字节对应的ASCII字符。
+- -XX, 与-X相同，不过还打印以太网帧的头部信息。
+
+```
+tcpdump -nt -i eth0 port 12345 -w tmp.pcap
+```
+
+
+
+## time
+
+time + 可执行程序：可以统计程序的运行时间
+
+
+
+## ulimit
+
+程序崩溃时，系统默认不会生成core文件
+
+- -a: 查看系统参数。
+- -c : ulimit -c unlimited 把core文件的大小设置为无限制。
+- 
+
+
+
+## whatis
+
+- 可以使用 `whatis` 查看某个命令都有哪些功能。
+
+  ```
+  whatis sleep
+  ```
+
+  ![image-20210516110024368](image/image-20210516110024368.png)
+
+
+
+
 
 
 
