@@ -194,10 +194,17 @@ nc -l 12345
 
 ## scp
 
+- -r： 递归复制整个目录。
+- -P port：注意是大写的P, port是指定数据传输用到的端口号
+
+
+
+
+
 - 从远程拷贝多个文件到本地
 
   ```
-  scp USER@HOST:/\{ 1.txt,2.json,3.py,4.sh \}
+  scp -P port USER@HOST:/\{ 1.txt,2.json,3.py,4.sh \}
   ```
 
 - 从远程拷贝多个文件，多个文件夹到本地
@@ -206,7 +213,21 @@ nc -l 12345
   scp -r USER@HOST:/\{ 1.txt,2.json,3.py,4.sh,folder \}
   ```
 
+- 从本地拷贝文件到远程
 
+	```
+scp local_file remote_username@remote_ip:remote_folder 
+	或者 
+	scp local_file remote_username@remote_ip:remote_file 
+	或者 
+	scp local_file remote_ip:remote_folder 
+	或者 
+	scp local_file remote_ip:remote_file 
+	```
+	
+	- 第1,2个指定了用户名，命令执行后需要再输入密码，第1个仅指定了远程的目录，文件名字不变，第2个指定了文件名；
+	- 第3,4个没有指定用户名，命令执行后需要输入用户名和密码，第3个仅指定了远程的目录，文件名字不变，第4个指定了文件名；
+	
 - **references:**
 
   https://www.binarytides.com/linux-scp-command/
