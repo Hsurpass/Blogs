@@ -332,10 +332,12 @@ time + 可执行程序：可以统计程序的运行时间
 
 ## ulimit
 
+永久修改 ulimit参数，修改`/etc/security/limits.conf`
+
 程序崩溃时，系统默认不会生成core文件
 
 - -a: 查看系统参数。
-- -c : ulimit -c unlimited 把core文件的大小设置为无限制。
+- -c : ulimit -c unlimited 把core文件的大小设置为无限制。(临时修改)
 - 
 
 
