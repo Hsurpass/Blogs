@@ -7,3 +7,9 @@ https://docs.microsoft.com/zh-cn/archive/blogs/wsl/
 https://www.zhihu.com/question/52936174
 
 https://github.com/microsoft/WSL/issues
+
+
+
+wsl2 ping不通 宿主机：
+
+https://www.jianshu.com/p/ba2cf239ebe0
