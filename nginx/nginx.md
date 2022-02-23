@@ -179,10 +179,34 @@ location = /imooc/img/face1.png {
 
 3、每个指令必须有分号结束。
 
- *原文地址：https://www.cnblogs.com/knowledgesea/p/5175711.html* 
+
+
+cgi:
+
+$\color{red} {web服务器与cgi通过环境变量、标准输入、标准输出、标准错误互相传递数据。}$
+
+$\color{red} {CGI使外部程序与Web服务器之间交互成为可能。CGI程式运行在独立的进程中，并对每个Web请求建立一个进程，这种方法非常容易实现。}$ 
+
+$\color{red} {但效率很差，难以扩展。面对大量请求，进程的大量建立和消亡使操作系统性能大大下降。此外，由于地址空间无法共享，也限制了资源重用。}$
+
+fastcgi:
+
+
+
+
+
+ 
+
+*原文地址：https://www.cnblogs.com/knowledgesea/p/5175711.html* 
 
 references:
 
 https://www.runoob.com/w3cnote/nginx-setup-intro.html
 
 https://www.kuangstudy.com/bbs/1483987971375263745
+
+fastcgi:
+
+https://www.cnblogs.com/skynet/p/4146083.html
+
+https://www.cnblogs.com/skynet/p/4173450.html
