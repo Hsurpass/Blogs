@@ -27,3 +27,10 @@ https://www.it1352.com/2237644.html
 wsl2配置ssh
 
 https://zhuanlan.zhihu.com/p/391283691
+
+
+
+更改wsl系统中的文件权限
+
+http://zuyunfei.com/2018/06/15/file-system-configuration-in-wsl/
+
