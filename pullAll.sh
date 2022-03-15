@@ -29,3 +29,6 @@ bash pull.sh
 
 cd ../winston_demo
 bash pull.sh
+
+cd ../houjie
+bash pull.sh
