@@ -91,7 +91,9 @@ http {
     
     default_type  application/octet-stream; #默认文件类型，默认为text/plain
     
-    #access_log off; #取消服务日志  
+    #access_log off; #取消服务日志
+	#error_log /dev/null 
+	#error_log off并不能关闭日志记录功能，它将日志文件写入一个文件名为off的文件中，如果你想关闭错误日志记录功能，应使用以下配置：error_log /dev/null crit;（把存储位置设置到Linux的黑洞中去 ）。
     
     log_format myFormat '$remote_addr–$remote_user [$time_local] $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for'; #自定义格式
     access_log /var/log/nginx/access.log myFormat;  #combined为日志格式的默认值
