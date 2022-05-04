@@ -1,5 +1,11 @@
 # **GDB**
 
+查看虚函数表：
+
+```
+info vtbl xxx
+```
+
 
 
 
@@ -9,8 +15,9 @@
 ### 调试多进程
 
 - 调试父进程
-  - `set follow-fork-mode parent`(默认)
-
+  
+- `set follow-fork-mode parent`(默认)
+  
 - 调试子进程
 
   - `set follow-fork-mode child`

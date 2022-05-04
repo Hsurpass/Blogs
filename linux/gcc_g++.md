@@ -137,7 +137,18 @@ g++ main.cpp -I. -L. -lhello -o sharedMain
   export LD_LIBRARY_PATH = ./:$LD_LIBRARY_PATH
   ```
 
-  
+
+
+
+```
+gcc -c test.c -o test.o
+查看二进制码：
+objdump -t test.o
+反推回函数：
+c++filt _Z5printIiJiEEvRKT_DpRKT0_
+```
+
+
 
 reference:
 
