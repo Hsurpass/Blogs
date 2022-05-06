@@ -1,48 +1,12 @@
-## 编译安装boost
-
-```
-./bootstrap.sh --help
-```
-
-![image-20210606170217002](image/image-20210606170217002.png)
 
 
+reference:
 
-1. ```
-   ./bootstrapsh
-   ```
+1. https://mmoaay.gitbooks.io/boost-asio-cpp-network-programming-chinese/content/
 
-2. ``` 
-   ./b2 --help
-   ```
+2. https://ishare.iask.sina.com.cn/f/137GZAuLfBa.html
 
-   ![image-20210609230132294](image/image-20210609230132294.png)
+3. https://github.com/mmoaay/boost-asio-cpp-network-programming-in-chinese
 
-   ![image-20210609230215737](image/image-20210609230215737.png)
-
-   ![image-20210609230257136](image/image-20210609230257136.png)
-
-   ![image-20210609230318655](image/image-20210609230318655.png)
-
-1. install or stage
-
-   + install: 会拷贝头文件并编译所有库 (会在linux目录下生成include、lib子目录)
-
-   ```
-   ./b2 --prefix=../linux --build-dir=../linux install
-   ```
-
-   + stage: 只会编译库（只会生成lib目录）
-
-   ```
-   ./b2 --stagedir=../linux --build-dir=../linux stage
-   ```
-
-4. https://mmoaay.gitbooks.io/boost-asio-cpp-network-programming-chinese/content/
-
-5. https://ishare.iask.sina.com.cn/f/137GZAuLfBa.html
-
-6. https://github.com/mmoaay/boost-asio-cpp-network-programming-in-chinese
-
-7. https://m.w3cschool.cn/nlzbw/nlzbw-3vs825ya.html
+4. https://m.w3cschool.cn/nlzbw/nlzbw-3vs825ya.html
 
