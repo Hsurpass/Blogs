@@ -8,6 +8,9 @@
 
 using namespace std;
 
+#define COSTINF UINT32_MAX
+#define WEIGHTINF INT32_MAX
+
 /*
     1->2: 1
     1->3: 12
@@ -31,37 +34,74 @@ using namespace std;
 class Node
 {
 public:
-    Node() : parent(NULL), cost(UINT32_MAX) {}
+    Node() : parent(NULL), cost(COSTINF) {}
 
-    bool operator<(const Node& r) { return this->cost < r.cost; }
+    bool operator>(const Node& r) const { return this->cost > r.cost; }
+
     Node *parent;
     uint32_t cost;
     std::string name;
+    int index;
 };
 
 class dijkstra
 {
 private:
-    int graph[6][6];
-    std::unordered_map<std::string, Node> nodes;
-    std::priority_queue<Node> openSet;
+    std::priority_queue<Node, vector<Node>, std::greater<Node> > openSet;
+    std::unordered_map<string, Node*> closeSet;
 
 public:
     dijkstra() {}
     ~dijkstra() {}
 
-    void setOrigin(Node& node)
+    void setOrigin(string name) 
     {
-        openSet.push(node);
+        for(int i = 0;i < )
+        node.cost = 0;
+        openSet.push(node); 
     }
 
-    void setDestination()
-    {
+    void dijkstraAlgo(const vector<vector<int>>& graph);
 
-    }
+    void printPath(string nodeName);
 };
 
-void initGraph(int (*graph)[6])
+void dijkstra::printPath(string nodeName)
+{
+    string path;
+    const Node* node = closeSet[nodeName];
+    while (node != NULL)
+    {
+        path += node->name;
+        node = node->parent;
+    }
+    
+    for (string::reverse_iterator itr = path.rbegin(); itr != path.rend(); ++itr)
+    {
+        cout << *itr << "->";
+    }
+    cout << endl;
+}
+
+void dijkstra::dijkstraAlgo(const vector<vector<int>>& graph, std::unordered_map<int, Node>& nodes)
+{
+    while (!openSet.empty())
+    {
+        const Node& minNode = openSet.top();
+        openSet.pop();
+
+        for (int i = 0; i < graph.size(); i++)
+        {
+            if (graph[minNode.index][i] != WEIGHTINF)
+            {
+                openSet.push(nodes[i]);
+            }
+        }
+        
+    }
+}
+
+void initGraph(vector<vector<int>>& graph)
 {
     for (size_t i = 0; i < 6; i++)
     {
@@ -82,29 +122,29 @@ void initGraph(int (*graph)[6])
     graph[4][5] = 4;
 }
 
-void initNode(std::unordered_map<std::string, Node> &nodes)
+void initNode(std::unordered_map<int, Node> &nodes)
 {
     for (size_t i = 0; i < nodes.size(); i++)
     {
         Node node;
         node.name = 'A' + i;
-        nodes[node.name] = node;
+        node.index = i;
+        nodes[node.index] = node;
     }
 }
 
 void test_dijkstra()
 {
-    int graph[6][6];
-    std::unordered_map<std::string, Node> nodes;
+    vector<vector<int>> graph;
+    std::unordered_map<int, Node> nodes;
     std::priority_queue<Node> openSet;
 
     initGraph(graph);
-    while (1)
-    {
-        const Node& minNode = openSet.top();
-        openSet.pop();
-    }
-    
+    initNode(nodes);
+
+    dijkstra dij;
+    dij.setOrigin("A");
+    dij.dijkstraAlgo(graph);
 }
 
 int main()
