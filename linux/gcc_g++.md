@@ -154,6 +154,15 @@ c++filt _Z5printIiJiEEvRKT_DpRKT0_
 
 ![image-20220718073802113](image/image-20220718073802113.png)
 
+
+
+
+
+**LIBRARY_PATH**：用于在程序**编译期间**查找动态链接库时指定查找共享库的路径。
+**LD_LIBRARY_PATH**：用于在程序加载**运行期间**查找动态链接库时指定除了系统默认路径之外的其他路径。
+**C_INCLUDE_PATH**: 指明c头文件的搜索路径。
+**CPLUS_INCLUDE_PATH**:指明c++头文件的搜索路径。  
+
 reference:
 
 https://www.cnblogs.com/bigfi/p/9487427.html
