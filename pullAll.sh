@@ -2,17 +2,20 @@
 
 ./pull.sh
 
-cd ../Algorithm
+cd ../ElegantTest
 ./pull.sh
 
-cd ../BoostTest
-./pull.sh
+# cd ../Algorithm
+# ./pull.sh
 
-cd ../CmakeTest
-./pull.sh
+# cd ../BoostTest
+# ./pull.sh
 
-cd ../CPPTest
-./pull.sh
+# cd ../CmakeTest
+# ./pull.sh
+
+# cd ../CPPTest
+# ./pull.sh
 
 cd ../log4js-demo
 ./pull.sh
@@ -23,8 +26,8 @@ cd ../mocha_integrative_test
 cd ../plan
 ./pull.sh
 
-cd ../unixProgramming
-./pull.sh
+# cd ../unixProgramming
+# ./pull.sh
 
 cd ../wangguilin
 ./pull.sh
