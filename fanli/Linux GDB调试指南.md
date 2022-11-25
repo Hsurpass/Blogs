@@ -73,7 +73,7 @@ Linux 下 C++ 程序开发，即使使用 makefile、cmake 等编译工具，其
 
 本课程中我使用的操作系统是 CentOS 7.0，为了演示方便直接使用的 root 账号演示。如果读者的机器上没有安装 gcc 和 gdb，可以使用 **yum** 命令安装一下。
 
-```
+```bash
 # 安装 gcc
 yum install gcc
 # 安装 g++
@@ -84,13 +84,13 @@ yum install gdb
 
 一般要调试某个程序，为了能清晰地看到调试的每一行代码、调用的堆栈信息、变量名和函数名等信息，需要调试程序含有**调试符号**信息。使用 **gcc** 编译程序时，如果加上 **-g** 选项即可在编译后的程序中保留调试符号信息。举个例子，以下命令将生成一个带调试信息的程序 hello_server。
 
-```
+```bash
 gcc -g -o hello_server hello_server.c
 ```
 
 那么如何判断 hello_server 是否带有调试信息呢？我们使用 gdb 来调试一下这个程序，gdb 会显示正确读取到该程序的调试信息，在打开的 Linux Shell 终端输入 **gdb hello_server** 查看显示结果即可：
 
-```
+```bash
 [root@localhost testclient]# gdb hello_server
 GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
 Copyright (C) 2013 Free Software Foundation, Inc.
@@ -107,13 +107,13 @@ Reading symbols from /root/testclient/hello_server...done.
 
 gdb 加载成功以后，会显示如下信息：
 
-```
+```bash
 Reading symbols from /root/testclient/hello_server...done.
 ```
 
 即读取符号文件完毕，说明该程序含有调试信息。我们不加 **-g** 选项再试试：
 
-```
+```bash
 [root@localhost testclient]# gcc -o hello_server2 hello_server.c
 [root@localhost testclient]# gdb hello_server2
 GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
@@ -131,13 +131,13 @@ Reading symbols from /root/testclient/hello_server2...(no debugging symbols foun
 
 细心的读者应该看出差别了，不加 **-g** 选项用 gdb 调试生成 hello_server 2 程序时，读取调试符号信息时会收到如下提示：
 
-```
+```bash
 Reading symbols from /root/testclient/hello_server2...(no debugging symbols found)...done.
 ```
 
 顺便提一下，除了不加 -g 选项，也可以使用 Linux 的 strip 命令移除掉某个程序中的调试信息，我们这里对 hello_server 使用 strip 命令试试：
 
-```
+```bash
 [root@localhost testclient]# strip hello_server
 ##使用 strip 命令之前
 -rwxr-xr-x. 1 root root 12416 Sep 8 09:45 hello_server
@@ -149,7 +149,7 @@ Reading symbols from /root/testclient/hello_server2...(no debugging symbols foun
 
 我们再用 gdb 验证一下这个程序的调试信息确实被移除了：
 
-```
+```bash
 [root@localhost testclient]# gdb hello_server
 GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-100.el7_4.1
 Copyright (C) 2013 Free Software Foundation, Inc.
@@ -169,7 +169,7 @@ Reading symbols from /root/testclient/hello_server...(no debugging symbols found
 - 本课程里虽然以 gcc 为例，但 -g 选项实际上同样也适用于使用 makefile 、cmake 等工具编译生成的 Linux 程序。
 - 在实际生成调试程序时，一般不仅要加上 -g 选项，也建议关闭编译器的程序优化选项。编译器的程序优化选项一般有五个级别，从 O0 ~ O4 （ 注意第一个 O0 ，是字母 O 加上数字 0 ）， O0 表示不优化，从 O1 ~ O4 优化级别越来越高，O4 最高。这样做的目的是为了调试的时候，符号文件显示的调试变量等能与源代码完全对应起来。举个例子，假设有以下代码：
 
-```
+```c
   int func()
   {
       int a = 1;
@@ -228,7 +228,7 @@ Reading symbols from /root/testclient/hello_server...(no debugging symbols found
 
 在某些情况下，一个程序已经启动了，我们想调试这个程序，但是又不想重启这个程序。假设有这样一个场景，我们的聊天测试服务器程序正在运行，运行一段时间之后，发现这个聊天服务器不能接受新的客户端连接了，这时肯定是不能重启程序的，如果重启，当前程序的各种状态信息就丢失了。怎么办呢？可以使用 **gdb attach 进程 ID** 来将 GDB 调试器附加到聊天测试服务器程序上。例如，假设聊天程序叫 chatserver，可以使用 ps 命令获取该进程的 PID，然后使用 gdb attach 就可以调试了，操作如下：
 
-```
+```bash
 [zhangyl@iZ238vnojlyZ flamingoserver]$ ps -ef | grep chatserver
 zhangyl  21462 21414  0 18:00 pts/2    00:00:00 grep --color=auto chatserver
 zhangyl  26621     1  5 Oct10 ?        2-17:54:42 ./chatserver -d
@@ -238,7 +238,7 @@ zhangyl  26621     1  5 Oct10 ?        2-17:54:42 ./chatserver -d
 
 通过以上代码得到 chatserver 的 PID 为 26621，然后使用 **gdb attach 26621** 把 GDB 附加到 chatserver 进程，操作并输出如下：
 
-```
+```bash
 [zhangyl@localhost flamingoserver]$ gdb attach 26621
 Attaching to process 26661
 Reading symbols from /home/zhangyl/flamingoserver/chatserver...done.
@@ -265,14 +265,14 @@ Reading symbols from /lib64/libc.so.6...(no debugging symbols found)...done.
 
 当调试完程序想结束此次调试时，而且不对当前进程 chatserver 有任何影响，也就是说想让这个程序继续运行，可以在 GDB 的命令行界面输入 detach 命令让程序与 GDB 调试器分离，这样 chatserver 就可以继续运行了：
 
-```
+```bash
 (gdb) detach
 Detaching from program: /home/zhangyl/flamingoserver/chatserver, process 42
 ```
 
 然后再退出 GDB 就可以了：
 
-```
+```bash
 (gdb) quit
 [zhangyl@localhost flamingoserver]$
 ```
@@ -283,7 +283,7 @@ Detaching from program: /home/zhangyl/flamingoserver/chatserver, process 42
 
 > 顺便提一句，ulimit 这个命令不仅仅可以查看 core 文件生成是否开启，还可以查看其他的一些功能，比如系统允许的最大文件描述符的数量等，具体可以使用 ulimit -a 命令来查看，由于这个内容与本课主题无关，这里不再赘述。
 
-```
+```bash
 [zhangyl@localhost flamingoserver]$ ulimit -a
 core file size          (blocks, -c) 0
 data seg size           (kbytes, -d) unlimited
@@ -305,7 +305,7 @@ file locks                      (-x) unlimited
 
 发现 core file size 那一行默认是 0，表示关闭生成 core 文件，可以使用“ulimit 选项名 设置值”来修改。例如，可以将 core 文件生成改成具体某个值（最大允许的字节数），这里我们使用 **ulimit -c unlimited**（**unlimited** 是 **-c** 选项值）直接修改成不限制大小。
 
-```
+```bash
 [zhangyl@localhost flamingoserver]$ ulimit -c unlimited
 [zhangyl@localhost flamingoserver]$ ulimit -a
 core file size          (blocks, -c) unlimited
@@ -335,19 +335,19 @@ file locks                      (-x) unlimited
 
 **生成的 core 文件的默认命名方式是 core.pid，**举个例子，比如某个程序当时运行时其进程 ID 是 16663，那么它崩溃产生的 core 文件的名称就是 core.16663。我们来看一个具体的例子，某次我发现服务器上的 msg_server 崩溃了，产生了一个如下的 core 文件：
 
-```
+```bash
 -rw------- 1 root root 10092544 Sep  9 15:14 core.21985
 ```
 
 就可以通过这个 core.21985 文件来排查崩溃的原因，调试 core 文件的命令是：
 
-```
+```bash
 gdb filename corename
 ```
 
 其中，filename 就是程序名，这里就是 msg_server；corename 是 core.21985，我们输入 gdb msg_server core.21985 来启动调试：
 
-```
+```bash
 [root@myaliyun msg_server]# gdb msg_server core.21985
 Reading symbols from /root/teamtalkserver/src/msg_server/msg_server...done.
 [New LWP 21985]
@@ -362,7 +362,7 @@ Program terminated with signal 11, Segmentation fault.
 
 可以看到程序崩溃的地方是在 stl_function.h 的第 235 行，然后通过 **bt** 命令（后续将详细介绍该命令）查看崩溃时的调用堆栈，进一步分析就能找到崩溃的原因。
 
-```
+```bash
 (gdb) bt
 #0  0x00000000004ceb1f in std::less<CMsgConn*>::operator() (this=0x2283878, __x=@0x7ffca83563a0: 0x2284430, __y=@0x51: <error reading variable>)
     at /usr/include/c++/4.8.2/bits/stl_function.h:235
@@ -392,7 +392,7 @@ Program terminated with signal 11, Segmentation fault.
 
 - 程序启动时，记录一下自己的 PID
 
-```
+```c
 void writePid()
 {
       uint32_t curPid = (uint32_t) getpid();
@@ -413,7 +413,7 @@ void writePid()
 
 **/proc/sys/kernel/core_pattern** 可以设置格式化的 core 文件保存位置或文件名。修改方式如下：
 
-```
+```bash
 echo "/corefile/core-%e-%p-%t" > /proc/sys/kernel/core_pattern
 ```
 
@@ -431,13 +431,13 @@ echo "/corefile/core-%e-%p-%t" > /proc/sys/kernel/core_pattern
 
 假设现在的程序叫 **test**，我们设置该程序崩溃时的 core 文件名如下：
 
-```
+```bash
 echo "/root/testcore/core-%e-%p-%t" > /proc/sys/kernel/core_pattern
 ```
 
 那么最终会在 **/root/testcore/** 目录下生成的 test 的 core 文件名格式如下：
 
-```
+```bash
 -rw-------. 1 root root 409600 Jan 14 13:54 core-test-13154-1547445291
 ```
 
@@ -563,7 +563,7 @@ Ambiguous command "th": thbreak, thread.
 
 Redis 的最新源码下载地址可以在 [Redis 官网](https://redis.io/)获得，使用 wget 命令将 Redis 源码文件下载下来：
 
-```
+```bash
 [root@localhost gdbtest]# wget http://download.redis.io/releases/redis-4.0.11.tar.gz
 --2018-09-08 13:08:41--  http://download.redis.io/releases/redis-4.0.11.tar.gz
 Resolving download.redis.io (download.redis.io)... 109.74.203.151
@@ -577,7 +577,7 @@ Saving to: ‘redis-4.0.11.tar.gz’
 
 解压：
 
-```
+```bash
 [root@localhost gdbtest]# tar zxvf redis-4.0.11.tar.gz
 ```
 
@@ -585,7 +585,7 @@ Saving to: ‘redis-4.0.11.tar.gz’
 
 **为了方便调试，我们需要生成调试符号并且关闭编译器优化选项，**操作如下：
 
-```
+```bash
 [root@localhost gdbtest]# cd redis-4.0.11
 [root@localhost redis-4.0.11]# make CFLAGS="-g -O0" -j 4
 复制
@@ -599,7 +599,7 @@ Saving to: ‘redis-4.0.11.tar.gz’
 
 进入 src 目录，使用 GDB 启动 redis-server 这个程序：
 
-```
+```bash
 [root@localhost src]# gdb redis-server
 Reading symbols from /root/gdbtest/redis-4.0.11/src/redis-server...done.
 ```
@@ -608,7 +608,7 @@ Reading symbols from /root/gdbtest/redis-4.0.11/src/redis-server...done.
 
 默认情况下，前面的课程中我们说 **gdb filename** 命令只是附加的一个调试文件，并没有启动这个程序，需要输入 **run** 命令（简写为 r）启动这个程序：
 
-```
+```bash
 (gdb) r
 Starting program: /root/gdbtest/redis-4.0.11/src/redis-server
 [Thread debugging using libthread_db enabled]
@@ -662,7 +662,7 @@ Starting program: /root/gdbtest/redis-4.0.11/src/redis-server
 
 当 GDB 触发断点或者使用 Ctrl + C 命令中断下来后，想让程序继续运行，只要输入 **continue** 命令即可（简写为 c）。当然，如果 **continue** 命令继续触发断点，GDB 就会再次中断下来。
 
-```
+```bash
 ^C
 Program received signal SIGINT, Interrupt.
 0x00007ffff73ee923 in epoll_wait () from /lib64/libc.so.6
@@ -680,14 +680,14 @@ Continuing.
 
 这三种方式都是我们常用的添加断点的方式。举个例子，对于一般的 Linux 程序来说，main() 函数是程序入口函数，redis-server 也不例外，我们知道了函数的名字，就可以直接在 main() 函数处添加一个断点：
 
-```
+```bash
 (gdb) b main
 Breakpoint 1 at 0x423450: file server.c, line 3709.
 ```
 
 添加好了以后，使用 run 命令重启程序，就可以触发这个断点了，GDB 会停在断点处。
 
-```
+```bash
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -706,14 +706,14 @@ redis-server 默认端口号是 6379 ，我们知道这个端口号肯定是通�
 
 我们使用 **break** 命令在这个地方加一个断点：
 
-```
+```bash
 (gdb) b anet.c:441
 Breakpoint 3 at 0x426cf0: file anet.c, line 441
 ```
 
 由于程序绑定端口号是 redis-server 启动时初始化的，为了能触发这个断点，再次使用 run 命令重启下这个程序，GDB 第一次会触发 main() 函数处的断点，输入 continue 命令继续运行，接着触发 anet.c:441 处的断点：
 
-```
+```bash
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -741,7 +741,7 @@ anet.c:441 处的代码如下：
 
 现在断点停在第 441 行，所以当前文件就是 anet.c，可以直接使用“**break 行号**”添加断点。例如，可以在第 444 行、450 行、452 行分别加一个断点，看看这个函数执行完毕后走哪个 return 语句退出，则可以执行：
 
-```
+```bash
 440     static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int                               backlog) {
 441         if (bind(s,sa,len) == -1) {
 442             anetSetError(err, "bind: %s", strerror(errno));
@@ -770,7 +770,7 @@ Breakpoint 5 at 0x426d06: file anet.c, line 452.
 
 添加好这三个断点以后，我们使用 **continue** 命令继续运行程序，发现程序运行到第 452 行中断下来（即触发 Breakpoint 5）：
 
-```
+```bash
 (gdb) c
 Continuing.
 
@@ -780,7 +780,7 @@ Breakpoint 5, anetListen (err=0x746bb0 <server+560> "", s=10, sa=0x7e34e0, len=1
 
 说明 redis-server 绑定端口号并设置侦听（listen）成功，我们可以再打开一个 SSH 窗口，验证一下，发现 6379 端口确实已经处于侦听状态了：
 
-```
+```bash
 [root@localhost src]# lsof -i -Pn | grep redis
 redis-ser 46699    root   10u  IPv6 245844      0t0  TCP *:6379 (LISTEN)
 ```
@@ -789,7 +789,7 @@ redis-ser 46699    root   10u  IPv6 245844      0t0  TCP *:6379 (LISTEN)
 
 **backtrace** 命令（简写为 bt）用来查看当前调用堆栈。接上，redis-server 现在中断在 anet.c:452 行，可以通过 **backtrace** 命令来查看当前的调用堆栈：
 
-```
+```bash
 (gdb) bt
 #0  anetListen (err=0x746bb0 <server+560> "", s=10, sa=0x7e34e0, len=16, backlog=511) at anet.c:452
 #1  0x0000000000426e35 in _anetTcpServer (err=err@entry=0x746bb0 <server+560> "", port=port@entry=6379, bindaddr=bindaddr@entry=0x0, af=af@entry=10, backlog=511)
@@ -804,7 +804,7 @@ redis-ser 46699    root   10u  IPv6 245844      0t0  TCP *:6379 (LISTEN)
 
 这里一共有 6 层堆栈，最顶层是 main() 函数，最底层是断点所在的 anetListen() 函数，**堆栈编号分别是 #0 ~ #5 ，**如果想切换到其他堆栈处，可以使用 frame 命令（简写为 f），该命令的使用方法是“**frame 堆栈编号**（编号不加 #）”。在这里依次切换至堆栈顶部，然后再切换回 #0 练习一下：
 
-```
+```bash
 (gdb) f 1
 #1  0x0000000000426e35 in _anetTcpServer (err=err@entry=0x746bb0 <server+560> "", port=port@entry=6379, bindaddr=bindaddr@entry=0x0, af=af@entry=10, backlog=511)
     at anet.c:487
@@ -838,7 +838,7 @@ redis-ser 46699    root   10u  IPv6 245844      0t0  TCP *:6379 (LISTEN)
 
 在程序中加了很多断点，而我们想查看加了哪些断点时，可以使用 **info break** 命令（简写为 info b）：
 
-```
+```bash
 (gdb) info b
 Num     Type           Disp Enb Address            What
 1       breakpoint     keep y   0x0000000000423450 in main at server.c:3709
@@ -856,7 +856,7 @@ Num     Type           Disp Enb Address            What
 
 通过上面的内容片段可以知道，目前一共增加了 6 个断点，除了断点 2 以外，其他的断点均被触发一次，其他信息比如每个断点的位置（所在的文件和行号）、内存地址、断点启用和禁用状态信息也一目了然。如果我们想禁用某个断点，使用“**disable 断点编号**”就可以禁用这个断点了，被禁用的断点不会再被触发；同理，被禁用的断点也可以使用“**enable 断点编号**”重新启用。
 
-```
+```bash
 (gdb) disable 1
 (gdb) info b
 Num     Type           Disp Enb Address            What
@@ -875,7 +875,7 @@ Num     Type           Disp Enb Address            What
 
 使用 **disable 1** 以后，第一个断点的 Enb 一栏的值由 y 变成 n，重启程序也不会再次触发：
 
-```
+```bash
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -893,7 +893,7 @@ Breakpoint 3, anetListen (err=0x746bb0 <server+560> "", s=10, sa=0x75edb0, len=2
 
 如果 **disable** 命令和 **enable** 命令不加断点编号，则分别表示禁用和启用所有断点：
 
-```
+```bash
 (gdb) disable
 (gdb) info b
 Num     Type           Disp Enb Address            What
@@ -919,7 +919,7 @@ Num     Type           Disp Enb Address            What
 
 使用“**delete 编号**”可以删除某个断点，如 **delete 2 3** 则表示要删除的断点 2 和断点 3：
 
-```
+```bash
 (gdb) delete 2 3
 (gdb) info b
 Num     Type           Disp Enb Address            What
@@ -936,7 +936,7 @@ Num     Type           Disp Enb Address            What
 
 **list** 命令和后面介绍的 **print** 命令都是 GDB 调试中用到的频率最高的命令，**list** 命令（简写为 l）可以查看当前断点处的代码。使用 **frame** 命令切换到刚才的堆栈 #3 处，然后输入 **list** 命令看下效果：
 
-```
+```bash
 (gdb) f 4
 #4  0x000000000042fa77 in initServer () at server.c:1852
 1852            listenToPort(server.port,server.ipfd,&server.ipfd_count) == C_ERR)
@@ -956,7 +956,7 @@ Num     Type           Disp Enb Address            What
 
 断点停在第 1852 行，输入 list 命令以后，会显示第 1852 行前后的 10 行代码，再次输入 list 命令试一下：
 
-```
+```bash
 (gdb) l
 1857            unlink(server.unixsocket); /* don't care if this fails */
 1858            server.sofd = anetUnixServer(server.neterr,server.unixsocket,
@@ -983,7 +983,7 @@ Num     Type           Disp Enb Address            What
 
 代码继续往后显示 10 行，也就是说，第一次输入 **list** 命令会显示断点处前后的代码，继续输入 **list** 指令会以递增行号的形式继续显示剩下的代码行，一直到文件结束为止。当然 list 指令还可以往前和往后显示代码，命令分别是“**list +** （加号）”和“**list -** （减号）”：
 
-```
+```bash
 (gdb) list -
 1857            unlink(server.unixsocket); /* don't care if this fails */
 1858            server.sofd = anetUnixServer(server.neterr,server.unixsocket,
@@ -1010,7 +1010,7 @@ Num     Type           Disp Enb Address            What
 
 **list** 默认显示多少行可以通过修改相关的 GDB 配置，由于我们一般不会修改这个默认显示行数，这里就不再浪费篇幅介绍了。**list** 不仅可以显示当前断点处的代码，也可以显示其他文件某一行的代码，更多的用法可以在 GDB 中输入 **help list** 查看（也可以通过）：
 
-```
+```bash
 (gdb) help list
 List specified function or line.
 With no argument, lists ten more lines after or around previous listing.
@@ -1034,7 +1034,7 @@ With two args if one is empty it stands for ten lines away from the other arg.
 
 通过 **print** 命令（简写为 p）我们可以在调试过程中方便地查看变量的值，也可以修改当前内存中的变量值。切换当前断点到堆栈 #4 ，然后打印以下三个变量。
 
-```
+```bash
 (gdb) bt
 #0  anetListen (err=0x746bb0 <server+560> "", s=10, sa=0x7e34e0, len=16, backlog=511) at anet.c:447
 #1  0x0000000000426e35 in _anetTcpServer (err=err@entry=0x746bb0 <server+560> "", port=port@entry=6379, bindaddr=bindaddr@entry=0x0, af=af@entry=10, backlog=511)
@@ -1076,7 +1076,7 @@ $17 = 0
 
 **print 命令不仅可以输出表达式结果，同时也可以修改变量的值，**我们尝试将上文中的端口号从 6379 改成 6400 试试：
 
-```
+```bash
 (gdb) p server.port=6400
 $24 = 6400
 (gdb) p server.port
@@ -1086,7 +1086,7 @@ $25 = 6400
 
 当然，一个变量值修改后能否起作用要看这个变量的具体位置和作用，举个例子，对于表达式 int a = b / c ; 如果将 c 修改成 0 ，那么程序就会产生除零异常。再例如，对于如下代码：
 
-```
+```c
 int j = 100;
 for (int i = 0; i < j; ++i) {
     printf("i = %d\n", i);
@@ -1099,7 +1099,7 @@ for (int i = 0; i < j; ++i) {
 
 GDB 还有另外一个命令叫 **ptype** ，顾名思义，其含义是“print type”，就是输出一个变量的类型。例如，我们试着输出 Redis 堆栈 #4 的变量 server 和变量 server.port 的类型：
 
-```
+```c
 (gdb) ptype server
 type = struct redisServer {
     pid_t pid;
@@ -1130,7 +1130,7 @@ type = int
 
 在前面使用 **info break** 命令查看当前断点时介绍过，info 命令是一个复合指令，还可以用来查看当前进程的所有线程运行情况。下面以 redis-server 进程为例来演示一下，使用 delete 命令删掉所有断点，然后使用 run 命令重启一下 redis-server，等程序正常启动后，我们按快捷键 Ctrl+C 中断程序，然后使用 info thread 命令来查看当前进程有哪些线程，分别中断在何处：
 
-```
+```c
 (gdb) delete
 Delete all breakpoints? (y or n) y
 (gdb) r
@@ -1163,7 +1163,7 @@ Program received signal SIGINT, Interrupt.
 
 如何切换到其他线程呢？可以通过“thread 线程编号”切换到具体的线程上去。例如，想切换到线程 2 上去，只要输入 **thread 2** 即可，然后输入 **bt** 就能查看这个线程的调用堆栈了：
 
-```
+```c
 (gdb) info thread
   Id   Target Id         Frame
   4    Thread 0x7fffef7fd700 (LWP 53065) "redis-server" 0x00007ffff76c4945 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0
@@ -1182,7 +1182,7 @@ Program received signal SIGINT, Interrupt.
 
 因此利用 **info thread** 命令就可以调试多线程程序，当然用 GDB 调试多线程程序还有一个很麻烦的问题，我们将在后面的 GDB 高级调试技巧中介绍。请注意，当把 GDB 当前作用的线程切换到线程 2 上之后，线程 2 前面就被加上了星号：
 
-```
+```c
 (gdb) info thread
   Id   Target Id         Frame
   4    Thread 0x7fffef7fd700 (LWP 53065) "redis-server" 0x00007ffff76c4945 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0
@@ -1193,7 +1193,7 @@ Program received signal SIGINT, Interrupt.
 
 **info** 命令还可以用来查看当前函数的参数值，组合命令是 **info args**，我们找个函数值多一点的堆栈函数来试一下：
 
-```
+```bash
 (gdb) thread 1
 [Switching to thread 1 (Thread 0x7ffff7fec780 (LWP 53062))]
 #0  0x00007ffff73ee923 in epoll_wait () from /lib64/libc.so.6
@@ -1214,7 +1214,7 @@ flags = 11
 
 上述代码片段切回至主线程 1，然后切换到堆栈 #2，堆栈 #2 调用处的函数是 aeProcessEvents() ，一共有两个参数，使用 **info args** 命令可以输出当前两个函数参数的值，参数 eventLoop 是一个指针类型的参数，对于指针类型的参数，GDB 默认会输出该变量的指针地址值，如果想输出该指针指向对象的值，在变量名前面加上 * 解引用即可，这里使用 p *eventLoop 命令：
 
-```
+```bash
 (gdb) p *eventLoop
 $26 = {maxfd = 11, setsize = 10128, timeEventNextId = 1, lastTime = 1536570672, events = 0x7ffff0871480, fired = 0x7ffff08c2e40, timeEventHead = 0x7ffff0822080,
   stop = 0, apidata = 0x7ffff08704a0, beforesleep = 0x429590 <beforeSleep>, aftersleep = 0x4296d0 <afterSleep>}
@@ -1224,7 +1224,7 @@ $26 = {maxfd = 11, setsize = 10128, timeEventNextId = 1, lastTime = 1536570672, 
 
 上面介绍的是 **info** 命令最常用的三种方法，更多关于 info 的组合命令在 GDB 中输入 **help info** 就可以查看：
 
-```
+```c
 (gdb) help info
 Generic command for showing things about the program being debugged.
 
@@ -1300,7 +1300,7 @@ Command name abbreviations are allowed if unambiguous.
 
 这几个命令是我们用 GDB 调试程序时最常用的几个控制流命令，因此放在一起介绍。**next** 命令（简写为 n）是让 GDB 调到下一条命令去执行，这里的下一条命令不一定是代码的下一行，而是根据程序逻辑跳转到相应的位置。举个例子：
 
-```
+```c
 int a = 0;
 if (a == 9)
 {
@@ -1315,7 +1315,7 @@ print("b = %d.\n", b);
 
 **这里有一个小技巧，在 GDB 命令行界面如果直接按下回车键，默认是将最近一条命令重新执行一遍**，因此，当使用 **next** 命令单步调试时，不必反复输入 **n** 命令，直接回车就可以了。
 
-```
+```c
 3704    int main(int argc, char **argv) {
 (gdb) n
 3736        spt_init(argc, argv);
@@ -1338,7 +1338,7 @@ print("b = %d.\n", b);
 
 上面的执行过程等价于输入第一个 **n** 后直接回车：
 
-```
+```c
 (gdb) n
 3736        spt_init(argc, argv);
 (gdb)
@@ -1354,7 +1354,7 @@ print("b = %d.\n", b);
 
 **next** 命令用调试的术语叫“单步步过”（step over），即遇到函数调用直接跳过，不进入函数体内部。而下面的 **step** 命令（简写为 **s**）就是“单步步入”（step into），顾名思义，就是遇到函数调用，进入函数内部。举个例子，在 redis-server 的 main() 函数中有个叫 spt_init(argc, argv) 的函数调用，当我们停在这一行时，输入 s 将进入这个函数内部。
 
-```
+```c
 //为了说明问题本身，除去不相关的干扰，代码有删减
 int main(int argc, char **argv) {
     struct timeval tv;
@@ -1377,7 +1377,7 @@ int main(int argc, char **argv) {
 
 演示一下，先使用 **b main** 命令在 main() 处加一个断点，然后使用 r 命令重新跑一下程序，会触发刚才加在 main() 函数处的断点，然后使用 **n** 命令让程序走到 spt_init(argc, argv) 函数调用处，再输入 **s** 命令就可以进入该函数了：
 
-```
+```c
 (gdb) b main
 Breakpoint 3 at 0x423450: file server.c, line 3704.
 (gdb) r
@@ -1410,7 +1410,7 @@ spt_init (argc=argc@entry=1, argv=argv@entry=0x7fffffffe588) at setproctitle.c:1
 
 说到 **step** 命令，还有一个需要注意的地方，就是当函数的参数也是函数调用时，我们使用 **step** 命令会依次进入各个函数，那么顺序是什么呢？举个例子，看下面这段代码：
 
-```
+```c
 1  int func1(int a, int b)
 2  {
 3     int c = a + b;
@@ -1446,7 +1446,7 @@ spt_init (argc=argc@entry=1, argv=argv@entry=0x7fffffffe588) at setproctitle.c:1
 
 这里需要注意一下二者的区别：**finish** 命令会执行函数到正常退出该函数；而 **return** 命令是立即结束执行当前函数并返回，$\color{red} {也就是说，如果当前函数还有剩余的代码未执行完毕，也不会执行了。}$我们用一个例子来验证一下：
 
-```
+```c
 1  #include <stdio.h>
 2
 3  int func()
@@ -1470,7 +1470,7 @@ spt_init (argc=argc@entry=1, argv=argv@entry=0x7fffffffe588) at setproctitle.c:1
 
 在 main() 函数处加一个断点，然后运行程序，在第 15 行使用 **step** 命令进入 func() 函数，接着单步到代码第 8 行，直接输入 **return** 命令，这样 func() 函数剩余的代码就不会继续执行了，因此 printf("b=%d.\n", b); 这一行就没有输出。同时由于我们没有在 **return** 命令中指定这个函数的返回值，因而最终在 main() 函数中得到的变量 c 的值是一个脏数据。这也就验证了我们上面说的：**return** 命令在当前位置立即结束当前函数的执行，并返回到上一层调用。
 
-```
+```c
 (gdb) b main
 Breakpoint 1 at 0x40057d: file test.c, line 15.
 (gdb) r
@@ -1501,7 +1501,7 @@ c=-134250496.
 
 再次用 **return** 命令指定一个值试一下，这样得到变量 c 的值应该就是我们指定的值。
 
-```
+```c
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -1535,7 +1535,7 @@ $1 = 9999
 
 我们再对比一下使用 **finish** 命令来结束函数执行的结果。
 
-```
+```c
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -1570,7 +1570,7 @@ c=17.
 
 实际调试时，还有一个 **until** 命令（简写为 **u**）可以指定程序运行到某一行停下来，还是以 redis-server 的代码为例：
 
-```
+```c
 1812    void initServer(void) {
 1813        int j;
 1814
@@ -1611,7 +1611,7 @@ c=17.
 
 这是 redis-server 代码中 initServer() 函数的一个代码片段，位于文件 server.c 中，当停在第 1813 行，想直接跳到第 1839 行，可以直接输入 **u 1839**，这样就能快速执行完中间的代码。当然，也可以先在第 1839 行加一个断点，然后使用 **continue** 命令运行到这一行，但是使用 **until** 命令会更简便。
 
-```
+```c
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -1645,7 +1645,7 @@ jump <location>
 
 **location** 可以是程序的**行号或者函数的地址，**jump 会让程序执行流跳转到指定位置执行，当然其行为也是不可控制的，例如您跳过了某个对象的初始化代码，直接执行操作该对象的代码，那么可能会导致程序崩溃或其他意外行为。**jump** 命令可以简写成 **j**，但是不可以简写成 **jmp**，其使用有一个注意事项，即如果 **jump** 跳转到的位置后续没有断点，那么 GDB 会执行完跳转处的代码会继续执行。举个例子：
 
-```
+```c
 1 int somefunc()
 2 {
 3   //代码A
@@ -1661,7 +1661,7 @@ jump <location>
 
 **jump** 命令除了跳过一些代码的执行外，还有一个妙用就是可以执行一些我们想要执行的代码，而这些代码在正常的逻辑下可能并不会执行（当然可能也因此会产生一些意外的结果，这需要读者自行斟酌使用）。举个例子，假设现在有如下代码：
 
-```
+```c
 1  #include <stdio.h>
 2  int main()
 3  {
@@ -1681,7 +1681,7 @@ jump <location>
 
 我们在行号 **4** 、**14** 处设置一个断点，当触发行号 **4** 处的断点后，正常情况下程序执行流会走 else 分支，我们可以使用 **jump 7** 强行让程序执行 if 分支，接着 GDB 会因触发行号 **14** 处的断点而停下来，此时我们接着执行 **jump 11**，程序会将 else 分支中的代码重新执行一遍。整个操作过程如下：
 
-```
+```bash
 [root@localhost testcore]# gdb test
 Reading symbols from /root/testcore/test...done.
 (gdb) b main
@@ -1714,7 +1714,7 @@ Continuing.
 
 **redis-server** 在入口函数 **main** 处调用 **initServer()** ，我们使用 “**b initServer**” 、“**b 2025**”、“**b 2027**”在这个函数入口处、2025 行、2027 行增加三个断点，然后使用 **run** 命令重新运行一下程序，触发第一个断点后，继续输入 **c** 命令继续运行，然后触发 2025 行处的断点，接着输入 **jump 2027** ：
 
-```
+```c
 (gdb) b 2025
 Breakpoint 5 at 0x42c8e7: file server.c, line 2025.
 (gdb) b 2027
@@ -1758,13 +1758,13 @@ Breakpoint 6, initServer () at server.c:2027
 
 程序将 **2026** 行的代码跳过了，2026 行处的代码是获取当前进程 id：
 
-```
+```bash
 2026 server.pid = getpid();
 ```
 
 由于这一行被跳过了，所以 **server.pid** 的值应该是一个无效的值，我们可以使用 **print** 命令将这个值打印出来看一下：
 
-```
+```bash
 (gdb) p server.pid
 $3 = 0
 ```
@@ -1793,7 +1793,7 @@ $3 = 0
 
 当进行一些高级调试时，我们可能需要查看某段代码的汇编指令去排查问题，或者是在调试一些没有调试信息的发布版程序时，也只能通过反汇编代码去定位问题，那么 **disassemble** 命令就派上用场了。
 
-```
+```c
 initServer () at server.c:1839
 1839        createSharedObjects();
 (gdb) disassemble
@@ -1840,7 +1840,7 @@ Dump of assembler code for function initServer:
 
 GDB 默认反汇编为 AT&T 格式的指令，可以通过**show disassembly-flavor ** 查看，如果习惯 intel 汇编格式可以用命令 **set disassembly-flavor intel** 来设置。
 
-```
+```bash
 (gdb) set disassembly-flavor intel
 (gdb) disassemble
 Dump of assembler code for function initServer:
@@ -1890,7 +1890,7 @@ Dump of assembler code for function initServer:
 
 还是以 redis-server 为例，Redis 启动时可以指定一个命令行参数，它的默认配置文件位于 redis-server 这个文件的上一层目录，因此我们可以在 GDB 中这样传递这个参数：**set args ../redis.conf**（即文件 redis.conf 位于当前程序 redis-server 的上一层目录），可以通过 **show args** 查看命令行参数是否设置成功。
 
-```
+```bash
 (gdb) set args ../redis.conf
 (gdb) show args
 Argument list to give program being debugged when it is started is "../redis.conf ".
@@ -1899,7 +1899,7 @@ Argument list to give program being debugged when it is started is "../redis.con
 
 如果单个命令行参数之间含有空格，可以使用引号将参数包裹起来。
 
-```
+```bash
 (gdb) set args "999 xx" "hu jj"
 (gdb) show args
 Argument list to give program being debugged when it is started is ""999 xx" "hu jj"".
@@ -1908,7 +1908,7 @@ Argument list to give program being debugged when it is started is ""999 xx" "hu
 
 **如果想清除掉已经设置好的命令行参数，使用 set args 不加任何参数即可。**
 
-```
+```bash
 (gdb) set args
 (gdb) show args
 Argument list to give program being debugged when it is started is "".
@@ -1919,7 +1919,7 @@ Argument list to give program being debugged when it is started is "".
 
 **tbreak** 命令也是添加一个断点，第一个字母“**t**”的意思是 temporarily（临时的），也就是说这个命令加的断点是临时的，**所谓临时断点，就是一旦该断点触发一次后就会自动删除。**添加断点的方法与上面介绍的 break 命令一模一样，这里不再赘述。
 
-```
+```c
 (gdb) tbreak main
 Temporary breakpoint 1 at 0x423450: file server.c, line 3704.
 (gdb) r
@@ -1969,14 +1969,14 @@ Using host libthread_db library "/lib64/libthread_db.so.1".
 
 - 形式一：整型变量
 
-```
+```c
 int i;
 watch i
 ```
 
 - 形式二：指针类型
 
-```
+```c
 char *p;
 watch p 与 watch *p
 ```
@@ -1985,7 +1985,7 @@ watch p 与 watch *p
 
 - 形式三：watch 一个数组或内存区间
 
-```
+```c
 char buf[128];
 watch buf
 ```
@@ -2002,7 +2002,7 @@ watch buf
 
 **display** 命令监视的变量或者内存地址，每次程序中断下来都会自动输出这些变量或内存的值。例如，假设程序有一些全局变量，**每次断点停下来我都希望 GDB 可以自动输出这些变量的最新值，**那么使用“**display 变量名**”设置即可。
 
-```
+```c
 Program received signal SIGINT, Interrupt.
 0x00007ffff71e2483 in epoll_wait () from /lib64/libc.so.6
 (gdb) display $ebx
@@ -2030,7 +2030,7 @@ Breakpoint 8, main (argc=1, argv=0x7fffffffe4e8) at server.c:4003
 
 上述代码中，我使用 **display** 命令分别添加了寄存器 **ebp** 和寄存器 **eax**，**ebp** 寄存器分别使用十进制和十六进制两种形式输出其值，这样每次程序中断下来都会自动把这些值打印出来，可以使用 **info display** 查看当前已经自动添加了哪些值，使用 **delete display** 清除全部需要自动输出的变量，使用 **delete diaplay 编号** 删除某个自动输出的变量。
 
-```
+```bash
 (gdb) delete display
 Delete all auto-display expressions? (y or n) n
 (gdb) delete display 3
@@ -2061,7 +2061,7 @@ Num Enb Expression
 
 当使用 print 命令打印一个字符串或者字符数组时，如果该字符串太长，print 命令默认显示不全的，我们可以通过在 GDB 中输入 **set print element 0** 命令设置一下，这样再次使用 print 命令就能完整地显示该变量的所有字符串了。
 
-```
+```c++
 void ChatSession::OnGetFriendListResponse(const std::shared_ptr<TcpConnection>& conn)
 {
     std::string friendlist;
@@ -2076,7 +2076,7 @@ void ChatSession::OnGetFriendListResponse(const std::shared_ptr<TcpConnection>& 
 
 以上代码中，当第一次打印 friendlist 这个变量值时，只能显示部分字符串。使用 **set print element 0** 设置以后就能完整地显示出来了。
 
-```
+```bash
 (gdb) n
 563         os << "{\"code\": 0, \"msg\": \"ok\", \"userinfo\":" << friendlist << "}";
 (gdb) p friendlist
@@ -2090,7 +2090,7 @@ $2 = "[{\"members\":[{\"address\":\"\",\"birthday\":19900101,\"clienttype\":0,\"
 
 请看下面的代码：
 
-```
+```c++
 void prog_exit(int signo)
 {
     std::cout << "program recv signal [" << signo << "] to exit." << std::endl;
@@ -2128,7 +2128,7 @@ int main(int argc, char* argv[])
 - 在 GDB 中使用 signal 函数手动给程序发送信号，这里就是 signal SIGINT；
 - 改变 GDB 信号处理的设置，通过 `handle SIGINT nostop print` 告诉 GDB 在接收到 SIGINT 时不要停止，并把该信号传递给调试目标程序 。
 
-```
+```c
 (gdb) handle SIGINT nostop print pass
 SIGINT is used by the debugger. 
 Are you sure you want to change it? (y or n) y  
@@ -2163,7 +2163,7 @@ Make breakpoint pending on future shared library load? y/n
 
 假设现在有 5 个线程，除了主线程，工作线程都是下面这样的一个函数：
 
-```
+```c
 void* thread_proc(void* arg)
 {
     //代码行1
@@ -2202,7 +2202,7 @@ void* thread_proc(void* arg)
 
 下面重点来介绍一下条件断点，所谓条件断点，就是满足某个条件才会触发的断点，这里先举一个直观的例子：
 
-```
+```c
 void do_something_func(int i)
 {
    i ++;
@@ -2224,7 +2224,7 @@ int main()
 
 有了条件断点就不需要这么麻烦了，添加条件断点的命令是 `break [lineNo] if [condition]`，其中 **lineNo** 是程序触发断点后需要停下的位置，**condition** 是断点触发的条件。这里可以写成 `break 11 if i==5000`，其中，<u>11 就是调用 do_something_fun() 函数所在的行号</u>。当然这里的行号必须是合理行号，如果行号非法或者行号位置不合理也不会触发这个断点。
 
-```
+```c
 (gdb) break 11 if i==5000       
 Breakpoint 2 at 0x400514: file test1.c, line 10.
 (gdb) r
@@ -2247,7 +2247,7 @@ $1 = 5000
 
 添加条件断点还有一个方法就是先添加一个普通断点，然后使用“**condition 断点编号 断点触发条件**”这样的方式来添加。添加一下上述断点：
 
-```
+```c
 (gdb) b 11
 Breakpoint 1 at 0x400514: file test1.c, line 11.
 (gdb) info b
@@ -2268,7 +2268,7 @@ $1 = 5000
 
 同样的规则，如果断点编号不存在，也无法添加成功，GDB 会提示断点不存在：
 
-```
+```bash
 (gdb) condition 2 i==5000
 No breakpoint number 2.
 ```
@@ -2282,7 +2282,7 @@ No breakpoint number 2.
 - 用 GDB 先调试父进程，等子进程 fork 出来后，使用 gdb attach 到子进程上去，当然这需要重新开启一个 session 窗口用于调试，gdb attach 的用法在前面已经介绍过了；
 - GDB 调试器提供了一个选项叫 `follow-fork`，可以使用 `show follow-fork [mode]` 查看当前值，也可以通过 `set follow-fork [mode]` 来设置是当一个进程 fork 出新的子进程时，GDB 是继续调试父进程还是子进程（**取值是 child**），**默认是父进程（ 取值是 parent）**。
 
-```
+```bash
 (gdb) show follow-fork mode     
 Debugger response to a program call of fork or vfork is "parent".
 (gdb) set follow-fork child
@@ -2306,7 +2306,7 @@ Debugger response to a program call of fork or vfork is "child".
 
 以 Apache Web 服务器的源码为例（[Apache Server 的源码下载地址请点击这里](http://httpd.apache.org/)），在源码根目录下有个文件叫 .gdbinit，这个就是 Apache Server 自定义的 GDB 命令：
 
-```
+```c
 # gdb macros which may be useful for folks using gdb to debug
 # apache.  Delete it if it bothers you.
 
@@ -2351,7 +2351,7 @@ GDB 中可以用 list 命令显示源码，但是 list 命令显示没有代码�
 
 方法一：使用 gdbtui 命令或者 gdb-tui 命令开启一个调试。
 
-```
+```bash
 gdbtui -q 需要调试的程序名
 ```
 
@@ -2374,7 +2374,7 @@ gdbtui -q 需要调试的程序名
 
 layout 命令还可以用来修改窗口布局，在 cmd 窗口中输入 help layout，常见的有：
 
-```
+```bash
 Usage: layout prev | next | <layout_name> 
 Layout names are:
    src   : Displays source and command windows.
@@ -2390,7 +2390,7 @@ Layout names are:
 
 另外，可以通过 winheight 命令修改各个窗口的大小，如下所示：
 
-```
+```bash
 (gdb) help winheight
 Set the height of a specified window.
 Usage: winheight <win_name> [+ | -] <#lines>
@@ -2416,7 +2416,7 @@ winheight src - 4
 
 我们可以通过 focus 命令来调整焦点位置，默认情况下焦点是在 src 窗口，通过 focus next 命令可以把焦点移到 cmd 窗口，这时候就可以像以前一样，通过方向键来切换上一条命令和下一条命令。同理，也可以使用 focus prev 切回到源码窗口，如果焦点不在 src 窗口，我们就不必使用方向键来浏览源码了。
 
-```
+```bash
 (gdb) help focus  
 help focus
 Set focus to named window or next/prev window.
@@ -2448,7 +2448,7 @@ wget https://cgdb.me/files/cgdb-0.7.0.tar.gz
 
 然后执行以下步骤解压、编译、安装：
 
-```
+```bash
 tar xvfz cgdb-0.7.0.tar.gz
 cd cgdb-0.7.0
 ./configure 
@@ -2460,14 +2460,14 @@ CGDB 在编译过程中会依赖一些第三方库，如果这些库系统上不
 
 （1）出现错误：
 
-```
+```bash
 configure: error: CGDB requires curses.h or ncurses/curses.h to build.
 复制
 ```
 
 解决方案：
 
-```
+```bash
 yum install ncurses-devel
 ```
 
@@ -2572,7 +2572,7 @@ VisualGDB 是一款功能强大的商业软件，[点击这里详见官方网站
 
 如果一个 Linux 程序已经运行，可以使用 VisualGDB 的远程 attach 功能。为了演示方便，我们将 Linux 机器上的 redis-server 运行起来：
 
-```
+```bash
 [root@localhost src]# ./redis-server 
 ```
 
@@ -2639,7 +2639,7 @@ GDB 调试对于 Linux C++ 开发以及阅读众多开源 C/C++ 项目是如此�
 
 Redis 的最新源码下载地址可以在 [Redis 官网](https://redis.io/)获得。我使用的是 CentOS 7.0 系统，使用 wget 命令将 Redis 源码文件下载下来：
 
-```
+```c
 [root@localhost gdbtest]# wget http://download.redis.io/releases/redis-4.0.11.tar.gz
 --2018-09-08 13:08:41--  http://download.redis.io/releases/redis-4.0.11.tar.gz
 Resolving download.redis.io (download.redis.io)... 109.74.203.151
@@ -2653,13 +2653,13 @@ Saving to: ‘redis-4.0.11.tar.gz’
 
 解压：
 
-```
+```bash
 [root@localhost gdbtest]# tar zxvf redis-4.0.11.tar.gz 
 ```
 
 进入生成的 redis-4.0.11 目录使用 makefile 进行编译：
 
-```
+```bash
 [root@localhost gdbtest]# cd redis-4.0.11
 [root@localhost redis-4.0.11]# make -j 4
 ```
@@ -2668,7 +2668,7 @@ Saving to: ‘redis-4.0.11.tar.gz’
 
 进入 src 目录，使用 GDB 启动 redis-server 这个程序：
 
-```
+```bash
 [root@localhost src]# gdb redis-server 
 Reading symbols from /root/redis-4.0.9/src/redis-server...done.
 (gdb) r
@@ -2712,7 +2712,7 @@ Using host libthread_db library "/lib64/libthread_db.so.1".
 
 我们再开一个 session，再次进入 Redis 源码所在的 src 目录，然后使用 GDB 启动 Redis 客户端 redis-cli：
 
-```
+```bash
 [root@localhost src]# gdb redis-cli
 Reading symbols from /root/redis-4.0.9/src/redis-cli...done.
 (gdb) r
@@ -2728,7 +2728,7 @@ Using host libthread_db library "/lib64/libthread_db.so.1".
 
 本课程的学习目的是研究 Redis 的网络通信模块，为了说明问题方便，我们使用一个简单的通信实例，即通过 redis-cli 产生一个 key 为“hello”、值为“world”的 key-value 数据，然后得到 redis-server 的响应。
 
-```
+```bash
 127.0.0.1:6379> set hello world
 OK
 127.0.0.1:6379> 
@@ -2763,7 +2763,7 @@ OK
 
 全局搜索一下 Redis 的代码，寻找调用了 bind() 函数的代码，经过过滤和筛选，我们确定了位于 anet.c 的 anetListen() 函数。
 
-```
+```c
 static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int backlog) {
     if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
@@ -2782,7 +2782,7 @@ static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int 
 
 用 GDB 的 b 命令在这个函数上加个断点，然后重新运行 redis-server：
 
-```
+```bash
 (gdb) b anetListen
 Breakpoint 1 at 0x426cd0: file anet.c, line 440.
 (gdb) r
@@ -2802,7 +2802,7 @@ Breakpoint 1, anetListen (err=0x745bb0 <server+560> "", s=10, sa=0x75dfe0, len=2
 
 当 GDB 中断在这个函数时，使用 bt 命令查看一下此时的调用堆栈：
 
-```
+```bash
 (gdb) bt
 #0  anetListen (err=0x745bb0 <server+560> "", s=10, sa=0x75dfe0, len=28, backlog=511) at anet.c:440
 #1  0x0000000000426e25 in _anetTcpServer (err=err@entry=0x745bb0 <server+560> "", port=port@entry=6379, bindaddr=bindaddr@entry=0x0, af=af@entry=10, backlog=511)
@@ -2818,7 +2818,7 @@ Breakpoint 1, anetListen (err=0x745bb0 <server+560> "", s=10, sa=0x75dfe0, len=2
 
 我们看下堆栈 #1 处的代码：
 
-```
+```c
 static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backlog)
 {
     int s = -1, rv;
@@ -2860,7 +2860,7 @@ end:
 
 将堆栈切换至 #1，然后输入 info arg 查看传入给这个函数的参数：
 
-```
+```bash
 (gdb) f 1
 #1  0x0000000000426e25 in _anetTcpServer (err=err@entry=0x745bb0 <server+560> "", port=port@entry=6379, bindaddr=bindaddr@entry=0x0, af=af@entry=10, backlog=511)
     at anet.c:487
@@ -2875,7 +2875,7 @@ backlog = 511
 
 使用系统 API getaddrinfo 来解析得到当前主机的 IP 地址和端口信息。这里没有选择使用 gethostbyname 这个 API 是因为 **gethostbyname 仅能用于解析 ipv4 相关的主机信息**，而 **getaddrinfo 既可以用于 ipv4 也可以用于 ipv6** ，这个函数的签名如下：
 
-```
+```c
 int getaddrinfo(const char *node, const char *service,
                        const struct addrinfo *hints,
                        struct addrinfo **res);
@@ -2891,7 +2891,7 @@ int getaddrinfo(const char *node, const char *service,
 
 经定位，我们最终在 anet.c 文件中找到 anetGenericAccept 函数：
 
-```
+```c
 static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *len) {
     int fd;
     while(1) {
@@ -2912,7 +2912,7 @@ static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *l
 
 我们用 b 命令在这个函数处加个断点，然后重新运行 redis-server。**一直到程序全部运行起来，GDB 都没有触发该断点，这时新打开一个 redis-cli，以模拟新客户端连接到 redis-server 上的行为。断点触发了**，此时查看一下调用堆栈。
 
-```
+```c
 Breakpoint 2, anetGenericAccept (err=0x745bb0 <server+560> "", s=s@entry=11, sa=sa@entry=0x7fffffffe2b0, len=len@entry=0x7fffffffe2ac) at anet.c:531
 531     static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *len) {
 (gdb) bt
@@ -2927,7 +2927,7 @@ Breakpoint 2, anetGenericAccept (err=0x745bb0 <server+560> "", s=s@entry=11, sa=
 
 分析这个调用堆栈，梳理一下这个调用流程。在 main 函数的 initServer 函数中创建侦听 socket、绑定地址然后开启侦听，**接着调用 aeMain 函数启动一个循环不断地处理“事件”。**
 
-```
+```c
 void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
     while (!eventLoop->stop) {
@@ -2940,7 +2940,7 @@ void aeMain(aeEventLoop *eventLoop) {
 
 循环的退出条件是 eventLoop→stop 为 1。事件处理的代码如下：
 
-```
+```c++
 int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 {
     int processed = 0, numevents;
@@ -3030,7 +3030,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
 这段代码先通过 flag 参数检查是否有事件需要处理。如果有定时器事件（ **AE_TIME_EVENTS** 标志 ），则寻找最近要到期的定时器。
 
-```
+```c
 /* Search the first timer to fire.
  * This operation is useful to know how many time the select can be
  * put in sleep without to delay any event.
@@ -3062,7 +3062,7 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 
 接着获取当前系统时间（ aeGetTime(&now_sec, &now_ms); ）将最早要到期的定时器时间减去当前系统时间获得一个间隔。**这个时间间隔作为 numevents = aeApiPoll(eventLoop, tvp); 调用的参数**，aeApiPoll() 在 Linux 平台上使用 epoll 技术，Redis 在这个 IO 复用技术上、在不同的操作系统平台上使用不同的系统函数，在 Windows 系统上使用 select，在 Mac 系统上使用 kqueue。这里重点看下 Linux 平台下的实现：
 
-```
+```c++
 static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
     aeApiState *state = eventLoop->apidata;
     int retval, numevents = 0;
@@ -3091,7 +3091,7 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
 
 epoll_wait 这个函数的签名如下：
 
-```
+```c
 int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
 ```
 
@@ -3101,7 +3101,7 @@ int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout)
 
 在得到了有事件的 fd 以后，接下来就要处理这些事件了。在主循环 aeProcessEvents 中从 aeEventLoop 对象的 fired 数组中取出上一步记录的 fd，然后根据事件类型（**读事件和写事件**）分别进行处理。
 
-```
+```c
 for (j = 0; j < numevents; j++) {
             aeFileEvent *fe = &eventLoop->events[eventLoop->fired[j].fd];
             int mask = eventLoop->fired[j].mask;
@@ -3125,7 +3125,7 @@ for (j = 0; j < numevents; j++) {
 
 读事件字段 **rfileProc** 和写事件字段 **wfileProc** 都是**函数指针**，在程序早期设置好，这里直接调用就可以了。
 
-```
+```c
 typedef void aeFileProc(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
 
 /* File event structure */
@@ -3141,7 +3141,7 @@ typedef struct aeFileEvent {
 
 我们通过搜索关键字 epoll_create 在 `ae_poll.c` 文件中找到 EPFD 的创建函数 `aeApiCreate `。
 
-```
+```c
 static int aeApiCreate(aeEventLoop *eventLoop) {
     aeApiState *state = zmalloc(sizeof(aeApiState));
 
@@ -3164,7 +3164,7 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
 
 使用 GDB 的 b 命令在这个函数上加个断点，然后使用 run 命令重新运行一下 redis-server，触发断点，使用 bt 命令查看此时的调用堆栈。发现 EPFD 也是在上文介绍的 initServer 函数中创建的。
 
-```
+```bash
 (gdb) bt
 #0  aeCreateEventLoop (setsize=10128) at ae.c:79
 #1  0x000000000042f542 in initServer () at server.c:1841
@@ -3173,12 +3173,12 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
 
 在 **aeCreateEventLoop** 中不仅创建了 EPFD，也创建了整个事件循环需要的 aeEventLoop 对象，并把这个对象记录在 Redis 的一个全局变量的 **el 字段**中。这个**全局变量叫 server**，这是一个结构体类型。其定义如下：
 
-```
+```c
 //位于 server.c 文件中
 struct redisServer server; /* Server global state */
 ```
 
-```
+```c
 //位于 server.h 文件中
 struct redisServer {
     /* General */
@@ -3199,7 +3199,7 @@ struct redisServer {
 
 同样的方式，要把一个 fd 挂载到 EPFD 上去，需要调用系统 API epoll_ctl ，搜索一下这个函数名。在文件 ae_epoll.c 中我们找到 aeApiAddEvent 函数：
 
-```
+```c
 static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
     struct epoll_event ee = {0}; /* avoid valgrind warning */
@@ -3222,7 +3222,7 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
 
 在 aeApiAddEvent 加个断点，再重启下 redis-server。触发断点后的调用堆栈如下：
 
-```
+```bash
 #0  aeCreateFileEvent (eventLoop=0x7ffff083a0a0, fd=15, mask=1, proc=0x437f50 <acceptTcpHandler>, clientData=0x0) at ae.c:145
 #1  0x000000000042f83b in initServer () at server.c:1927
 #2  0x0000000000423803 in main (argc=1, argv=0x7fffffffe588) at server.c:3857
@@ -3230,7 +3230,7 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
 
 同样在 initServer 函数中，结合上文分析的侦听 fd 的创建过程，去掉无关代码，抽出这个函数的主脉络得到如下伪代码：
 
-```
+```c
 void initServer(void) {
 
     //记录程序进程 ID   
@@ -3272,13 +3272,13 @@ void initServer(void) {
 
 这里的 fd 值也是 15 ，说明绑定的 fd 是侦听 fd 。当然在绑定侦听 fd 时，同时也**指定了只关注可读事件**，并设置事件回调函数为 acceptTcpHandler 。**对于侦听 fd ，一般只要关注可读事件就可以了**，当触发可读事件，说明有新的连接到来。
 
-```
+```c
 aeCreateFileEvent(server.el, server.ipfd[j], AE_READABLE, acceptTcpHandler,NULL) == AE_ERR
 ```
 
 acceptTcpHandler 函数定义如下（ 位于文件 **networking.c** 中 ）：
 
-```
+```c
 void acceptTcpHandler(aeEventLoop *el, int fd, void *privdata, int mask) {
     int cport, cfd, max = MAX_ACCEPTS_PER_CALL;
     char cip[NET_IP_STR_LEN];
@@ -3302,7 +3302,7 @@ void acceptTcpHandler(aeEventLoop *el, int fd, void *privdata, int mask) {
 
 anetTcpAccept 函数中调用的就是我们上面说的 anetGenericAccept 函数了。
 
-```
+```c
 int anetTcpAccept(char *err, int s, char *ip, size_t ip_len, int *port) {
     int fd;
     struct sockaddr_storage sa;
@@ -3333,7 +3333,7 @@ int anetTcpAccept(char *err, int s, char *ip, size_t ip_len, int *port) {
 
 > 注意：这里客户端 fd 绑定到 EPFD 上时也**只关注可读事件**。将无关的代码去掉，然后抽出我们关注的部分，整理后如下（ 位于 networking.c 文件中 ）：
 
-```
+```c
 client *createClient(int fd) {
     //将客户端 fd 设置成非阻塞的
     anetNonBlock(NULL,fd);
@@ -3354,7 +3354,7 @@ client *createClient(int fd) {
 
 客户端 fd 触发可读事件后，回调函数是 readQueryFromClient，该函数实现如下（ 位于 networking.c 文件中）：
 
-```
+```c
 void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     client *c = (client*) privdata;
     int nread, readlen;
@@ -3439,14 +3439,14 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
 
 给这个函数加个断点，然后重新运行下 redis-server ，再启动一个客户端，然后尝试给服务器发送一个命令“set hello world”。**但是在我们实际调试的时候会发现，只要 redis-cli 一连接成功，GDB 就触发该断点，此时并没有发送我们预想的命令。**单步调试 readQueryFromClient 函数，将收到的数据打印出来，得到如下字符串：
 
-```
+```bash
 (gdb) p c->querybuf 
 $8 = (sds) 0x7ffff09b8685 "*1\r\n$7\r\nCOMMAND\r\n"
 ```
 
 c → querybuf 是什么呢？这里 c 的类型是 client 结构体，它是上文中连接接收成功后产生的新客户端 fd 绑定回调函数时产生的、并传递给 readQueryFromClient 函数的参数。可以在 server.h 中找到它的定义：
 
-```
+```c
 * With multiplexing we need to take per-client state.
  * Clients are taken in a linked list. */
 typedef struct client {
@@ -3463,7 +3463,7 @@ client 实际上是存储每个客户端连接信息的对象，其 fd 字段就
 
 贴一下完整的 createClient 函数的代码：
 
-```
+```c
 client *createClient(int fd) {
     client *c = zmalloc(sizeof(client));
 
@@ -3546,7 +3546,7 @@ client *createClient(int fd) {
 
 redis-cli 给 redis-server 发送的第一条数据是 *1\r\n\$7\r\nCOMMAND\r\n 。我们来看下对于这条数据如何处理，单步调试一下 readQueryFromClient 调用 read 函数收取完数据，接着继续处理 c→querybuf 的代码即可。经实际跟踪调试，调用的是 processInputBuffer 函数，位于 networking.c 文件中：
 
-```
+```c++
 /* This function is called every time, in the client structure 'c', there is
  * more query buffer to process, because we read more data from the socket
  * or because a client was blocked and later reactivated, so there could be
@@ -3617,7 +3617,7 @@ processInputBuffer 先判断接收到的字符串是不是以星号（ * ）开�
 
 命令解析完成以后，从 processMultibulkBuffer 函数返回，在 processCommand 函数中处理刚才记录在 client 对象 argv 字段中的命令。
 
-```
+```c
 //为了与原代码保持一致，代码缩进未调整
 if (c->argc == 0) {
             resetClient(c);
@@ -3636,7 +3636,7 @@ if (c->argc == 0) {
 
 （2）如果不是 quit 命令，则使用 lookupCommand 函数从全局命令字典表中查找相应的命令，如果出错，则向发送缓冲区中添加出错应答。出错不是指程序逻辑出错，有可能是客户端发送的非法命令。如果找到相应的命令，则执行命令后添加应答。
 
-```
+```c
 int processCommand(client *c) {
     /* The QUIT command is handled separately. Normal command procs will
      * go through checking for replication and QUIT will cause trouble
@@ -3686,7 +3686,7 @@ struct redisServer {
 
 下面重点探究如何将应答命令（包括出错的应答）添加到发送缓冲区去。我们以添加一个“ok”命令为例：
 
-```
+```c
 void addReply(client *c, robj *obj) {
     if (prepareClientToWrite(c) != C_OK) return;
 
@@ -3726,7 +3726,7 @@ void addReply(client *c, robj *obj) {
 
 addReply 函数中有两个关键的地方，一个是 **prepareClientToWrite** 函数调用，另外一个是 **_addReplyToBuffer** 函数调用。先来看 prepareClientToWrite ，这个函数中有这样一段代码：
 
-```
+```c
 if (!clientHasPendingReplies(c) &&
         !(c->flags & CLIENT_PENDING_WRITE) &&
         (c->replstate == REPL_STATE_NONE ||
@@ -3745,7 +3745,7 @@ if (!clientHasPendingReplies(c) &&
 
 这段代码先判断发送缓冲区中是否还有未发送的应答命令——通过判断 client 对象的 **bufpos 字段（ int 型 ）**和 **reply 字段（ 这是一个链表 ）的长度**是否大于 0 。
 
-```
+```c
 /* Return true if the specified client has pending reply buffers to write to
  * the socket. */
 int clientHasPendingReplies(client *c) {
@@ -3765,7 +3765,7 @@ Client has output to send but a write handler is yet not installed
 
 下面讨论 _addReplyToBuffer 函数，位于 networking.c 文件中。
 
-```
+```c
 int _addReplyToBuffer(client *c, const char *s, size_t len) {
     size_t available = sizeof(c->buf)-c->bufpos;
 
@@ -3786,7 +3786,7 @@ int _addReplyToBuffer(client *c, const char *s, size_t len) {
 
 在这个函数中再次确保了 client 对象的 reply 链表长度不能大于 0（ if 判断，如果不满足条件，则退出该函数 ）。**reply 链表存储的是待发送的应答命令**。应答命令被存储在 client 对象的 buf 字段中，其长度被记录在 bufpos 字段中。**buf 字段是一个固定大小的字节数组**：
 
-```
+```c
 typedef struct client {
     uint64_t id;            /* Client incremental unique ID. */
     int fd;                 /* Client socket. */
@@ -3808,7 +3808,7 @@ PROTO_REPLY_CHUNK_BYTES 在 redis 中的定义是 16*1024 ，也就是说应答�
 
 回到我们上面提的命令：*1\r\n\$7\r\nCOMMAND\r\n ，通过 lookupCommand 解析之后得到 command 命令，在 GDB 中显示如下：
 
-```
+```bash
 2345        c->cmd = c->lastcmd = lookupCommand(c->argv[0]->ptr);
 (gdb) n
 2346        if (!c->cmd) {
@@ -3825,7 +3825,7 @@ $24 = {name = 0x4fda67 "command", proc = 0x42d920 <commandCommand>, arity = 0, s
 
 还记得我们前面课程提到的 while 事件循环吗？我们再来回顾一下它的代码：
 
-```
+```c++
 void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
     while (!eventLoop->stop) {
@@ -3838,7 +3838,7 @@ void aeMain(aeEventLoop *eventLoop) {
 
 其中，先判断 eventLoop 对象的 **beforesleep 对象**是否设置了，**这是一个回调函数**。在 redis-server 初始化时已经设置好了。
 
-```
+```c
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep) {
     eventLoop->beforesleep = beforesleep;
 }
@@ -3846,7 +3846,7 @@ void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep
 
 我们在 aeSetBeforeSleepProc 这个函数上设置一个断点，然后重启一下 redis-server 来验证在何处设置的这个回调。
 
-```
+```bash
 Breakpoint 2, aeSetBeforeSleepProc (eventLoop=0x7ffff083a0a0, beforesleep=beforesleep@entry=0x4294f0 <beforeSleep>) at ae.c:507
 507         eventLoop->beforesleep = beforesleep;
 (gdb) bt
@@ -3856,7 +3856,7 @@ Breakpoint 2, aeSetBeforeSleepProc (eventLoop=0x7ffff083a0a0, beforesleep=before
 
 使用 f 1 命令切换到堆栈 #1 ，并输入 l 显示断点附近的代码：
 
-```
+```bash
 (gdb) l
 3887        /* Warning the user about suspicious maxmemory setting. */
 3888        if (server.maxmemory > 0 && server.maxmemory < 1024*1024) {
@@ -3872,7 +3872,7 @@ Breakpoint 2, aeSetBeforeSleepProc (eventLoop=0x7ffff083a0a0, beforesleep=before
 
 3892 行将这个回调设置成 beforeSleep 函数，**因此每一轮循环都会调用这个 beforeSleep 函数**。server.el 前面也介绍过即 aeEventLoop 对象，在这个 beforeSleep 函数中有一个 **handleClientsWithPendingWrites** 调用（ 位于文件 server.c 中 ）：
 
-```
+```c
 void beforeSleep(struct aeEventLoop *eventLoop) {
     //省略无关代码...
 
@@ -3885,7 +3885,7 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
 
 handleClientsWithPendingWrites 函数调用即把记录在每个 client 中的数据发送出去。我们具体看一下发送的逻辑（ 位于 networking.c 文件中 ）：
 
-```
+```c
 /* This function is called just before entering the event loop, in the hope
  * we can just write the replies to the client output buffer without any
  * need to use a syscall in order to install the writable event handler,
@@ -3919,7 +3919,7 @@ int handleClientsWithPendingWrites(void) {
 
 上面的代码先从全局 server 对象的 clients_pending_write 字段（ 存储 client 对象的链表 ）挨个取出有数据要发送的 client 对象，然后调用 **writeToClient** 函数尝试将 client 中存储的应答数据发出去。
 
-```
+```c
 //位于networking.c文件中
 int writeToClient(int fd, client *c, int handler_installed) {
     ssize_t nwritten = 0, totwritten = 0;
@@ -4014,7 +4014,7 @@ writeToClient 函数先把自己处理的 client 对象的 buf 字段的数据�
 
 当然，可能存在一种情况是，由于网络或者客户端的原因，redis-server 某个客户端的数据发送不出去，或者只有部分可以发出去（ 例如，服务器端给客户端发数据，客户端的应用层一直不从 Tcp 内核缓冲区中取出数据，这样服务器发送一段时间的数据后，客户端内核缓冲区满了，服务器再发数据就会发不出去，由于 fd 是非阻塞的，这个时候服务器调用 send 或者 write 函数会直接返回，返回值是 −1 ，错误码是 EAGAIN ，见上面的代码。）。不管哪种情况，数据这一次发不完。这个时候就需要监听可写事件了，因为在 handleClientsWithPendingWrites 函数中有如下代码：
 
-```
+```c
 /* If there is nothing left, do nothing. Otherwise install
  * the write handler. */
 if (clientHasPendingReplies(c) && aeCreateFileEvent(server.el, c->fd, AE_WRITABLE,
@@ -4026,7 +4026,7 @@ if (clientHasPendingReplies(c) && aeCreateFileEvent(server.el, c->fd, AE_WRITABL
 
 这里注册可写事件 AE_WRITABLE 的回调函数是 **sendReplyToClient** 。也就是说，当下一次某个触发可写事件时，调用的就是 sendReplyToClient 函数。可以猜想，sendReplyToClient 发送数据的逻辑和上面的 writeToClient 函数一模一样，不信请看（ 位于 networking.c 文件中 ）：
 
-```
+```c
 /* Write event handler. Just send data to the client. */
 void sendReplyToClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     UNUSED(el);
@@ -4051,7 +4051,7 @@ redis-server 数据的发送逻辑与这个稍微有点差别，就是将数据�
 
 一个网络通信模块是离不开定时器，前面介绍了在事件处理函数中如何去除最早到期的定时器对象，这里我们接着这个问题继续讨论。在 aeProcessEvents 函数（ 位于文件 ae.c 中 ）的结尾处有这样一段代码：
 
-```
+```c
 /* Check time events */
 if (flags & AE_TIME_EVENTS)
     processed += processTimeEvents(eventLoop);
@@ -4059,7 +4059,7 @@ if (flags & AE_TIME_EVENTS)
 
 如果存在定时器事件，则调用 processTimeEvents 函数（ 位于文件 ae.c 中 ）进行处理。
 
-```
+```c
 /* Process time events */
 static int processTimeEvents(aeEventLoop *eventLoop) {
     int processed = 0;
@@ -4140,7 +4140,7 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
 
 这段代码没有什么特别需要注意的地方，但是代码中作者考虑到了一种特殊场景，就是假设有人将当前的计算机时间调到了未来某个时刻，然后再调回来，这样就会出现 now（ 当前时间 ）小于 eventLoop→lastTime（ 记录在 aeEventLoop 中的上一次时间）。出现这种情况怎么办呢？Redis 的作者遍历该定时器对象链表，将这个链表中的所有定时器对象的时间设置成 0 。这样，这些定时器就会立即得到处理了。这也就是我在代码注释中说的：
 
-```
+```c
 force all the time events to be processed ASAP
 ```
 
@@ -4148,7 +4148,7 @@ force all the time events to be processed ASAP
 
 那么 redis-server 中到底哪些地方使用了定时器呢？我们可以在 Redis 源码中搜索创建定时器的函数 aeCreateTimeEvent ，在 initServer 函数中有这么一行（ 位于 server.c 文件中 ）：
 
-```
+```c
 if (aeCreateTimeEvent(server.el, 1, serverCron, NULL, NULL) == AE_ERR) {
         serverPanic("Can't create event loop timers.");
         exit(1);
@@ -4163,7 +4163,7 @@ if (aeCreateTimeEvent(server.el, 1, serverCron, NULL, NULL) == AE_ERR) {
 
 在 redis-server 中，在 IO Multiplexing 调用与 IO 事件处理逻辑之间也有一个自定义的钩子函数叫 aftersleep 。
 
-```
+```c
 int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 {
     //无关代码省略...
@@ -4181,7 +4181,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 
 这个函数在 main 函数中设置：
 
-```
+```c
 int main(int argc, char **argv) {
     //无关代码省略...
     aeSetBeforeSleepProc(server.el,beforeSleep);
@@ -4215,7 +4215,7 @@ int main(int argc, char **argv) {
 
 换个思路：直接运行 redis-cli ，然后使用linux“ **pstack [进程id]**”来**查看**下 redis-cli 的**线程数量**。
 
-```
+```bash
 [root@localhost ~]# ps -ef | grep redis-cli
 root     35454 12877  0 14:51 pts/1    00:00:00 ./redis-cli
 root     35468 33548  0 14:51 pts/5    00:00:00 grep --color=auto redis-cli
@@ -4233,7 +4233,7 @@ root     35468 33548  0 14:51 pts/5    00:00:00 grep --color=auto redis-cli
 
 在 redis-cli 的 main 函数（位于文件 redis-cli.c 中）有这样一段代码：
 
-```
+```c++
 /* Start interactive mode when no command is provided */
 if (argc == 0 && !config.eval) {
     /* Ignore SIGPIPE in interactive mode to force a reconnect */
@@ -4248,7 +4248,7 @@ if (argc == 0 && !config.eval) {
 
 其中，cliConnect(0) 调用代码（位于 redis-cli.c 文件中）如下：
 
-```
+```c
 static int cliConnect(int force) {
     if (context == NULL || force) {
         if (context != NULL) {
@@ -4298,7 +4298,7 @@ static int cliConnect(int force) {
 
 接着调用 redisContextWaitReady 函数，该函数中调用 API poll 检测连接的 socket 是否可写（ POLLOUT ），如果可写则表示连接 redis-server 成功。由于 _redisContextConnectTcp 代码较多，我们去掉一些无关代码，整理出关键逻辑的伪码如下（位于 net.c 文件中）：
 
-```
+```c
 static int _redisContextConnectTcp(redisContext *c, const char *addr, int port,
                                    const struct timeval *timeout,
                                    const char *source_addr) {
@@ -4320,7 +4320,7 @@ static int _redisContextConnectTcp(redisContext *c, const char *addr, int port,
 
 redisContextWaitReady 函数的代码（ 位于 net.c 文件中 ）如下：
 
-```
+```c
 static int redisContextWaitReady(redisContext *c, long msec) {
     struct pollfd   wfd[1];
 
@@ -4355,7 +4355,7 @@ static int redisContextWaitReady(redisContext *c, long msec) {
 
 使用 **b redisContextWaitReady** 增加一个断点，然后使用 **run** 命令重新运行下 **redis-cli**，程序会停在我们设置的断点出，然后使用 **bt** 命令得到当前调用堆栈：
 
-```
+```bash
 (gdb) b redisContextWaitReady
 Breakpoint 1 at 0x41bd82: file net.c, line 207.
 (gdb) r
@@ -4377,7 +4377,7 @@ Breakpoint 1, redisContextWaitReady (c=0x83c050, msec=-1) at net.c:207
 
 连接 redis-server 成功以后，会接着调用上文中提到的 cliAuth 函数和 cliSelect 函数，这两个函数分别根据是否配置了 config.auth 和 config.dbnum 来给 redis-server 发送相关命令。由于我们这里没配置，因此这两个函数实际什么也不做。
 
-```
+```c
 583     static int cliSelect(void) {
 (gdb) n
 585         if (config.dbnum == 0) return REDIS_OK;
@@ -4387,7 +4387,7 @@ $11 = 0
 
 接着调用 repl() 函数，在这个函数中是一个 while 循环，不断从命令行中获取用户输入：
 
-```
+```c
 //位于 redis-cli.c 文件中
 static void repl(void) {
     //...省略无关代码...
@@ -4469,7 +4469,7 @@ static void repl(void) {
 
 得到用户输入的一行命令后，先保存到历史记录中（以便下一次按键盘上的上下箭头键再次输入），然后校验命令的合法性，如果是本地命令（不需要发送给服务器的命令，如 quit 、exit）则直接执行，如果是远端命令则调用 issueCommandRepeat() 函数发送给服务器端：
 
-```
+```c
 //位于文件 redis-cli.c 中
 static int issueCommandRepeat(int argc, char **argv, long repeat) {
     while (1) {
@@ -4497,7 +4497,7 @@ static int issueCommandRepeat(int argc, char **argv, long repeat) {
 
 实际发送命令的函数是 cliSendCommand，在 cliSendCommand 函数中又调用 cliReadReply 函数，后者又调用 redisGetReply 函数，在 redisGetReply 函数中又调用 redisBufferWrite 函数，在 redisBufferWrite 函数中最终调用系统 API write 将我们输入的命令发出去：
 
-```
+```c
 //位于 hiredis.c 文件中
 int redisBufferWrite(redisContext *c, int *done) {
     int nwritten;
@@ -4533,7 +4533,7 @@ int redisBufferWrite(redisContext *c, int *done) {
 
 使用 **b redisBufferWrite** 增加一个断点，然后使用 **run** 命令将 **redis-cli** 重新运行起来，接着在 **redis-cli** 中输入 **set hello world** （**hello** 是 key， **world** 是 value）这一个简单的指令后，使用 **bt** 命令查看调用堆栈如下：
 
-```
+```bash
 (gdb) b redisBufferWrite
 Breakpoint 2 at 0x417020: file hiredis.c, line 835.
 (gdb) r
@@ -4561,7 +4561,7 @@ Breakpoint 2, redisBufferWrite (c=0x83c050, done=0x7fffffffe27c) at hiredis.c:83
 
 当然，待发送的数据需要存储在一个全局静态变量 context 中，这是一个结构体，定义在 hiredis.h 文件中。
 
-```
+```c
 /* Context for a connection to Redis */
 typedef struct redisContext {
     int err; /* Error flags, 0 when there is no error */
@@ -4591,7 +4591,7 @@ typedef struct redisContext {
 
 在 redisGetReply 函数中发完数据后立马调用 **redisBufferRead** 去收取服务器的应答。
 
-```
+```c
 int redisGetReply(redisContext *c, void **reply) {
     int wdone = 0;
     void *aux = NULL;
@@ -4654,7 +4654,7 @@ $<参数n的字节数量>\r\n
 
 Redis 命令本身也作为协议的其中一个参数来发送的。举个例子，我们接着通过 redis-cli 给 redis-server 发送 一条 `set hello world` 命令。
 
-```
+```bash
 127.0.0.1:6379> set hello world
 ```
 
@@ -4900,7 +4900,7 @@ server： :0
 
 以下是使用 nc 命令测试的结果：
 
-```
+```bash
 [root@myaliyun src]# nc -v 127.0.0.1 6379
 Ncat: Version 7.50 ( https://nmap.org/ncat )
 Ncat: Connected to 127.0.0.1:6379.
