@@ -58,26 +58,28 @@ https://zhuanlan.zhihu.com/p/442458452
 
 ## windows安装protobuf
 
-```
+打开**`Developer Command Prompt for vs2019`**
+
+```bash
 cd protobuf
 cd cmake
-mkdir build & cd build
+mkdir buildvs2019 & cd buildvs2019
 ```
 
-```
+```bash
 mkdir release & cd release
-cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../../../install/release ../..
+cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../../../installvs2019/release ../..
 ```
 
-```
+```bash
 mkdir debug & cd debug
-cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../../../install/debug ../..
+cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../../../installvs2019/debug ../..
 ```
 
-```
+```bash
 C:\Path\to\protobuf\cmake\build> mkdir solution & cd solution
-cmake -G "Visual Studio 12 2013" -DCMAKE_INSTALL_PREFIX=../../../../install ../..
-cmake -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=../../../../install ../..
+cmake -G "Visual Studio 12 2013" -DCMAKE_INSTALL_PREFIX=../../../../installvs2019 ../..
+cmake -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=../../../../installvs2019 ../..
 ```
 
 ```
@@ -87,7 +89,7 @@ nmake install
 
 
 
-```
+```bash
 g++ addressbook.pb.cc main.cpp `pkg-config --cflags --libs protobuf` -std=c++11
 ```
 
@@ -95,11 +97,11 @@ g++ addressbook.pb.cc main.cpp `pkg-config --cflags --libs protobuf` -std=c++11
 
 ## linux安装protobuf
 
-```
+```bash
 sudo apt-get install autoconf automake libtool curl make g++ unzip
 ```
 
-```
+```bash
 ./configure # 默认安装在 /usr/local 目录下。/usr/local/include /usr/local/lib /usr/local/bin
 	可以指定安装路径：./configure --prefix=/usr
  make
@@ -114,7 +116,7 @@ sudo apt-get install autoconf automake libtool curl make g++ unzip
 
 To compile a package that uses Protocol Buffers, you need to pass various flags to your compiler and linker. As of version 2.2.0, Protocol Buffers integrates with pkg-config to manage this. If you have pkg-config installed, then you can invoke it to get a list of flags like so:
 
-```
+```bash
 pkg-config --cflags protobuf         # print compiler flags
 	-pthread -I/usr/local/include
 pkg-config --libs protobuf           # print linker flags
@@ -122,7 +124,7 @@ pkg-config --libs protobuf           # print linker flags
 pkg-config --cflags --libs protobuf  # print both
 ```
 
-```
+```bash
 sudo apt install pkg-config
 ```
 
@@ -131,7 +133,7 @@ sudo apt install pkg-config
 ##### example:
 
   使用 **protoc** 将**.proto** 文件生成**.h .cpp** 文件的命令：
-```
+```bash
 protoc -I=$SRC_DIR --cpp_out=$DST_DIR $SRC_DIR/addressbook.proto
 ```
 
@@ -139,11 +141,11 @@ protoc -I=$SRC_DIR --cpp_out=$DST_DIR $SRC_DIR/addressbook.proto
 
 linux平台下编译代码：
 
-```
+```bash
 g++ main.cpp *.cc `pkg-config --cflags --libs protobuf` -std=c++11
 ```
 
-```
+```bash
 g++ main.cpp *.cc -pthread -I/usr/local/include -L/usr/local/lib -lprotobuf -pthread -lpthread -std=c++11
 ```
 
