@@ -87,6 +87,39 @@ nmake
 nmake install
 ```
 
+-----------------------------------------
+
+1. 打开**`Developer Command Prompt for vs2019`**, 以protobuf3.16为例，其他版本查看文档
+
+   https://github.com/protocolbuffers/protobuf/blob/main/cmake/README.md
+
+   https://github.com/protocolbuffers/protobuf/blob/v3.16.0/src/README.md
+
+2. 构建 build
+
+   ```bash
+   cd .../protobuf-3.16.0/cmake
+   cmake -B ../../buildvs2019 -DCMAKE_INSTALL_PREFIX=../../installvs2019 -G "Visual Studio 16 2019"
+   ```
+
+3. 编译 compile
+
+   ```bash
+   cmake --build ../../buildvs2019 --config release
+   cmake --build ../../buildvs2019 --config debug
+   ```
+
+   
+
+4. 安装 install
+
+   ```bash
+   cmake --install ../../buildvs2019 --config release
+   cmake --install ../../buildvs2019 --config debug
+   ```
+
+5. 配置环境变量
+
 
 
 ```bash
@@ -109,6 +142,34 @@ sudo apt-get install autoconf automake libtool curl make g++ unzip
  sudo make install
  sudo ldconfig # refresh shared library cache. This is very important.
 ```
+
+----------------------------------------------
+
+1. build
+
+   ```bash
+   cmake -B ../../buildlinux --parallel 4
+   ```
+
+   
+
+2. compile
+
+   ```bash
+   cmake --build ../../buildlinux/ --config release
+   ```
+
+   
+
+3. install
+
+   ```bash
+   cmake --install ../../buildlinux/ --config release
+   ```
+
+4. config
+
+   ==默认安装在 /usr/local 目录下。/usr/local/include /usr/local/lib /usr/local/bin==
 
 
 
