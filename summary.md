@@ -310,13 +310,13 @@ hash表
 
 # Cmake 
 
-[cmake.md](../test_cmake/md/cmake.md)
+[cmake.md](../ElegantTest/test_cmake/md/cmake.md)
 
 [Cmake入门到精通笔记(全).pdf](./pdf/cmake/Cmake入门到精通笔记(全).pdf)
 
 [从零开始详细介绍CMake.pdf](./pdf/cmake/从零开始详细介绍CMake.pdf)
 
-# Makefile
+# Makefileff
 
 
 

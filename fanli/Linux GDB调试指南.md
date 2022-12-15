@@ -2059,7 +2059,7 @@ Num Enb Expression
 
 ### 将 print 打印结果显示完整
 
-当使用 print 命令打印一个字符串或者字符数组时，如果该字符串太长，print 命令默认显示不全的，我们可以通过在 GDB 中输入 **set print element 0** 命令设置一下，这样再次使用 print 命令就能完整地显示该变量的所有字符串了。
+当使用 print 命令打印一个字符串或者字符数组时，==如果该字符串太长，print 命令默认显示不全的，我们可以通过在 GDB 中输入 **set print element 0** 命令设置一下，==这样再次使用 print 命令就能完整地显示该变量的所有字符串了。
 
 ```c++
 void ChatSession::OnGetFriendListResponse(const std::shared_ptr<TcpConnection>& conn)
@@ -2190,7 +2190,7 @@ void* thread_proc(void* arg)
 
 但是在实际情况下，GDB 可能会跳转到代码行 1 或者代码行 2 处，甚至代码行 13、代码行 14 这样的地方也是有可能的，这不是调试器 bug，这是多线程程序的特点，当我们从代码行 4 处让程序 continue 时，线程 A 虽然会继续往下执行，但是如果此时系统的线程调度将 CPU 时间片切换到线程 B、C 或者 D 呢？那么程序最终停下来的时候，处于代码行 1 或者代码行 2 或者其他地方就不奇怪了，而此时打印相关的变量值，可能就不是我们需要的线程 A 的相关值。
 
-为了解决调试多线程程序时出现的这种问题，**GDB 提供了一个在调试时将程序执行流锁定在当前调试线程的命令**：`set scheduler-locking on`。当然也可以关闭这一选项，使用 `set scheduler-locking off`。除了 on/off 这两个值选项，还有一个不太常用的值叫 step，这里就不介绍了。
+为了解决调试多线程程序时出现的这种问题，**GDB 提供了一个在调试时将程序执行流锁定在*<u>当前调试线程</u>*的命令**：`set scheduler-locking on`。当然也可以关闭这一选项，使用 `set scheduler-locking off`。除了 on/off 这两个值选项，还有一个不太常用的值叫 step，这里就不介绍了。
 
 ### 条件断点
 
