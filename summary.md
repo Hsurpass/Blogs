@@ -26,7 +26,22 @@
 
 [volatile](<../ElegantTest/test_cpp/keyword/volatile/volatile.md>)
 
+### explicit
+
+只能用于修饰一个参数的构造函数，阻止隐式转换
+
+
+
+## references:
+
+[C++基础与提高-王桂林-4rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-4rd.pdf)
+
+[C++基础与提高-王桂林-3rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-3rd.pdf)
+
+
+
 # STL
+
 ## 容器
 ### 序列式容器(Sequence Containers)
 
