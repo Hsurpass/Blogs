@@ -32,6 +32,30 @@
 
 
 
+## 模板
+
+### 模板特化
+
+template.cpp
+
+### 嵌套从属类型需要加typename
+
+template_nested_type.cpp
+
+### 模板函数传多个参数
+
+variadic_templates.cpp
+
+### 非类型模板参数
+
+```c++
+template<typename T, int N> func(T (&arr)[N])
+```
+
+nonType_template_param.cpp
+
+
+
 ## references:
 
 [C++基础与提高-王桂林-4rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-4rd.pdf)
