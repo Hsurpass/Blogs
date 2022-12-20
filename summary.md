@@ -1,3 +1,13 @@
+
+
+# C
+
+
+
+## references:
+
+
+
 # C++
 
 ## 关键字
@@ -62,7 +72,7 @@ nonType_template_param.cpp
 
 [C++基础与提高-王桂林-3rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-3rd.pdf)
 
-
+[EffectiveC++第3版中文版.pdf](../../1RecommendedBooks/Effective C++/EffectiveC++第3版中文版.pdf)
 
 # STL
 
