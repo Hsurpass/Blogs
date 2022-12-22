@@ -52,7 +52,9 @@ template.cpp
 
 template_nested_type.cpp
 
-### 模板函数传多个参数
+### 可变参数模板
+
+C++Primer 第5版 16.4
 
 variadic_templates.cpp
 
@@ -73,6 +75,8 @@ nonType_template_param.cpp
 [C++基础与提高-王桂林-3rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-3rd.pdf)
 
 [EffectiveC++第3版中文版.pdf](../../1RecommendedBooks/Effective C++/EffectiveC++第3版中文版.pdf)
+
+[C++ Primer（第5版）_带书签_高清完整版.pdf](../../1RecommendedBooks/C++Primer 第5版/C++ Primer（第5版）_带书签_高清完整版.pdf)
 
 # STL
 
