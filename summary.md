@@ -2,6 +2,29 @@
 
 # C
 
+## stdarg.h
+
+### 可变参函数
+
+variable_parameter_function.c
+
+### 可变参宏
+
+```c++
+// 宏定义的参数允许用"...", 表示是可变参数，在宏替换的时候用__VA_ARGS__表示"..."位置的所有参数
+#define test1(...) printf(__VA_ARGS__)
+#define test2(fmt, ...) printf(fmt, __VA_ARGS__)
+
+// 很多编译器扩展了可变参数的宏替换，这样的写法更容易记忆，
+// 宏定义的参数后面可以带三个小数点，表示这里是可变参数，
+// 宏替换的时候，直接写这个参数就表示这个位置是所有的可变参数了。
+// 注：某些编译器需要用 ##args 表示 args... 位置所有的参数的宏替换。
+#define test3(fmt...) printf(fmt)
+#define test4(fmt, args...) printf(fmt, args)
+```
+
+variable_parameter_macro.c
+
 
 
 ## references:
@@ -54,9 +77,15 @@ template_nested_type.cpp
 
 ### 可变参数模板
 
+当我们既不知道参数的数目又不知道参数的类型的时候，就可以使用可变参数模板。
+
+默认参数都是传值的，如果参数是类，效率很低，所以改成传引用 `ARGS&... args` or `ARGS&&... args`
+
 C++Primer 第5版 16.4
 
-variadic_templates.cpp
+variadic_template.cpp
+
+https://www.modb.pro/db/463275
 
 ### 非类型模板参数
 
@@ -159,6 +188,12 @@ hash表
 ### auto
 
 ### decltype
+
+### initializer_list
+
+可以接受多个参数，但必须是同一类型
+
+
 
 ## Smart Pointer
 ### auto_ptr
