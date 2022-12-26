@@ -404,23 +404,27 @@ hash表
 
 [从零开始详细介绍CMake.pdf](./pdf/cmake/从零开始详细介绍CMake.pdf)
 
-# Makefileff
+# Makefile
 
 
 
 # Git
 
+[git.md](../ElegantTest/git/git.md)
 
+[cherry_pick.md](../ElegantTest/git/cherry_pick.md)
 
 # Muduo
 
 [study.md](../../4openSourceCode/muduo/md/study.md)
 
+[muduo-manual-20120626.pdf](./pdf/muduo-manual/muduo-manual-20120626.pdf)
 
+[《Linux多线程服务端编程：使用muduo C++网络库》.(陈硕).[PDF]@ckook.pdf](../../1RecommendedBooks/Linux多线程服务端编程/《Linux多线程服务端编程：使用muduo C++网络库》.(陈硕).[PDF]@ckook.pdf)
 
 # Redis
 
-
+[redis.md](../ElegantTest/redis/redis.md)
 
 # Mongodb
 
