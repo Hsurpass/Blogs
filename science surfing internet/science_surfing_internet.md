@@ -4,6 +4,12 @@
 
 ![switchyomega2](image/switchyomega2.jpg)
 
+![image-20221227200912718](image/image-20221227200912718.png)
+
+![image-20221227201013514](image/image-20221227201013514.png)
+
+
+
 
 
 规则列表:
