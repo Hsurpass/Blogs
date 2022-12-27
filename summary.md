@@ -1,5 +1,3 @@
-
-
 # C
 
 ## stdarg.h
@@ -450,5 +448,14 @@ hash表
 
 # Others
 
-[others](./others)
+## build environment
 
+[buildEnvironment.md](./1buildEnvironment/buildEnvironment.md)
+
+## markdown
+
+[markdown](./markdown)
+
+[MarkDown.md](./markdown/MarkDown.md)
+
+[mermaid的[流程图][类图][时序图]的使用范例.md](./markdown/mermaid的[流程图][类图][时序图]的使用范例.md)

@@ -56,6 +56,10 @@ wsl --unregister <DistributionName> : 注销并卸载 WSL 发行版, 例如: wsl
 
 [Windows 10 更新助手](https://support.microsoft.com/zh-cn/topic/windows-10-%E6%9B%B4%E6%96%B0%E5%8A%A9%E6%89%8B-3550dfb2-a015-7765-12ea-fba2ac36fb3f)
 
+# ubuntu换源
+
+
+
 
 
 
