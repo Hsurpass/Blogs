@@ -286,6 +286,16 @@ hash表
 
 [设计模式_王桂林_3rd .pdf](../wangguilin/-4.5- 设计模式/设计模式_王桂林_3rd .pdf)
 
+
+
+# Linux Basic
+
+[Linux 系统编程-基础篇12_05.pdf](../wangguilin/-5- linux基础课程/Linux 系统编程-基础篇12_05.pdf)
+
+[linux](../ElegantTest/linux)
+
+[ubuntu换源.md](../ElegantTest/linux/ubuntu换源.md)
+
 # Linux System Programming
 ## Process
 - 进程:最小的资源分配单位
@@ -380,7 +390,19 @@ hash表
 
 ## Python
 
+[md](../ElegantTest/test_python/md)
+
+[notes.md](../ElegantTest/test_python/md/notes.md)
+
+[pip.md](../ElegantTest/test_python/md/pip.md)
+
+[编码.md](../ElegantTest/test_python/md/编码.md)
+
+
+
 ## Shell
+
+[shell编程.pdf](../wangguilin/-5- linux基础课程/shell编程.pdf)
 
 ## JavaScript && Typescript
 
@@ -408,7 +430,7 @@ hash表
 
 # Makefile
 
-
+[LinuxMakefile.pdf](../wangguilin/-5- linux基础课程/LinuxMakefile.pdf)
 
 # Git
 

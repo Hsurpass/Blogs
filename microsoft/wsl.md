@@ -58,7 +58,7 @@ wsl --unregister <DistributionName> : 注销并卸载 WSL 发行版, 例如: wsl
 
 # ubuntu换源
 
-
+[ubuntu换源.md](../../ElegantTest/linux/ubuntu换源.md)
 
 
 
