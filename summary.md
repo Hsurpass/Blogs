@@ -392,7 +392,11 @@ hash表
 
 [Linux GDB调试指南.md](./fanli/Linux GDB调试指南.md)
 
+[gdb.md](../ElegantTest/test_gdb/gdb.md)
+
 ## CGDB
+
+[cgdb.md](../ElegantTest/test_gdb/cgdb.md)
 
 [cgdb-manual-in-chinese](../../4openSourceCode/cgdb-manual-in-chinese)
 
