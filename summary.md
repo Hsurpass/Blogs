@@ -459,3 +459,15 @@ hash表
 [MarkDown.md](./markdown/MarkDown.md)
 
 [mermaid的[流程图][类图][时序图]的使用范例.md](./markdown/mermaid的[流程图][类图][时序图]的使用范例.md)
+
+## microsoft
+
+[microsoft](./microsoft)
+
+[win_command.md](./microsoft/win_command.md)
+
+[windows快捷键.md](./microsoft/windows快捷键.md)
+
+[wsl.md](./microsoft/wsl.md)
+
+[下载vscode历史版本.md](./microsoft/下载vscode历史版本.md)
