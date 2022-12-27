@@ -15,9 +15,13 @@
 
 account login:  edge, chrome, vscode, visual studio
 
-git, tortoisegit, python, cmake,typora, another redis desktop manager, beyong compare, potplayer, cpu-z,qt, notepad++, 
+git, tortoisegit, python, cmake, another redis desktop manager, beyong compare, potplayer, cpu-z,qt, notepad++, 
 
  360压缩，有道，福昕阅读器，迅雷，百度网盘.
+
+typora:
+
+![image-20221228121943668](image/image-20221228121943668.png)
 
 wsl:
 
