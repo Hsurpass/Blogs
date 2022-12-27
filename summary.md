@@ -294,6 +294,10 @@ hash表
 
 [linux](../ElegantTest/linux)
 
+[command.md](../ElegantTest/linux/command.md)
+
+[gcc_g++.md](../ElegantTest/linux/gcc_g++.md)
+
 [ubuntu换源.md](../ElegantTest/linux/ubuntu换源.md)
 
 # Linux System Programming
@@ -493,3 +497,7 @@ hash表
 [wsl.md](./microsoft/wsl.md)
 
 [下载vscode历史版本.md](./microsoft/下载vscode历史版本.md)
+
+## science surfing internet
+
+[science surfing internet](./science surfing internet)
