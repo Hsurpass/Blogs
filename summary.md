@@ -424,6 +424,8 @@ hash表
 
 # GDB
 
+[test_gdb](../ElegantTest/test_gdb)
+
 [Linux GDB调试指南.md](./fanli/Linux GDB调试指南.md)
 
 [gdb.md](../ElegantTest/test_gdb/gdb.md)
@@ -479,6 +481,8 @@ hash表
 
 
 # Protobuf
+
+[test_protobuf](../ElegantTest/test_protobuf)
 
 [protobuf.md](../ElegantTest/test_protobuf/protobuf.md)
 
