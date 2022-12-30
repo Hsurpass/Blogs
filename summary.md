@@ -105,6 +105,8 @@ nonType_template_param.cpp
 
 [C++ Primer（第5版）_带书签_高清完整版.pdf](../../1RecommendedBooks/C++Primer 第5版/C++ Primer（第5版）_带书签_高清完整版.pdf)
 
+
+
 # STL
 
 ## 容器
@@ -180,6 +182,8 @@ hash表
 
 [C++-STL使用例子大全.pdf](../wangguilin/-4- 用好STL才是王道/C++-STL使用例子大全.pdf)
 
+
+
 # C++11
 
 ## KeyWord
@@ -203,6 +207,8 @@ hash表
 ### weak_ptr
 监视share_ptr, 不会增加引用计数，lock()函数提升为shared_ptr,引用计数加1. 
   weak_ptr可以解决share_ptr循环引用造成的内存泄漏问题。
+
+
 
 # Algorithm
 
@@ -272,7 +278,10 @@ hash表
 
 [数据结构与算法-王桂林-2nd .pdf](../wangguilin/-3.5- 数据结构与算法(CC++实现)视频教程/数据结构与算法-王桂林-2nd .pdf)
 
+
+
 # Design Patterns
+
 ## 单例 singleton pattern
 ### 饿汉式
 ### 懒汉式
@@ -358,7 +367,10 @@ hash表
 
 [C_C++多线程编程精髓.md](./fanli/C_C++多线程编程精髓.md)
 
+
+
 # Linux Network Programming
+
   ### 如何判断大小端
 
 ```c++
@@ -485,6 +497,20 @@ hash表
 [test_protobuf](../ElegantTest/test_protobuf)
 
 [protobuf.md](../ElegantTest/test_protobuf/protobuf.md)
+
+
+
+# RPC
+
+## grpc
+
+## thrift
+
+## brpc
+
+## srpc
+
+
 
 
 
