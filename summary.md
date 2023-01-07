@@ -1,3 +1,5 @@
+[Workspace](d:/Workspace)
+
 # C
 
 ## stdarg.h
@@ -105,6 +107,8 @@ nonType_template_param.cpp
 
 [C++ Primer（第5版）_带书签_高清完整版.pdf](../../1RecommendedBooks/C++Primer 第5版/C++ Primer（第5版）_带书签_高清完整版.pdf)
 
+[Microsoft C/C++ 文档 | Microsoft Learn](https://learn.microsoft.com/zh-cn/cpp/?view=msvc-170)
+
 
 
 # STL
@@ -204,9 +208,32 @@ hash表
 不能copy，assign
 ### share_ptr
 引用计数
+
+解决std::bind(&A::func, this)指针失效的问题：使用enable_shared_from_this, std::bind(&A::func, shared_from_this()).
+
+重析构的问题
+
+enable_shared_from_this
+
+- 不能在构造函数中调用shared_from_this, 对象还没初始化完，this指针还没进行托管。
+- 使用shared_from_this对象的生命周期被意外的延长了。解决办法：使用weak_ptr作为函数参数。std::bind(&A::func, std::weak_ptr<A>(shared_from_this())  ) .
+
+std::bind(&A::func, shared_from_this), std::bind(&A::func, shared(this)): 传的是值，会在std::function中copy一份
+
+std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
+
 ### weak_ptr
-监视share_ptr, 不会增加引用计数，lock()函数提升为shared_ptr,引用计数加1. 
-  weak_ptr可以解决share_ptr循环引用造成的内存泄漏问题。
+
+两个作用：
+
+- 监视share_ptr, 不会增加引用计数，lock()函数提升为shared_ptr,引用计数加1. 
+- 解决share_ptr循环引用造成的内存泄漏问题。
+
+
+
+## references
+
+[Modern C++(C++11_14)-王桂林-3nd.pdf](../wangguilin/-12- C++11C++14C++17 视频精讲/Modern C++(C++11_14)-王桂林-3nd.pdf)
 
 
 
@@ -327,14 +354,18 @@ hash表
 - 线程:最小的程序执行单位
 ### 线程的创建，使用和回收
 ### 多线程的同步互斥
-#### atomic
+#### 	atomic
 
-(多线程对一个变量进行++操作，使用atomic比使用mutex的效率高), gcc提供的同步函数
+​	(多线程对一个变量进行++操作，使用atomic比使用mutex的效率高), gcc提供的同步函数
 
-#### 锁:
-##### 互斥锁
-###### 死锁
-1. 一把锁，自己锁自己(递归调用)
+#### 	锁:
+##### 		互斥锁
+###### 			死锁
+
+			1. 
+			1. 
+
+1. ​		一把锁，自己锁自己(递归调用)
 
 2. 两把锁，两个线程调用锁的顺序相反， 解决c++11 std::  一起锁，一起释放
    
@@ -360,6 +391,12 @@ hash表
 ### 线程池 (生产线程，消费线程)
 
   **条件变量+互斥锁能解决大部分的线程同步问题**
+
+
+
+### 内存池
+
+
 
 ## references:
 
