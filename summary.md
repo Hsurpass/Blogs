@@ -193,6 +193,10 @@ hash表
 ## KeyWord
 ### auto
 
+​	auto.cpp
+
+​	[auto.md](../ElegantTest/test_cpp/3c++11/01keyword/md/auto.md)
+
 ### decltype
 
 ### initializer_list
