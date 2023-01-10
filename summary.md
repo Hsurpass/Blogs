@@ -27,6 +27,12 @@ variable_parameter_macro.c
 
 
 
+C语言指针危险在哪？
+
+​	指针可以自增，自减。++p, --p
+
+
+
 ## references:
 
 
@@ -191,17 +197,65 @@ hash表
 # C++11
 
 ## KeyWord
-### auto
+
+### 	auto
 
 ​	auto.cpp
 
-​	[auto.md](../ElegantTest/test_cpp/3c++11/01keyword/md/auto.md)
+​	[auto.md](./pdf/c++11/md/auto.md)
 
-### decltype
+### 	decltype
 
-### initializer_list
+### 	nullptr
 
-可以接受多个参数，但必须是同一类型
+### 	final
+
+### 	override
+
+### 	initializer_list
+
+​	可以接受多个参数，但必须是同一类型
+
+
+
+### 左值右值
+
+#### 	判断左值右值
+
+​	可以取地址(&)的一定是左值，不能取地址的是右值，字面量一般是右值，除了字符串字面量是左值(存在静态数据区，是一块连续的内存，可以取地址)。
+
+```c++
+int func(int val) // val是左值
+int func(int&& val)	//val还是左值
+
+A func() { A a; return a; }	//如果开启了RVO(return value optimization)优化，好像a就不会复制给临时对象了. g++ -fno-elide-constructors:关闭rvo优化
+```
+
+#### 	左值引用
+
+		##### 		非常量左值引用
+
+​	绑定的必须是一个左值，int &aa = a;
+
+##### 		常量左值引用
+
+​	既能引用左值，又能引用右值
+
+```c++
+const int&& aa = a;	 	const int&& aa = 1;
+```
+
+​	缺点：常量性，一旦使用了常量左值引用就不能修改对象中的数据了(除非强制类型转换)。
+
+#### 	右值引用
+
+右值引用的特点之一是延长右值的声明周期
+
+
+
+	##### 		完美转发
+
+
 
 
 
