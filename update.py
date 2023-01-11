@@ -43,7 +43,8 @@ openSourceRes = {
     # "redis-6.2.7": "git@github.com:Hsurpass/redis-6.2.7.git",
     # "spawn-fcgi-c": "git@github.com:Hsurpass/spawn-fcgi-c.git",
     # "Tinyhttpd": "git@github.com:Hsurpass/Tinyhttpd.git",
-    # "TinyWebServer": "git@github.com:qinguoyi/TinyWebServer.git"
+    # "TinyWebServer": "git@github.com:qinguoyi/TinyWebServer.git",
+    # "Typora_Free_Download": "git@github.com:ydsuper/Typora_Free_Download.git"
 }
 
 def fetchRes(k, v):
