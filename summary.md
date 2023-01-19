@@ -63,7 +63,7 @@ C语言指针危险在哪？
 
 ### volatile
 
-[volatile](<../ElegantTest/test_cpp/keyword/volatile/volatile.md>)
+[volatile.md](<../ElegantTest/test_cpp/keyword/volatile/volatile.md>)
 
 ### explicit
 
@@ -195,34 +195,31 @@ hash表
 
 
 # C++11
+## &ensp;1. KeyWord
 
-## KeyWord
+### &ensp;&ensp;1.1 auto
 
-### 	auto
+auto.cpp
 
-​	auto.cpp
+### &ensp;&ensp;1.2 decltype
 
-​	[auto.md](./pdf/c++11/md/auto.md)
+### &ensp;&ensp;1.3 nullptr
 
-### 	decltype
+### &ensp;&ensp;1.4 final
 
-### 	nullptr
+### &ensp;&ensp;1.5 override
 
-### 	final
+### &ensp;&ensp;1.6 initializer_list
 
-### 	override
-
-### 	initializer_list
-
-​	可以接受多个参数，但必须是同一类型
+可以接受多个参数，但必须是同一类型
 
 
 
-### 左值右值
+## &ensp;2. 左值右值
 
-#### 	判断左值右值
+### &ensp;&ensp;2.1 判断左值右值
 
-​	可以取地址(&)的一定是左值，不能取地址的是右值，字面量一般是右值，除了字符串字面量是左值(存在静态数据区，是一块连续的内存，可以取地址)。
+可以取地址(&)的一定是左值，不能取地址的是右值，字面量一般是右值，除了字符串字面量是左值(存在静态数据区，是一块连续的内存，可以取地址)。
 
 ```c++
 int func(int val) // val是左值
@@ -231,39 +228,53 @@ int func(int&& val)	//val还是左值
 A func() { A a; return a; }	//如果开启了RVO(return value optimization)优化，好像a就不会复制给临时对象了. g++ -fno-elide-constructors:关闭rvo优化
 ```
 
-#### 	左值引用
+### &ensp;&ensp;2.2 左值引用
 
-		##### 		非常量左值引用
+#### &ensp;&ensp;&ensp;2.2.1非常量左值引用
 
-​	绑定的必须是一个左值，int &aa = a;
+绑定的必须是一个左值，int &aa = a;
 
-##### 		常量左值引用
+#### &ensp;&ensp;&ensp;2.2.2常量左值引用(万能引用)
 
-​	既能引用左值，又能引用右值
+既能引用左值，又能引用右值
 
 ```c++
-const int&& aa = a;	 	const int&& aa = 1;
+const T& aa = a;	 	const T& aa = 1;
+const auto& aa = a;	 	const auto& aa = 1;
 ```
 
-​	缺点：常量性，一旦使用了常量左值引用就不能修改对象中的数据了(除非强制类型转换)。
+缺点：常量性，一旦使用了常量左值引用就不能修改对象中的数据了(除非强制类型转换)。
 
-#### 	右值引用
+### &ensp;&ensp;2.3 右值引用
 
-右值引用的特点
+​	右值引用的特点:
 
-​	是延长右值的生命周期
+​			1.是延长右值的生命周期
 
-​	减少对象copy,提升程序性能。
+​			2.减少对象copy,提升程序性能。
+
+​	c++编译器 编译器将已命名的右值引用视为左值，而将未命名的右值引用视为右值。
+
+#### &ensp;&ensp;&ensp;2.3.1 移动语义
+
+​	将左值转换为右值引用:   ==`std::move(t)`== *≈* ==`static_cast<T&&>(t)`==,  std::move调用时不需要指定模板参数
+
+#### &ensp;&ensp;&ensp;2.3.2 万能引用
+
+```c++
+T& aa = a;	 	T& aa = 1;
+auto& aa = a;	auto& aa = 1;
+```
 
 
 
-##### 万能引用
+#### &ensp;&ensp;&ensp;2.3.3 引用折叠
 
-##### 引用折叠
+#### &ensp;&ensp;&ensp;2.3.4 完美转发
 
-##### 完美转发
+​	保持值的原有属性：std::forward<T>调用时需要指定模板参数
 
-
+​	 ==`std::forward<T>(t)`== *≈* ==`static_cast<T&&>(t)`==
 
 
 
@@ -300,6 +311,8 @@ std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引�
 ## references
 
 [Modern C++(C++11_14)-王桂林-3nd.pdf](../wangguilin/-12- C++11C++14C++17 视频精讲/Modern C++(C++11_14)-王桂林-3nd.pdf)
+
+[现代c++语言核心特性解析.md](./pdf/c++11/md/现代c++语言核心特性解析.md)
 
 
 
@@ -621,33 +634,35 @@ std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引�
 
 # Others
 
-## build environment
+## &emsp;build environment
 
-[buildEnvironment.md](./1buildEnvironment/buildEnvironment.md)
+​	[buildEnvironment.md](./1buildEnvironment/buildEnvironment.md)
 
-## markdown
+## &emsp;markdown
 
-[markdown](./markdown)
+​	[markdown](./markdown)
 
-[MarkDown.md](./markdown/MarkDown.md)
+​	[MarkDown.md](./markdown/MarkDown.md)
 
-[mermaid的[流程图][类图][时序图]的使用范例.md](./markdown/mermaid的[流程图][类图][时序图]的使用范例.md)
+​	[mermaid的[流程图][类图][时序图]的使用范例.md](./markdown/mermaid的[流程图][类图][时序图]的使用范例.md)
 
-## microsoft
+​	[typora.md](./markdown/typora.md)
 
-[microsoft](./microsoft)
+## &emsp;microsoft
 
-[win_command.md](./microsoft/win_command.md)
+​	[microsoft](./microsoft)
 
-[windows快捷键.md](./microsoft/windows快捷键.md)
+​	[win_command.md](./microsoft/win_command.md)
 
-[wsl.md](./microsoft/wsl.md)
+​	[windows快捷键.md](./microsoft/windows快捷键.md)
 
-[下载vscode历史版本.md](./microsoft/下载vscode历史版本.md)
+​	[wsl.md](./microsoft/wsl.md)
 
-## science surfing internet
+​	[下载vscode历史版本.md](./microsoft/下载vscode历史版本.md)
 
-[science surfing internet](./science surfing internet)
+## &emsp;science surfing internet
 
-[science_surfing_internet.md](./science surfing internet/science_surfing_internet.md)
+​	[science surfing internet](./science surfing internet)
+
+​	[science_surfing_internet.md](./science surfing internet/science_surfing_internet.md)
 
