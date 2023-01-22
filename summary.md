@@ -213,13 +213,29 @@ auto.cpp
 
 可以接受多个参数，但必须是同一类型
 
+### &ensp;&ensp;1.7 lambda
+
+```c++
+[captures](params) specifiers exception -> ret { body }
+```
+
+1.捕获列表捕获的是自动存储变量(局部变量)
+
+2.对于全局变量和静态局部变量，放在捕获列表中编译会报错；直接用就行了(作用域本来就是全局的), 也不必在参数列表传参。
+
+3.捕获this指针，可以在lambda内部使用this类型的成员函数和变量。
+
+
+
 
 
 ## &ensp;2. 左值右值
 
 ### &ensp;&ensp;2.1 判断左值右值
 
-可以取地址(&)的一定是左值，不能取地址的是右值，字面量一般是右值，除了字符串字面量是左值(存在静态数据区，是一块连续的内存，可以取地址)。
+左值：可以取地址(&)的一定是左值。字符串字面量(“abcd”)是左值(存在静态数据区，是一块连续的内存，可以取地址)；++i
+
+右值：不能取地址的是右值。字面量(10)一般是右值； 返回的局部对象；i++; 算数/逻辑/比较表达式。
 
 ```c++
 int func(int val) // val是左值
@@ -266,24 +282,36 @@ T& aa = a;	 	T& aa = 1;
 auto& aa = a;	auto& aa = 1;
 ```
 
+```c++
+// 如果参数传的是左值，则T推导的是左值
+// 如果参数传的是右值，则T推导的是类型本身
+// 如果参数传的是左值引用，则T推导的是左值引用
+// 如果参数传的是右值引用，则T推导的是类型本身
+template<typename T>
+void func(T&& obj)
+{}
+```
 
 
-#### &ensp;&ensp;&ensp;2.3.3 引用折叠
 
-#### &ensp;&ensp;&ensp;2.3.4 完美转发
+#### &ensp;&ensp;&ensp;&ensp;2.3.2.1引用折叠
 
-​	保持值的原有属性：std::forward<T>调用时需要指定模板参数
+​	遇左则左
 
-​	 ==`std::forward<T>(t)`== *≈* ==`static_cast<T&&>(t)`==
+#### &ensp;&ensp;&ensp;2.3.3 完美转发
+
+​	保持值的原有属性(左值右值)：std::forward<T>调用时需要指定模板参数
+
+​	 ==`std::forward<T>(t)`== *≈* ==`static_cast<T &&>(t)`==
 
 
 
-## Smart Pointer
-### auto_ptr
+## &ensp;3.Smart Pointer
+### &ensp;&ensp;3.1auto_ptr
 复制和复制都会改变所有权
-### unique_ptr
-不能copy，assign
-### share_ptr
+### &ensp;&ensp;3.2unique_ptr
+不能拷贝构造和赋值，但是可以移动move
+### &ensp;&ensp;3.3share_ptr
 引用计数
 
 解决std::bind(&A::func, this)指针失效的问题：使用enable_shared_from_this, std::bind(&A::func, shared_from_this()).
@@ -299,7 +327,7 @@ std::bind(&A::func, shared_from_this), std::bind(&A::func, shared(this)): 传的
 
 std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
 
-### weak_ptr
+### &ensp;&ensp;3.4weak_ptr
 
 两个作用：
 
