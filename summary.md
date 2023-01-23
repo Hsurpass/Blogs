@@ -109,6 +109,8 @@ nonType_template_param.cpp
 
 [C++基础与提高-王桂林-3rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-3rd.pdf)
 
+[1RecommendedBooks](../../1RecommendedBooks)
+
 [EffectiveC++第3版中文版.pdf](../../1RecommendedBooks/Effective C++/EffectiveC++第3版中文版.pdf)
 
 [C++ Primer（第5版）_带书签_高清完整版.pdf](../../1RecommendedBooks/C++Primer 第5版/C++ Primer（第5版）_带书签_高清完整版.pdf)
@@ -178,9 +180,7 @@ hash表
 
 ## 算法
 
-### lambda表达式
-
-#### 闭包
+#### 
 
 
 
@@ -203,17 +203,39 @@ auto.cpp
 
 ### &ensp;&ensp;1.2 decltype
 
+decltype.cpp
+
 ### &ensp;&ensp;1.3 nullptr
+
+nullptr.cpp
+
+解决NULL和0的二义性，NULL通常被定义为(void*)0
 
 ### &ensp;&ensp;1.4 final
 
+两个用途:
+
+​	1.阻止从类继承。
+
+​	2.组织虚函数的覆写。
+
 ### &ensp;&ensp;1.5 override
 
-### &ensp;&ensp;1.6 initializer_list
+帮助检查是否正确覆写了父类的虚函数。若此种覆写关系不成立，则以报错的形式提示给coder。
+
+### &ensp;&ensp;1.7 =default/=delete
+
+在函数声明后面加上=delete就能禁用该函数。`A()=delete;`
+
+### &ensp;&ensp;1.8 initializer_list
 
 可以接受多个参数，但必须是同一类型
 
-### &ensp;&ensp;1.7 lambda
+```c++
+double sum(const initializer_list<double> &il);	// 可以接受多个同一类型的参数，函数内再用for(auto d: il);遍历
+```
+
+### &ensp;&ensp;1.9 lambda
 
 ```c++
 [captures](params) specifiers exception -> ret { body }
@@ -308,7 +330,7 @@ void func(T&& obj)
 
 ## &ensp;3.Smart Pointer
 ### &ensp;&ensp;3.1auto_ptr
-复制和复制都会改变所有权
+(被废弃的) 复制和复制都会改变所有权
 ### &ensp;&ensp;3.2unique_ptr
 不能拷贝构造和赋值，但是可以移动move
 ### &ensp;&ensp;3.3share_ptr
