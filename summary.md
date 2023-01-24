@@ -25,7 +25,7 @@ variable_parameter_function.c
 
 variable_parameter_macro.c
 
-
+##__VA_ARGS__
 
 C语言指针危险在哪？
 
@@ -121,6 +121,18 @@ nonType_template_param.cpp
 
 # STL
 
+stl容器存在的效率问题：
+
+​	1.push要完成一次对象的拷贝
+
+​	2.内存不足的时候，自动开辟新空间，对原来的数据做一次深拷贝。
+
+解决：
+
+emplace
+
+移动构造，移动赋值
+
 ## 容器
 ### 序列式容器(Sequence Containers)
 
@@ -180,7 +192,9 @@ hash表
 
 ## 算法
 
-#### 
+
+
+
 
 
 
@@ -213,7 +227,7 @@ nullptr.cpp
 
 ### &ensp;&ensp;1.4 final
 
-两个用途:
+两个用途: final.cpp
 
 ​	1.阻止从类继承。
 
@@ -247,6 +261,18 @@ double sum(const initializer_list<double> &il);	// 可以接受多个同一类�
 
 3.捕获this指针，可以在lambda内部使用this类型的成员函数和变量。
 
+### &ensp;&ensp;1.10 closure
+
+lambda表达式和其外部的局部变量合起来叫做闭包。
+
+==好处：1.可以读取外层函数内的局部变量；2.让这些变量的值始终保存在内存中。==
+
+### &ensp;&ensp;1.11 assert/static_assert
+
+assert(expression)	//运行期断言，不能在编译器发现错误。
+
+static_assert(expression，提示字符串)	//编译期断言，也叫动态断言。如果expression为false,则打印提示字符串。
+
 
 
 
@@ -268,6 +294,8 @@ A func() { A a; return a; }	//如果开启了RVO(return value optimization)优�
 
 ### &ensp;&ensp;2.2 左值引用
 
+​	扩展了对象的作用域
+
 #### &ensp;&ensp;&ensp;2.2.1非常量左值引用
 
 绑定的必须是一个左值，int &aa = a;
@@ -287,7 +315,7 @@ const auto& aa = a;	 	const auto& aa = 1;
 
 ​	右值引用的特点:
 
-​			1.是延长右值的生命周期
+​			1.是延长临时对象的生命周期
 
 ​			2.减少对象copy,提升程序性能。
 
@@ -328,12 +356,31 @@ void func(T&& obj)
 
 
 
-## &ensp;3.Smart Pointer
-### &ensp;&ensp;3.1auto_ptr
+## &ensp;3.bind/function
+
+`using namespace std::placeholders;`
+
+### &ensp;&ensp;3.1bind
+
+1.   bind绑定顺序就是函数形参的顺序，placeholders::_x中的序列是实参的顺序。
+
+```c++
+auto fn_invert = std::bind (myDivide, _2, _1);	// _2/_1 ==> 2/10 
+cout << fn_invert(10,2) << endl;	// _1是10，_2是2
+```
+
+2. 对于预先绑定好的参数，是传值的，对象会引发拷贝。
+2. 对于未预先绑定好的参数，使用placeholders::_x做占位符, 是传引用的。
+2. ==对于绑定的指针，引用类型的参数，需要在调用时确保其是可用的。== 这就引出了下面的`enable_shared_from_this`
+
+
+
+## &ensp;4.Smart Pointer
+### &ensp;&ensp;4.1auto_ptr
 (被废弃的) 复制和复制都会改变所有权
-### &ensp;&ensp;3.2unique_ptr
+### &ensp;&ensp;4.2unique_ptr
 不能拷贝构造和赋值，但是可以移动move
-### &ensp;&ensp;3.3share_ptr
+### &ensp;&ensp;4.3share_ptr
 引用计数
 
 解决std::bind(&A::func, this)指针失效的问题：使用enable_shared_from_this, std::bind(&A::func, shared_from_this()).
@@ -349,7 +396,7 @@ std::bind(&A::func, shared_from_this), std::bind(&A::func, shared(this)): 传的
 
 std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
 
-### &ensp;&ensp;3.4weak_ptr
+### &ensp;&ensp;4.4weak_ptr
 
 两个作用：
 
