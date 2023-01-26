@@ -371,30 +371,81 @@ cout << fn_invert(10,2) << endl;	// _1是10，_2是2
 
 2. 对于预先绑定好的参数，是传值的，对象会引发拷贝。
 2. 对于未预先绑定好的参数，使用placeholders::_x做占位符, 是传引用的。
+2. std::bind(&A::func, std::ref(shared_ptr))：  std::ref传的是引用。
 2. ==对于绑定的指针，引用类型的参数，需要在调用时确保其是可用的。== 这就引出了下面的`enable_shared_from_this`
 
 
 
 ## &ensp;4.Smart Pointer
+
+RAII:资源获取即初始化。==资源==：内存、文件句柄、网络连接、互斥量。
+
 ### &ensp;&ensp;4.1auto_ptr
 (被废弃的) 复制和复制都会改变所有权
 ### &ensp;&ensp;4.2unique_ptr
-不能拷贝构造和赋值，但是可以移动move
+1.不能拷贝构造和赋值，但是可以使用std::move转移所有权。
+
+2.可以用于托管数组(**重载了`std::unique_ptr::operator[]`**)
+
+```c++
+unique_ptr<int[]> up(new int[10]{1,2,3,4});
+```
+
+​	release：放弃托管，返回资源指针。
+
+​	reset: 如果传参了，释放旧资源托管新资源；如果没传参，释放旧资源。
+
+ 3.unique_ptr 在默认情况下和裸指针的大小是一样的。所以**内存上没有任何的额外消耗，性能是最优的。**
+
+
+
 ### &ensp;&ensp;4.3share_ptr
-引用计数
+引用计数为0释放资源。
 
-解决std::bind(&A::func, this)指针失效的问题：使用enable_shared_from_this, std::bind(&A::func, shared_from_this()).
+没有所谓的share_ptr<T[]>,以array vector string替代，但是unique_ptr有unique_ptr<T[]>
 
-重析构的问题
+reset
 
-enable_shared_from_this
+​	有参数：如果引用计数>1，引用计数减一，托管新对象。
+
+​				   如果引用计数==1，引用计数减一，释放旧资源，托管新资源。
+
+​	无参数：引用计数减一，减到0了，就释放资源。
+
+make_shared
+
+
+
+#### &ensp;&ensp;&ensp;4.3.2enable_shared_from_this
+
+```c++
+class A : public enable_shared_from_this<A> {}
+```
+
+1.为什么要使用enable_shared_from_this
+
+​	解决std::bind(&A::func, this)指针失效的问题：使用enable_shared_from_this, std::bind(&A::func, shared_from_this()).
+
+​	重析构的问题
+
+
 
 - 不能在构造函数中调用shared_from_this, 对象还没初始化完，this指针还没进行托管。
 - 使用shared_from_this对象的生命周期被意外的延长了。解决办法：使用weak_ptr作为函数参数。std::bind(&A::func, std::weak_ptr<A>(shared_from_this())  ) .
 
-std::bind(&A::func, shared_from_this), std::bind(&A::func, shared(this)): 传的是值，会在std::function中copy一份
+std::bind(&A::func, shared_from_this()), std::bind(&A::func, shared(this)): 传的是值，会在std::function中copy一份
 
 std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
+
+线程安全
+
+share_ptr的错误用法
+
+​	1.使用栈上的地址来构造shared_ptr, 造成重析构。
+
+​	2.使用一个指针构造两个及以上的shared_ptr, 造成多个shared_ptr对象托管同一个指针，重析构。
+
+​	3.类内使用this指针构造shared_ptr, 重析构。
 
 ### &ensp;&ensp;4.4weak_ptr
 
