@@ -430,14 +430,20 @@ class A : public enable_shared_from_this<A> {}
 
 
 
-- 不能在构造函数中调用shared_from_this, 对象还没初始化完，this指针还没进行托管。
+- 不能在构造/析构函数中调用shared_from_this, 构造时对象还没初始化完，析构时对象已经消失了。
 - 使用shared_from_this对象的生命周期被意外的延长了。解决办法：使用weak_ptr作为函数参数。std::bind(&A::func, std::weak_ptr<A>(shared_from_this())  ) .
 
 std::bind(&A::func, shared_from_this()), std::bind(&A::func, shared(this)): 传的是值，会在std::function中copy一份
 
 std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
 
-线程安全
+
+
+shared_ptr的线程安全性
+
+​	shared_ptr有两个数据成员，一个是指向托管的资源的指针，一个是指向引用计数的指针，引用计数本身是安全且无锁的(原子的->atomic)。但是shared_ptr对象(前面两个两个加起来)就不是线程安全的了，多个线程可以同时读不能同时写。
+
+
 
 share_ptr的错误用法
 
@@ -807,6 +813,8 @@ share_ptr的错误用法
 ​	[wsl.md](./microsoft/wsl.md)
 
 ​	[下载vscode历史版本.md](./microsoft/下载vscode历史版本.md)
+
+​	[vscode_shortcutKey.md](./microsoft/vscode_shortcutKey.md)
 
 ## &emsp;science surfing internet
 
