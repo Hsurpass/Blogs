@@ -215,6 +215,12 @@ hash表
 
 auto.cpp
 
+使用场景：
+
+1. 迭代器类型
+2. lambda类型
+3. std::bind返回值类型(functional)
+
 ### &ensp;&ensp;1.2 decltype
 
 decltype.cpp
@@ -410,9 +416,19 @@ reset
 
 ​				   如果引用计数==1，引用计数减一，释放旧资源，托管新资源。
 
-​	无参数：引用计数减一，减到0了，就释放资源。
+​	无参数：引用计数减一==同时放弃托管==，如果减到0了，就释放资源。
 
 make_shared
+
+https://developer.aliyun.com/article/321323
+
+​	优点： 1.使用make_shared<>减少一次内存分配，它会申请一个内存块同时存放托管的资源和引用计数，不用分别分配一次内存。
+
+​				2.解决分开分配内存，而shared_ptr没及时获得裸指针，就抛出异常导致的内存泄漏问题。
+
+​	缺点:	1.如果构造函数不是public的，则编译报错。
+
+​				2.要等弱引用计数 == 0才能把资源全部释放。而对于分开分配内存的方式，强引用计数为0就把托管的资源释放，弱引用计数为0再把引用计数的内存释放。(?? 源码中没看到，等待验证。)
 
 
 
@@ -452,6 +468,32 @@ share_ptr的错误用法
 ​	2.使用一个指针构造两个及以上的shared_ptr, 造成多个shared_ptr对象托管同一个指针，重析构。
 
 ​	3.类内使用this指针构造shared_ptr, 重析构。
+
+
+
+refcount.ptr
+
+​	为什么refcount也有指向资源的指针？
+
+​	实际上 shared_ptr.ptr 和 ref_count.ptr 可以是不同的类型（==只要它们之间存在隐式转换==），这是 shared_ptr 的一大功能。分3点来说：
+
+​	1.无需虚析构
+
+​		即使没有虚析构函数也能释放子类内存
+
+​	2.shared_ptr<void>
+
+​		可以指向并安全地管理（析构或防止析构）任何对象。
+
+​		可以把任意shared_ptr对象赋值给shared_ptr<void>，并且不会造成内存泄漏。
+
+​	 3. 多继承
+
+​		多继承情况下，可以把子类的shared_ptr赋值给给任意一个父类的shared_ptr，而不会造成内存泄漏。
+
+以上3点之所以不会发生错误是因为shared_ptr对象析构时delete的是refcount.ptr, refcount.ptr保存的是实际类型的资源的指针。 
+
+
 
 ### &ensp;&ensp;4.4weak_ptr
 
