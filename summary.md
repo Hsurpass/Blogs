@@ -71,6 +71,30 @@ C语言指针危险在哪？
 
 
 
+内存四区
+
+### 内存泄漏
+
+
+
+面向对象
+
+封装
+
+继承
+
+多态
+
+​	虚函数
+
+​	虚析构
+
+编译过程
+
+​	编译静态库，动态库
+
+
+
 ## 模板
 
 ### 模板特化
@@ -410,7 +434,7 @@ unique_ptr<int[]> up(new int[10]{1,2,3,4});
 
 没有所谓的share_ptr<T[]>,以array vector string替代，但是unique_ptr有unique_ptr<T[]>
 
-reset
+#### &ensp;&ensp;&ensp;4.3.1reset
 
 ​	有参数：如果引用计数>1，引用计数减一，托管新对象。
 
@@ -418,7 +442,7 @@ reset
 
 ​	无参数：引用计数减一==同时放弃托管==，如果减到0了，就释放资源。
 
-make_shared
+#### &ensp;&ensp;&ensp;4.3.2make_shared
 
 https://developer.aliyun.com/article/321323
 
@@ -432,7 +456,7 @@ https://developer.aliyun.com/article/321323
 
 
 
-#### &ensp;&ensp;&ensp;4.3.2enable_shared_from_this
+#### &ensp;&ensp;&ensp;4.3.3enable_shared_from_this
 
 ```c++
 class A : public enable_shared_from_this<A> {}
@@ -440,28 +464,39 @@ class A : public enable_shared_from_this<A> {}
 
 1.为什么要使用enable_shared_from_this
 
-​	解决std::bind(&A::func, this)指针失效的问题：使用enable_shared_from_this, std::bind(&A::func, shared_from_this()).
+​	1).解决绑定this指针失效的问题(std::bind(&A::func, this))：使用std::bind(&A::func, shared_from_this()).
 
-​	重析构的问题
+​	2).重析构的问题：在类内使用this指针构造shared_ptr对象，引用计数不是共享的，会造成重析构。
 
-
+2.使用enable_shared_from_this需要注意的地方
 
 - 不能在构造/析构函数中调用shared_from_this, 构造时对象还没初始化完，析构时对象已经消失了。
+
+- 要使用shared_from_this()必须先构造一个shared_ptr对象。
+
+    ```c++
+    // enable_shared_from_this中有个weak_ptr成员变量weak_this, shared_from_this()函数就是通过weak_ptr来生成shared_ptr;
+    // (weak_ptr中保存着引用计数，这样生成的shared_ptr就能共用引用计数了，不会再出现重析构的问题)
+    // 而weak_this则是在shared_ptr的构造函数中被赋值的，
+    // 所以要使用shared_from_this()必须先构造一个shared_ptr对象。
+    // 这也是为什么不能在构造函数中使用shared_from_this()的原因。
+    ```
+
 - 使用shared_from_this对象的生命周期被意外的延长了。解决办法：使用weak_ptr作为函数参数。std::bind(&A::func, std::weak_ptr<A>(shared_from_this())  ) .
 
 std::bind(&A::func, shared_from_this()), std::bind(&A::func, shared(this)): 传的是值，会在std::function中copy一份
 
-std::bind(&A::func, _1), std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
+std::bind(&A::func, _1),  std::bind(&A::func, std::ref(shared_ptr)):传的是引用。
 
 
 
-shared_ptr的线程安全性
+#### &ensp;&ensp;&ensp;4.3.4shared_ptr的线程安全性
 
 ​	shared_ptr有两个数据成员，一个是指向托管的资源的指针，一个是指向引用计数的指针，引用计数本身是安全且无锁的(原子的->atomic)。但是shared_ptr对象(前面两个两个加起来)就不是线程安全的了，多个线程可以同时读不能同时写。
 
 
 
-share_ptr的错误用法
+#### &ensp;&ensp;&ensp;4.3.5share_ptr的错误用法
 
 ​	1.使用栈上的地址来构造shared_ptr, 造成重析构。
 
@@ -471,7 +506,7 @@ share_ptr的错误用法
 
 
 
-refcount.ptr
+#### &ensp;&ensp;&ensp;4.3.6refcount.ptr
 
 ​	为什么refcount也有指向资源的指针？
 
@@ -479,7 +514,7 @@ refcount.ptr
 
 ​	1.无需虚析构
 
-​		即使没有虚析构函数也能释放子类内存
+​		即使没有虚析构函数也能正确释放子类内存。
 
 ​	2.shared_ptr<void>
 
@@ -695,6 +730,20 @@ refcount.ptr
 ```
 
 - 2.
+
+
+
+三次握手
+
+四次挥手
+
+滑动窗口
+
+拥塞控制
+
+粘包。
+
+
 
 ## references:
 
