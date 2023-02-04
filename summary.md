@@ -68,14 +68,24 @@ C语言指针危险在哪？
 ### 定位new
 
 ```c++
-new (place_address) type
-new (place_address) type (initializers)
-new (place_address) type [size]
-new (place_address) type [size] { braced initializer list }
+type* p = new (place_address) type
+type* p = new (place_address) type (initializers)
+type* p = new (place_address) type [size]
+type* p = new (place_address) type [size] { braced initializer list }
 ```
 
 -   `place_address` 是个指针
+
 -   `initializers` 提供一个（可能为空的）以逗号分隔的初始值列表
+
+```c++
+char buf[1024]; 	// 也可以使用new[]/malloc在堆上分配buf，不过要记得delete[]/free。
+int* p = new (buffer)int[10];//在buffer位置创建10个int元素的数组。
+double* p1 = new (buffer)double[10];//覆盖了p的数组
+int* p2 = new(buffer + 10*sizeof(double)) int[10];// 在p1后面又创建了10个int元素的数组。
+```
+
+​    
 
 ### static
 
@@ -231,27 +241,41 @@ struct test
 
 
 
-
-
 ### 内存碎片
 
 #### 内存池
 
-
+提前申请一块大的内存，然后使用定位new去初始化。
 
 #### 结构体末尾加空数组
 
+结构体/类 末尾+空数组 常被用做动态缓冲区。注意：==空数组一定要放在末尾==			struct_plus_empty_arr.cpp
+
 ```c++
-struct A
-{
+struct A {
 	int a;
 	char b[];
 };
+A* pa = (A*)malloc(sizeof(A) + len);
+free pa;
 ```
 
+为什么使用空数组而不使用指针？
 
+​	如果使用指针不使用数组，则需要分别分配结构体的内存和指针的内存，释放也是要两次释放；如果使用数组可以一次性把内存全部分配出来，释放的时候一次性释放。减少了内存碎片。
 
+​	而且空数组不占空间，指针占4字节。
 
+```c++
+//使用非类型模板参数，空数组不一定要放到末尾。
+template<int N>
+class A{
+public:
+    char buf[N];
+    int a;
+};
+A<6> a;  or  A<6>* pa = new A<6>(); delete pa;
+```
 
 
 
@@ -352,7 +376,7 @@ void (*pbf)() = &A::dis_static;
 子类public/protected/private继承父类中的私有成员都是不可访问的。
 #### 赋值兼容：
 
-1.子类对象可以赋值给父类对象。()
+1.子类对象可以赋值给父类对象。(A a = b;--> ==调用拷贝构造==。 A a; B b; a = b; --> ==调用拷贝赋值==。)
 
 2.子类对象可以赋值给父类对象的引用。(以父类寻址: A* pa = pb;  以A寻址(*所以看不到子类成员*))
 
@@ -363,7 +387,7 @@ void (*pbf)() = &A::dis_static;
 #### 同名隐藏：
 如果子类父类中有同名的==变量、函数名==(无关乎返值和参数)，则子类调用时默认使用的时子类的；要想使用父类的以==父类名+作用域运算符==的方式来调用。
 
-只要子类中有同名的，则父类中所有同名的函数都被隐藏(不管是不是虚函数)。如果一定要用父类的可以使用：1.using fulei::函数名 2.父类名+作用域运算符。
+只要子类中有同名的，则父类中所有同名的函数都被隐藏(不管是不是虚函数)。如果一定要用父类的可以使用：1.using 父类::函数名 2.父类名+作用域运算符。
 
 
 
@@ -371,7 +395,7 @@ void (*pbf)() = &A::dis_static;
 构造顺序：先父类，再成员变量，最后子类。
 
 #### 多继承
-构造顺序：
+父类构造顺序：从左到右
 
 虚继承，使得不同路径继承来的同名成员在内存中只有一份拷贝。
 
@@ -476,6 +500,10 @@ variadic_template.cpp
 https://www.modb.pro/db/463275
 
 ### 非类型模板参数
+
+非类型模板参数是有限制的。他们只能是: 整数(包括枚举)，对象/函数/成员的指针，对象或函数的左值引用，nullptr。
+
+==浮点数,类对象, 字符串常量是不允许作为非类型模板参数的==
 
 ```c++
 template<typename T, int N> func(T (&arr)[N])
