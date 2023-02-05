@@ -395,13 +395,59 @@ void (*pbf)() = &A::dis_static;
 构造顺序：先父类，再成员变量，最后子类。
 
 #### 多继承
+
+
+
+菱形继承
+
+multiple_inherit_diamond.cpp
+
+virtual_table_multi_inherit_diamond.cpp
+
 父类构造顺序：从左到右
 
-虚继承，使得不同路径继承来的同名成员在内存中只有一份拷贝。
+
 
 #### 虚拟继承
 
+```mermaid
+classDiagram
+Base <|-- A
+Base <|-- B
+A <|-- C
+B <|-- C
+```
+
+```c++
+/* 构造、析构顺序：
+Base(int a_ = 10)
+A(int a_ = 10)
+B(int a_ = 20)
+C(int a_ = 30)
+~C()
+~B()
+~A()
+~Base()
+*/
+// 菱形问题 父类构造顺序：从左到右且虚基类只构造一次
+// 实现了在多继承中只保留了一份数据成员。A,B共享虚基类中的数据，且虚基类中初始化只能由C初始化(A，B中构造Base是无效的)。
+```
+
+虚继承，使得不同路径继承来的同名成员在内存中只有一份拷贝。
+
+multiple_inherit_virtual_base.cpp
+
+virtual_table_multi_inherit_virtual_base.cpp
+
+同名隐藏，赋值兼容同样适用
+
 虚继承用于解决多继承条件下的菱形继承问题（浪费存储空间、存在二义性）。
+
+Base和A，B，C可以有同名的变量和同名的普通成员函数。
+
+虚拟继承，A,B不能同时覆写虚函数，只能覆写其中一个，否则会ambigous.
+
+既然继承了虚基类就不要有同名的变量出现了，以免造成程序混乱。
 
 ### 多态
 
