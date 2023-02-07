@@ -691,8 +691,6 @@ template<>	// 函数全特化
 const char* Max(const char* x, const char* y){ return (strcmp(x, y) > 0) ?  x : y; }
 ```
 
-
-
 #### 偏特化
 
 模板偏特化主要分为两种，一种是指对==部分模板参数==进行特化，另一种是对==模板参数特性==进行特化，包括将模板参数特化为**指针、引用或是另外一个模板类。**
@@ -742,6 +740,20 @@ template_nested_type.cpp
 当我们既不知道参数的数目又不知道参数的类型的时候，就可以使用可变参数模板。
 
 默认参数都是传值的，如果参数是类，效率很低，所以改成传引用 `ARGS&... args` or `ARGS&&... args`
+
+```c++
+template<typename T, typename... U>	// U:参数类型包
+void print(const T& firstArg, const U&&... args){} //args:参数包
+
+sizeof...(U) //类型参数的个数
+sizeof...(args) //函数参数的个数
+func(std::forward<ARGS>(args)...) //既扩展了类型包U, 也扩展了参数包args, 形如:std::forward<Ti>(ti),Ti表示类型包中第i个参数的类型，ti表示参数包中第i个元素。
+//参数包args中的每个元素依次调用std::forward(), 则展开后就是：func(std:forward<int>(a), std::forward<double>(b), std::forward<string>(c))。std::forward保证参数原类型不变。    
+func_(args...) //这么调用表式传递的是参数包，则func_函数声明应为：
+    template<typename T> func_(const T&... args) 或者 func_(const T&&... args)
+```
+
+
 
 C++Primer 第5版 16.4
 
@@ -798,7 +810,19 @@ emplace
 
 #### vector
 
- 底层是数组，超过容量后会成倍增长，resize会调用构造函数，随机访问迭代器，取元素比较高效，在尾部插入元素比较高效，中间插入比较低效(会有元素的搬移)
+ 底层是数组，超过容量后会成倍增长，，随机访问迭代器，取元素比较高效，在尾部插入/删除元素比较高效，中间插入比较低效(会有元素的搬移)
+
+resize变大会调用构造函数，减小会调用析构函数。
+
+删除元素会使元素前移或者后移，造成迭代器失效，使用erase返回的迭代器进行下一轮的循环。
+
+高效删除元素：erase+remove 验证remove会不会调拷贝构造
+
+clear:清除vector中的所有元素，但是capacity不变。
+
+shrink_to_fit(): 减小容器容量(capacity)。
+
+clear+shrink_to_fit: 先调clear清空元素，再调shrink_to_fit清除空间，capacity就变为0了。
 
 #### deque
 
@@ -806,6 +830,18 @@ emplace
 
 #### list
 底层是双向链表，双向迭代器，不支持随机访问，插入删除元素比较高效。
+
+自带sort, 自定义类型重载operator<,  std::sort随机访问迭代器才能使用
+
+验证list.remove是不是也是移动？
+
+clear
+
+reverse:翻转链表
+
+unique:清除重复元素
+
+插入和删除不会使迭代器失效
 
 ### 容器适配器(Adapter)
 
@@ -852,7 +888,9 @@ hash表
 
 ## 算法
 
+std::sort : 对于自定义类型，需要提供operator<()重载。
 
+std::find、std::remove:对于自定义类型，需要提供operator==()重载。
 
 
 
