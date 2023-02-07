@@ -610,9 +610,128 @@ a1 = b;	 // 调用拷贝赋值
 
 ## 模板
 
-### 模板特化
+### 泛化
 
-template.cpp
+泛化其实就是**泛型化（通用化）**的意思，其实就是定义类模板/函数模板时候的代码格式。
+
+```c++
+template<typename T>
+class Compare {
+public:
+	Compare(T x, T y){
+		_x = x;
+		_y = y;
+	}
+};
+```
+
+
+
+### 特化
+
+特化其实就是对于特殊的类型（类型模板参数）进行**特殊的对待**，给它开小灶，给它只适合它自己用的专用代码。**特化**又分为**全特化**和**偏特化！**
+
+1.写特化版本之前，必须要写出泛化版本。(==没有泛化版本写不出特化版本。==)
+
+2.编译器会==优先==选择特化版本。优先级顺序：**全特化类>偏特化类>泛化模板类。**
+
+3.当类模板/函数模板全特化之后，就是一个具体的类/函数了。
+
+**模板特化解决的问题：当泛化的模板不能跑通所有类型的实例时，就需要实现特定类型的版本。**
+
+#### 全特化
+
+将类模板/函数模板的模板参数列表中的==所有模板参数用具体的类型替换。==注意：全特化时，模板参数列表为空，也就是这个标识：**template<>**。
+
+##### 类模板全特化
+
+**1.类模板全特化**：(模板参数全部用实际类型替换掉)
+
+class_full_specilization.cpp
+
+```c++
+template<>	// 全特化的类
+class Compare<const char*>{
+public:
+	Compare(const char* x, const char* y){}
+    const char *max();
+};
+const char* Compare<const char *>::max() {}	//类外实现成员函数需要加Compare<const char *>::
+```
+
+**2.类模板成员函数全特化**：类模板不仅可以整体全特化，而且可以针对某个成员函数全特化。
+
+class_memfunc_full_specialization.cpp
+
+```c++
+template <typename T>
+class Compare {
+public:
+    T max(){ return _x > _y ? _x : _y; }
+};
+
+template<>	// 成员函数全特化 不特化类只特化某个成员函数
+const char* Compare<const char *>::max(){
+    if (strcmp(_x, _y) > 0) return _x; else return _y;
+}
+```
+
+
+
+##### 函数模板全特化
+
+function_full_specialization.cpp  全特化的函数和普通函数了还是有区别的。具体看[C++模板特化与偏特化](https://cloud.tencent.com/developer/article/1347877)
+
+```c++
+template<typename T> // 函数泛化 // Max不能和系统的max重名
+T Max(T _x, T _y) { return _x > _y ? _x : _y; }
+
+template<>	// 函数全特化
+// const char* Max<const char*>(const char* _x, const char* _y)
+const char* Max(const char* x, const char* y){ return (strcmp(x, y) > 0) ?  x : y; }
+```
+
+
+
+#### 偏特化
+
+模板偏特化主要分为两种，一种是指对==部分模板参数==进行特化，另一种是对==模板参数特性==进行特化，包括将模板参数特化为**指针、引用或是另外一个模板类。**
+
+##### 类模板偏特化
+
+class_partial_specialization.cpp
+
+```c++
+// 类模板泛化
+template <typename T, class U>
+class Compare {}
+// 对部分模板参数进行偏特化
+template <class U>	
+class Compare<int, U> {}	// 一定要加类名后面的<int, U>,否则redeclared.
+// 将模板参数偏特化为指针
+template <typename T, class U> 
+class Compare<T*, U*> {}
+// 将模板参数偏特化为另一个模板类
+template <typename T, class U>
+class Compare<std::vector<T>, std::vector<U>> {}
+```
+
+##### 函数模板偏特化
+
+function_partial_specialization.cpp
+
+```c++
+template <typename T, class U>	// 函数模板泛化
+void compare(T num1, U num2) {}
+template <class U> // 对部分模板参数进行偏特化
+void compare(int num1, U num2) {}
+template <typename T, class U>	// 将模板参数偏特化为指针
+void compare(T *num1, U *num2){}
+template <typename T, class U>	// 将模板参数偏特化为另一个模板类
+void compare(std::vector<T> &vecLeft, std::vector<U> &vecRight){}
+```
+
+
 
 ### 嵌套从属类型需要加typename
 
@@ -746,6 +865,8 @@ hash表
 [STL-王桂林-3nd.pdf](../wangguilin/-4- 用好STL才是王道/STL-王桂林-3nd.pdf)
 
 [C++-STL使用例子大全.pdf](../wangguilin/-4- 用好STL才是王道/C++-STL使用例子大全.pdf)
+
+[侯捷 - STL和泛型编程.pdf](../houjie/侯捷 - STL和泛型编程/侯捷 - STL和泛型编程.pdf)
 
 
 
