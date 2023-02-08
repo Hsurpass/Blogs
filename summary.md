@@ -810,49 +810,141 @@ emplace
 
 #### vector
 
- 底层是数组，超过容量后会成倍增长，，随机访问迭代器，取元素比较高效，在尾部插入/删除元素比较高效，中间插入比较低效(会有元素的搬移)
+ 底层是数组，超过容量后会成倍增长，随机访问迭代器，在尾部插入/删除元素比较高效，中间插入比较低效(会有元素的搬移)
 
-resize变大会调用构造函数，减小会调用析构函数。
+##### reserve：
+
+不会调用构造函数, 不过超过容量后还是会发生拷贝, 且内存成倍增长。==reverse扩充的是总容量大小，不是追加空间，可以多次调用。==
+
+##### resize：
+
+变大会调用构造函数，size变大，==capacity变大==，超过容量后还是会发生拷贝, 且内存成倍增长。
+
+减小会调用析构函数，size变小，==capacity不变==。
+
+##### swap： 
+
+==swap调用之后size为0，capacity为0。==(底层是不是只改变了指针指向？从指向这个对象转到指向另一个对象？)(是不是也可以作为清空容器的一种方式？)
+
+##### insert:
+
+在插入位置之前插入新元素，并返回第一个新元素的迭代器。可能造成迭代器失效。
+
+##### emplace/emplace_back:  
+
+emplace_back(5):直接调用构造, 省去了一次拷贝, 传入的参数必须和构造函数的类型相匹配。 ==当容器超过容量capacity后，vector重新分配内存，还是会发生拷贝。==
+
+va.emplace_back(a4);   // 因为传入的是A类型的左值参数，所以会调用copy constructor。	
+
+va.emplace_back(std::move(a4));   // 因为传入的是A类型的右值参数，所以会调用move constructor。
+
+va.emplace_back(A(8));   // 因为传入的是A类型的右值参数，所以会调用move constructor
+
+##### erase:
+
+删除指定位置的元素，并返回下一元素的迭代器。
 
 删除元素会使元素前移或者后移，造成迭代器失效，使用erase返回的迭代器进行下一轮的循环。
 
-高效删除元素：erase+remove 验证remove会不会调拷贝构造
+v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删除完后面的数据会向前面移动一个位置，所以iter实际指向的已经不是所期望的内容了。
 
-clear:清除vector中的所有元素，但是capacity不变。
+##### erase+remove：
 
-shrink_to_fit(): 减小容器容量(capacity)。
+高效删除元素： 验证remove会不会调拷贝构造
 
-clear+shrink_to_fit: 先调clear清空元素，再调shrink_to_fit清除空间，capacity就变为0了。
+##### clear:
+
+清除vector中的所有元素，但是capacity不变。
+
+##### shrink_to_fit: 
+
+减小容器容量(capacity)为size大小。
+
+##### clear+shrink_to_fit: 
+
+彻底清空容器，先调clear清空元素，size为0；再调shrink_to_fit清除空间，capacity就变为0了。
 
 #### deque
 
 一个管理器和多个缓冲区，支持随机访问，首尾增删比较高效。
 
 #### list
-底层是双向链表，双向迭代器，不支持随机访问，插入删除元素比较高效。
+底层是==双向链表==，双向迭代器，不支持随机访问，插入删除元素比较高效。
+
+##### resize
+
+同vector,只不过list没有capacity。
+
+##### insert
+
+在任何地方插入不会造成迭代器失效。由于返回值是新插入元素的迭代器，如果接受返值，则会无限循环下去。
+
+##### erase
+
+删除会使迭代器失效，原因是删除后迭代器变成了野指针。 其他同vector。
+
+##### swap
+
+同vector,只不过list没有capacity。
+
+##### clear
+
+同vector,只不过list没有capacity。
+
+##### sort
 
 自带sort, 自定义类型重载operator<,  std::sort随机访问迭代器才能使用
 
-验证list.remove是不是也是移动？
+##### remove
 
-clear
+std:remove是覆盖值，list.remove是改变指针指向, 就直接删除了，不用erase+remove这个操作了。
 
-reverse:翻转链表
+##### reverse
 
-unique:清除重复元素
+翻转链表
 
-插入和删除不会使迭代器失效
+##### unique
+
+删除==连续相等==的元素中，除第一个以外的其他元素。所以经常的使用方式是：先排序，再去重。
+
+##### splice
+
+链表拼接，将一个链表拼接到另一个链表上。拼接完成后另一个链表被清空，如果是从中间截取的一段则保留剩余部分。
+
+中间过程不涉及构造和析构的操作。
+
+不管x是左值还是右值，或者value_type是否支持移动构造，它们都会被转移。（说白了，不就是指针的改变嘛）
+
+
 
 ### 容器适配器(Adapter)
+
+注意：==适配器没有提供迭代器，也不能同时插入或删除多个元素。==
 
 #### stack
 
 容器适配器，底层结构可以选用vector,deque, list 
 
 #### queue
-容器适配器，底层结构可以选用deque, list. vector没有pop_back
+容器适配器，底层结构可以选用deque, list. ==vector没有pop_back==
 
-#### priority_queue: 底层可以使vector, 算法为二叉堆
+#### priority_queue: 
+
+底层可以使vector, 算法为二叉堆。
+
+首先按优先级的大小入队，如果优先级相等，则按其它的优先级进行入队。可以==支持多级优先级。==
+
+```c++
+class Cmp {
+public:
+	bool operator()(const Node &na, const Node &nb){
+		if (na.priority != nb.priority)		return na.priority > nb.priority;
+		else	return strcmp(na.szName, nb.szName) < 0;
+	}
+};
+```
+
+
 
 ### 关联式容器(Associative Containers)
 
@@ -888,11 +980,23 @@ hash表
 
 ## 算法
 
-std::sort : 对于自定义类型，需要提供operator<()重载。
+### std::sort
 
-std::find、std::remove:对于自定义类型，需要提供operator==()重载。
+ 对于自定义类型，需要提供operator<()重载。std::sort随机访问迭代器才能使用。 ==重载的函数记得加上const, 否则const对象编不过。==
 
+### std::find
 
+对于自定义类型，需要提供operator==()重载。
+
+而且应该传一个对象` std::find(v.begin(), v.end(), A(5))`,这样临时对象只会构造一次，然后每次比较只会和这个临时对象比较。
+
+如果传的是值`std::find(v.begin(), v.end(), 5)`, 这样每次比较时都会先创建一个临时对象，比较完再析构，效率较低。
+
+### std::remove
+
+对于自定义类型，需要提供operator==()重载。remove函数并不是真正的把元素删除，而是把要删除的元素覆盖掉，所以中间过程有一个后值覆盖前值的操作，标准库中使用std::move, 如果没移动构造则调拷贝构造，效率会变低。
+
+remove也应该传个临时对象进去：`std::find(v.begin(), v.end(), A(5))`, 原因同上。
 
 
 
