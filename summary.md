@@ -67,10 +67,6 @@ gcc -c xx.c -o xx.o  # 将.c文件编译成.o
 gcc -shared -fPIC -o libxx.so xx.o # 将.o打包成.so
 ```
 
-
-
-
-
 [gcc_g++.md](../ElegantTest/linux/gcc_g++.md)
 
 ## 指针
@@ -793,6 +789,12 @@ nonType_template_param.cpp
 
 # STL
 
+算法与数据的分离：利用<u>**仿函数**</u>规则的<u>**算法**</u>(内部算法、全局算法)通过<u>**迭代器**</u>访问**<u>容器</u>**中的数据。
+
+![image-20230209162534893](image/image-20230209162534893.png)
+
+所有algorithms，其内最终涉及元素本身的操作，无非就是==比大小。==
+
 stl容器存在的效率问题：
 
 ​	1.push要完成一次对象的拷贝
@@ -804,6 +806,10 @@ stl容器存在的效率问题：
 emplace
 
 移动构造，移动赋值
+
+## 分配器
+
+std::allocator
 
 ## 容器
 ### 序列式容器(Sequence Containers)
@@ -822,6 +828,15 @@ emplace
 
 减小会调用析构函数，size变小，==capacity不变==。
 
+##### assign
+
+```c++
+v.assign(v1); // 将v1的内容赋值给v, size大小改为和v1一样。
+			 // 如果原来v.capacity比v1小，则改为和v1.size一样；如果capaacity比v1大，则保持capacity不变。
+```
+
+由于已经知道要拷贝多少元素，所以就提前开辟这么多内存的空间，直接调用拷贝构造就行了；就不用再频繁的扩容了。
+
 ##### swap： 
 
 ==swap调用之后size为0，capacity为0。==(底层是不是只改变了指针指向？从指向这个对象转到指向另一个对象？)(是不是也可以作为清空容器的一种方式？)
@@ -830,23 +845,33 @@ emplace
 
 在插入位置之前插入新元素，并返回第一个新元素的迭代器。可能造成迭代器失效。
 
+造成迭代器失效有两种情况：
+
+​	1.erase(itr++)：插入元素后，元素后移，itr实际指向的元素已经不是所期望的内容了。
+
+​	2.另一种情况就是当插入元素时导致容器扩容，扩容就会发生元素拷贝，则原来的迭代器就会全都失效了。
+
+解决：用返回的迭代器进行下一轮循环。
+
 ##### emplace/emplace_back:  
 
-emplace_back(5):直接调用构造, 省去了一次拷贝, 传入的参数必须和构造函数的类型相匹配。 ==当容器超过容量capacity后，vector重新分配内存，还是会发生拷贝。==
-
+```c++
+emplace_back(5);  //直接调用构造, 省去了一次拷贝, 传入的参数必须和构造函数的类型相匹配。 
+				//当容器超过容量capacity后，vector重新分配内存，还是会发生拷贝。
 va.emplace_back(a4);   // 因为传入的是A类型的左值参数，所以会调用copy constructor。	
-
 va.emplace_back(std::move(a4));   // 因为传入的是A类型的右值参数，所以会调用move constructor。
-
 va.emplace_back(A(8));   // 因为传入的是A类型的右值参数，所以会调用move constructor
+```
 
 ##### erase:
 
-删除指定位置的元素，并返回下一元素的迭代器。
+删除指定位置的元素，并返回**下一元素**的迭代器。
 
-删除元素会使元素前移或者后移，造成迭代器失效，使用erase返回的迭代器进行下一轮的循环。
+删除元素会使元素前移，造成迭代器失效，**使用erase返回的迭代器进行下一轮的循环。**
 
 v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删除完后面的数据会向前面移动一个位置，所以iter实际指向的已经不是所期望的内容了。
+
+还要考虑erase的是最后一个元素的情况。erase完最后一个元素返回的itr指向end()，再++就变成野指针了。
 
 ##### erase+remove：
 
@@ -866,10 +891,14 @@ v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删�
 
 #### deque
 
-一个管理器和多个缓冲区，支持随机访问，首尾增删比较高效。
+一个管理器和多个缓冲区，支持随机访问，首尾增删比较高效。随机访问迭代器。
 
 #### list
 底层是==双向链表==，双向迭代器，不支持随机访问，插入删除元素比较高效。
+
+##### assign
+
+l.assign(l1); // 将v1的内容赋值给v, size大小改为和v1一样。
 
 ##### resize
 
@@ -893,7 +922,9 @@ v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删�
 
 ##### sort
 
-自带sort, 自定义类型重载operator<,  std::sort随机访问迭代器才能使用
+自带sort, 自定义类型重载operator<。
+
+为什么list不能使用std::sort？std::sort随机访问迭代器才能使用。
 
 ##### remove
 
@@ -914,6 +945,12 @@ std:remove是覆盖值，list.remove是改变指针指向, 就直接删除了，
 中间过程不涉及构造和析构的操作。
 
 不管x是左值还是右值，或者value_type是否支持移动构造，它们都会被转移。（说白了，不就是指针的改变嘛）
+
+##### merge
+
+```c++
+list.merge(list1, Comp()); //对于自定义类型需要定义排序准则(仿函数)。
+```
 
 
 
@@ -948,10 +985,29 @@ public:
 
 ### 关联式容器(Associative Containers)
 
+关联式容器底层数据结构使用的是红黑树，因此具有根据key自动排序的功能。对于自定义类型需要重载operator<().
+
+迭代器++（中序遍历）得到有序的结果。
+
+set/multiset: key就是value, value就是key.
+
+\#include <bits/stl_tree.h> 提供insert_unique、insert_equal两个函数。map/set key不能重复的调用insert_unique;
+
+multimap/multiset 有重复key的调用insert_equal。
+
 #### set
-红黑树, 自定义类型需要重载operator<()
+
+
+直接insert更快，因为operator[]底层还要做一下lower_bound。
 
 #### map
+
+```c++
+map<int, int> m; m[1] = 2;   ==   m.operator[1] = 2;
+```
+
+
+
 rb operator[]需要有默认的构造函数, 查找复杂度O(logn)
 
 ####  multimap
