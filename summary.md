@@ -847,11 +847,11 @@ v.assign(v1); // 将v1的内容赋值给v, size大小改为和v1一样。
 
 造成迭代器失效有两种情况：
 
-​	1.erase(itr++)：插入元素后，元素后移，itr实际指向的元素已经不是所期望的内容了。
+​	1.insert(itr++, 10)：插入元素后，元素后移，itr实际指向的元素已经不是所期望的内容了。
 
 ​	2.另一种情况就是当插入元素时导致容器扩容，扩容就会发生元素拷贝，则原来的迭代器就会全都失效了。
 
-解决：用返回的迭代器进行下一轮循环。
+解决：用返回的迭代器进行下一轮循环。`itr = insert(itr, 10);`
 
 ##### emplace/emplace_back:  
 
@@ -871,7 +871,7 @@ va.emplace_back(A(8));   // 因为传入的是A类型的右值参数，所以会
 
 v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删除完后面的数据会向前面移动一个位置，所以iter实际指向的已经不是所期望的内容了。
 
-还要考虑erase的是最后一个元素的情况。erase完最后一个元素返回的itr指向end()，再++就变成野指针了。
+==还要考虑erase的是最后一个元素的情况。erase完最后一个元素返回的itr指向end()，再++就变成野指针了。==
 
 ##### erase+remove：
 
@@ -911,6 +911,8 @@ l.assign(l1); // 将v1的内容赋值给v, size大小改为和v1一样。
 ##### erase
 
 删除会使迭代器失效，原因是删除后迭代器变成了野指针。 其他同vector。
+
+解决方法：`erase(itr++);` `itr = erase(itr);`
 
 ##### swap
 
@@ -985,20 +987,66 @@ public:
 
 ### 关联式容器(Associative Containers)
 
-关联式容器底层数据结构使用的是红黑树，因此具有根据key自动排序的功能。对于自定义类型需要重载operator<().
+1.关联式容器底层数据结构使用的是==红黑树==，因此具有根据key自动排序的功能。对于自定义类型需要==重载operator<().==
 
-迭代器++（中序遍历）得到有序的结果。
+2.迭代器++遍历（中序遍历）得到有序的结果。
 
-set/multiset: key就是value, value就是key.
+3.`#include <bits/stl_tree.h>` 提供`insert_unique`、`insert_equal`两个函数。key不能重复的(map/set)调用insert_unique; 有重复key的(multimap/multiset)调用insert_equal。
 
-\#include <bits/stl_tree.h> 提供insert_unique、insert_equal两个函数。map/set key不能重复的调用insert_unique;
+4.lower_bound(x): 返回第一个大于等于x的位置。换句话说，lower_bound返回的是==不破坏排序得以安插x的第一个位置。==
 
-multimap/multiset 有重复key的调用insert_equal。
+5.upper_bound(x)：返回第一个大于x的位置。
+
+6.equal_range(x)：查找x的lower_bound到upper_bound的范围。 
+
+7.红黑树查找复杂度O(logn)。
+
+8.insert
+
+```c++
+for (set<A>::iterator itr = sa.begin(); itr != sa.end(); ++itr)
+{ // pair<iterator,bool> insert(value_type& val); 如果插入成功，第一个值返回插入新元素的迭代器，第二个值返回true。							// 如果插入失败，第一个值返回已插入元素(val)的迭代器，第二个值返回false。
+#if 0 							
+	// auto r = sa.emplace(3);
+    // auto r = sa.insert(3);
+    auto r = sa.insert(4);  
+    cout << r.first->geta() << ", " << r.second << endl; 
+#endif
+
+#if 0
+        cout << "---------------------" << endl;
+        int a = 3;
+        auto it = sa.lower_bound(a);
+        sa.insert(it, a);   // 无论插入成功与否，迭代器不会失效
+        // itr = sa.insert(it, a);  // 不要接收返回值了，否则itr总是指向3，就不会无限循环了
+#endif
+
+#if 1 // 无论插入成功与否，迭代器不会失效，不过写itr++在循环中会跳着访问元素, 跳出end后产生未定义行为。
+        sa.insert(itr++, 3); 
+#endif
+```
+
+总结：insert不会使迭代器失效。
+
+1.   (不指定位置插入)要么使用`pair<iterator,bool> insert(const value_type& val);`这种方式插入。
+2.   (指定位置插入)要么先用lower_bound找到适合的位置，再使用`iterator insert (const_iterator position, const value_type& val);`插入。
+
+9.erase
+
+```c++
+// erase不会造成迭代器失效，以下两种写法均正确 
+itr = v.erase(itr); //correct
+ v.erase(itr++); // correct ++指向了下一节点
+```
+
+
+
+如果插入和删除操作导致了树不平衡，则会进行自平衡操作。
 
 #### set
 
 
-直接insert更快，因为operator[]底层还要做一下lower_bound。
+set/multiset: key就是value, value就是key.
 
 #### map
 
@@ -1006,15 +1054,19 @@ multimap/multiset 有重复key的调用insert_equal。
 map<int, int> m; m[1] = 2;   ==   m.operator[1] = 2;
 ```
 
+操作operator[key]: 如果红黑树中有key对应的value, 则返回value的引用；如果没有则调用value的默认构造函数并插入value, 所以对于==自定义类型使用operator[]要有默认的构造函数。==  对于insert,如果map中有key时则不能插入，而当使用**operator[]则可以更新key对应的value值。**
+
+直接insert更快，因为operator[]底层还要做一下lower_bound。
+
+at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`异常。
+
+clear: map.clear() == map.erase(map.beging(), mp.end());
 
 
-rb operator[]需要有默认的构造函数, 查找复杂度O(logn)
 
 ####  multimap
 
 #### multiset
-rb
-
 ### 无序容器(Unordered Containers)
 #### unordered_map
 hash表, 自定义类型需要重载operator==()，并提供hash-func
@@ -1031,6 +1083,12 @@ hash表
 
 
 ## 迭代器
+
+随机访问迭代器
+
+双向迭代器
+
+前向迭代器
 
 迭代器失效
 
