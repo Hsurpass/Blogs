@@ -873,6 +873,25 @@ v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删�
 
 ==还要考虑erase的是最后一个元素的情况。erase完最后一个元素返回的itr指向end()，再++就变成野指针了。==
 
+```c++
+// 方法一：判断返回值，如果是end,跳出
+for (auto itr = v.begin(); itr != v.end(); ++itr) {
+	if (itr->print() == 5) {
+        itr = v.erase(itr);
+        if(itr == v.end()) { break; }
+     }
+}
+// 方法二：++itr写在循环体中
+ auto itr = v.begin();
+while(itr != v.end()) {
+	if (itr->print() == 5) { tr = v.erase(itr); }
+    else { ++itr; }
+}
+//综上，还是方法二比较保险。
+```
+
+
+
 ##### erase+remove：
 
 高效删除元素： 验证remove会不会调拷贝构造
@@ -913,6 +932,27 @@ l.assign(l1); // 将v1的内容赋值给v, size大小改为和v1一样。
 删除会使迭代器失效，原因是删除后迭代器变成了野指针。 其他同vector。
 
 解决方法：`erase(itr++);` `itr = erase(itr);`
+
+在循环中， 还要考虑删除最后一个元素返回值是end, 再++变成野指针的问题：
+
+```c++
+// 方法一：判断返回值，如果是end,跳出
+for (auto itr = v.begin(); itr != v.end(); ++itr) {
+	if (itr->print() == 5) {
+        itr = v.erase(itr);
+        if(itr == v.end()) { break; }
+     }
+}
+// 方法二：++itr写在循环体中
+ auto itr = v.begin();
+while(itr != v.end()) {
+	if (itr->print() == 5) { tr = v.erase(itr); }
+    else { ++itr; }
+}
+//综上，还是方法二比较保险。
+```
+
+
 
 ##### swap
 
@@ -987,21 +1027,35 @@ public:
 
 ### 关联式容器(Associative Containers)
 
-1.关联式容器底层数据结构使用的是==红黑树==，因此具有根据key自动排序的功能。对于自定义类型需要==重载operator<().==
+![image-20230211085942404](image/image-20230211085942404.png)
+
+#### general
+
+##### 底层数据结构
+
+1.关联式容器底层数据结构使用的是==红黑树==(特殊的二叉搜索树)，因此具有根据key自动排序的功能。对于自定义类型需要==重载operator<().==
 
 2.迭代器++遍历（中序遍历）得到有序的结果。
 
-3.`#include <bits/stl_tree.h>` 提供`insert_unique`、`insert_equal`两个函数。key不能重复的(map/set)调用insert_unique; 有重复key的(multimap/multiset)调用insert_equal。
+3.红黑树查找复杂度O(logn)。
 
-4.lower_bound(x): 返回第一个大于等于x的位置。换句话说，lower_bound返回的是==不破坏排序得以安插x的第一个位置。==
+##### insert_unique/insert_equal
 
-5.upper_bound(x)：返回第一个大于x的位置。
+`#include <bits/stl_tree.h>` 提供`insert_unique`、`insert_equal`两个函数。key不能重复的(map/set)调用insert_unique; 有重复key的(multimap/multiset)调用insert_equal。
 
-6.equal_range(x)：查找x的lower_bound到upper_bound的范围。 
+##### lower_bound
 
-7.红黑树查找复杂度O(logn)。
+lower_bound(x): 返回第一个大于等于x的位置。换句话说，lower_bound返回的是==不破坏排序得以安插x的第一个位置。==
 
-8.insert
+##### upper_bound
+
+upper_bound(x)：返回第一个大于x的位置。
+
+##### equal_range
+
+equal_range(x)：查找x的lower_bound到upper_bound的范围。 ==如果lower_bound和upper_bound相等说明容器中没有这个key。==
+
+##### insert
 
 ```c++
 for (set<A>::iterator itr = sa.begin(); itr != sa.end(); ++itr)
@@ -1009,7 +1063,7 @@ for (set<A>::iterator itr = sa.begin(); itr != sa.end(); ++itr)
 #if 0 							
 	// auto r = sa.emplace(3);
     // auto r = sa.insert(3);
-    auto r = sa.insert(4);  
+    auto r = sa.insert(4);  //推荐使用
     cout << r.first->geta() << ", " << r.second << endl; 
 #endif
 
@@ -1022,16 +1076,16 @@ for (set<A>::iterator itr = sa.begin(); itr != sa.end(); ++itr)
 #endif
 
 #if 1 // 无论插入成功与否，迭代器不会失效，不过写itr++在循环中会跳着访问元素, 跳出end后产生未定义行为。
-        sa.insert(itr++, 3); 
+        sa.insert(itr++, 3); // 不推荐使用
 #endif
 ```
 
-总结：insert不会使迭代器失效。
+总结：**insert不会使迭代器失效。**
 
 1.   (不指定位置插入)要么使用`pair<iterator,bool> insert(const value_type& val);`这种方式插入。
 2.   (指定位置插入)要么先用lower_bound找到适合的位置，再使用`iterator insert (const_iterator position, const value_type& val);`插入。
 
-9.erase
+##### erase
 
 ```c++
 // erase不会造成迭代器失效，以下两种写法均正确 
@@ -1039,9 +1093,42 @@ itr = v.erase(itr); //correct
  v.erase(itr++); // correct ++指向了下一节点
 ```
 
-
-
 如果插入和删除操作导致了树不平衡，则会进行自平衡操作。
+
+==在循环中， 还要考虑删除最后一个元素返回值是end, 再++变成野指针的问题：==
+
+```c++
+// 方法一：判断返回值，如果是end,跳出
+for (auto itr = v.begin(); itr != v.end(); ++itr) {
+	if (itr->print() == 5) {
+        itr = v.erase(itr);
+        if(itr == v.end()) { break; }
+     }
+}
+// 方法二：++itr写在循环体中
+ auto itr = v.begin();
+while(itr != v.end()) {
+	if (itr->print() == 5) { tr = v.erase(itr); }
+    else { ++itr; }
+}
+//综上，还是方法二比较保险。
+```
+
+
+
+##### clear
+
+`map.clear() == map.erase(map.beging(), mp.end());`
+
+##### count
+
+计算key的个数，对于map/set来说，要么是0要么是1。缺点是不能定位key的位置。
+
+##### find
+
+类自带的find,比std::find效率更高。==自带的find查找规则是`operator<`, std::find查找规则是`operator==`。==
+
+如果没找到返回end。
 
 #### set
 
@@ -1049,6 +1136,18 @@ itr = v.erase(itr); //correct
 set/multiset: key就是value, value就是key.
 
 #### map
+
+##### insert
+
+```c++
+//对于自定义类型，下面这三种插入操作最快：
+ map<int, A> mai;
+ auto itr = mai.emplace(1, 1);       // 只有一次自定义类型的构造
+ mai.emplace_hint(itr.first, 2, 2);  // 只有一次自定义类型的构造
+ mai.insert(make_pair(2, 2)); 		// 只有一次自定义类型的构造
+```
+
+##### operator[]
 
 ```c++
 map<int, int> m; m[1] = 2;   ==   m.operator[1] = 2;
@@ -1058,9 +1157,9 @@ map<int, int> m; m[1] = 2;   ==   m.operator[1] = 2;
 
 直接insert更快，因为operator[]底层还要做一下lower_bound。
 
-at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`异常。
+##### at
 
-clear: map.clear() == map.erase(map.beging(), mp.end());
+at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`异常。
 
 
 
@@ -1068,6 +1167,17 @@ clear: map.clear() == map.erase(map.beging(), mp.end());
 
 #### multiset
 ### 无序容器(Unordered Containers)
+
+
+
+#### general
+
+##### find
+
+查找规则与std::find不同，传入的值可以通过hash函数求得hashcode从而获得value位置，不存在返回end。
+
+
+
 #### unordered_map
 hash表, 自定义类型需要重载operator==()，并提供hash-func
 
