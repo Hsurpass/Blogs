@@ -1,5 +1,7 @@
 [Workspace](d:/Workspace)
 
+
+
 # C
 
 ## 补码运算
@@ -1025,7 +1027,7 @@ public:
 
 
 
-### 关联式容器(Associative Containers)
+### 关联式容器(Associative Containers)<a id="AssociativeContainers"></a>
 
 ![image-20230211085942404](image/image-20230211085942404.png)
 
@@ -1161,35 +1163,89 @@ map<int, int> m; m[1] = 2;   ==   m.operator[1] = 2;
 
 at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`异常。
 
-
-
 ####  multimap
 
 #### multiset
-### 无序容器(Unordered Containers)
+### 无序容器(Unordered Containers) <a id="unorderedContainers"></a>
 
+[哈希表](#hashtable)
 
+![image-20230212135409986](image/image-20230212135409986.png)
+
+底层使用哈希表实现，时间复杂度为O(1), 对于==自定义类型需要定义hash函数和重载`operator==`==(比较key是否相同)。
+
+如果两个元素的哈希值相同，并不能断定这两个元素就相同，必须再调用operator==才能判断是同一个值。
 
 #### general
 
-##### find
-
-查找规则与std::find不同，传入的值可以通过hash函数求得hashcode从而获得value位置，不存在返回end。
+```c++
+size: 
+	// 容器中元素的个数
+count ：
+    size_type count(const key_type& k) const; //返回key在容器中的数量。对于unordered_map/unordered_set 		来说非1即0。		**内部有调用operator==()的操作。**
+clear:
+	// 彻底清空
+begin: 
+	iterator begin() noexcept;			   // 返回容器中第一个元素的迭代器
+	local_iterator begin ( size_type n );	// 返回桶号为n的第一个元素
+end: 
+	// 同begin.
+find:
+	iterator find ( const key_type& k );
+	//查找规则与std::find不同，传入的值可以通过hash函数求得哈希值从而获得value位置，不存在返回end。
+bucket:
+	size_type bucket(const key_type& k) const; //返回k所在的桶号(数组下标)，取值范围为0 ~ bucket_count-1
+bucket_size: 
+	size_type bucket_size ( size_type n ) const;//返回桶号为n的位置元素的个数。
+bucket_count: 
+	size_type bucket_count() const noexcept; // 返回桶的数量
+load_factor:
+	float load_factor() const noexcept;	// 装填因子 = 容器中元素的个数 / 桶的大小(数组的大小)。
+	// load_factor= size() / bucket_count().
+	// load_factor影响碰撞的概率(两个元素存储在同一个下标的位置)，当load_factor超过阈值（最大装填因子：			max_load_factor）自动增大桶的大小，并进行**rehash**操作。
+max_load_factor:
+	float max_load_factor() const noexcept;	 // get
+	void max_load_factor ( float z );		// set
+	// 不过请注意，实现可能会对桶的数量施加一个上限(参见max_bucket_count)，这可能会迫使容器忽略				max_load_factor。
+reserve:	// 提前预留空间避免多次rehash
+	void reserve ( size_type n );	// 改变桶数(bucket_count)
+	// 如果n大于当前bucket_count乘以max_load_factor，容器的bucket_count会增加(增加到多少不确定，但不是n的		值)，并**强制重新散列。**
+	// 如果n小于该值，则函数可能不起作用。
+rehash:		// 提前预留空间避免多次rehash
+	void rehash( size_type n ); //设置桶数
+	// 如果n大于容器中的当前桶数(bucket_count)，则强制重新散列。**新的桶数可以等于或大于n。**
+	// 如果n小于容器中的当前桶数(bucket_count)，则该函数可能对桶数没有影响，也可能不会强制重新散列。
+	// rehash可能导致迭代器失效。
+	// 通过调用rehash来在哈希表中保留一定数量的桶，我们避免了容器扩展可能导致的多次rehash。
+equal_range:
+	pair<iterator,iterator> equal_range (const key_type& k);// 返回容器中key等于k值的元素范围。左闭右开。
+	// 如果容器中没有对应的值，则pair中两个迭代器均返回end。
+insert:	// 与map类似
+	pair<iterator,bool> insert ( const value_type& val );// 第一个元素是一个迭代器，指向容器中**新插入的		元素或键值相等**的元素； 第二个元素返回true或false,指示元素是否插入成功。
+	iterator insert(const_iterator hint, const value_type& val);// value将被存储在合适的容器中，无论hint		传入的是什么。 该函数返回一个迭代器，指向容器中**新插入的元素或键值相等**的元素。
+```
 
 
 
 #### unordered_map
-hash表, 自定义类型需要重载operator==()，并提供hash-func
+
+##### operator[]
+
+```c++
+hm[key] = value  ==  (hm.operator[key] = value)	//与map类似，如果没找到则插入一个默认值(需要默认构造)；找到返回value的引用。
+```
+
+##### at
+
+```c++
+mapped_type& at ( const key_type& k );//与map类似，如果找到则返回value的引用；没找到则抛出out_of_range异常
+```
+
+
 
 #### unordered_set
-hash表
-
 #### unordered_multimap
-hash表
-
 #### unordered_multiset
-hash表
-
 
 
 ## 迭代器
@@ -1606,17 +1662,40 @@ shared_ptr<Copy> spd((Copy*)(new Derive));
   ```
 
 #### rbtree
-    rb-tree特性:
-      
-      1.每个节点或者是红色，或者是黑色。
-      2.根节点是黑色。
-      3.叶子结点是黑色。
-      4.如果一个节点是红色，那么他的左右孩子为黑色。
-      5.从一个节点到该节点的子孙节点的所有路径上包含$\color{red} {相同数目的黑节点}$。
+
+rb-tree特性:
+
+1.   每个节点或者是红色，或者是黑色。
+2.   根节点是黑色。
+3.   叶子结点是黑色。
+4.   如果一个节点是红色，那么他的左右孩子为黑色。
+5.   从一个节点到该节点的子孙节点的所有路径上包含==相同数目的黑色节点。==
+
+
 
 ### 二叉堆
 
-### hash
+
+
+### 哈希表  <a id="hashtable"></a>
+
+[无序容器](#unorderedContainers)
+
+不同的key通过hash函数得到一个hashcode(哈希值/散列值), 通过哈希值放到哈希表中存储。
+
+时间复杂度为O(1)，最差为O(n)。使用空间换时间。
+
+#### 哈希函数设计
+
+
+
+#### 哈希冲突
+
+不同的关键字通过hash函数得到相同的hashcode, 称为hashcode.
+
+
+
+
 
 ## 算法
 
