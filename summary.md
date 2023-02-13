@@ -390,7 +390,25 @@ A<6> a;  or  A<6>* pa = new A<6>(); delete pa;
 #### 6大构造/赋值
 默认构造、拷贝构造、拷贝赋值、移动构造、移动赋值、析构。
 
+#### 移动构造/赋值
+
+```c++
+A(A&& another){
+	this->p = another.p;
+	another.p = NULL;	// 一定要置空，避免重析构
+}
+A& operator=(A&& another){
+	if (this != &another) {// 避免自己给自己赋值，造成内存泄漏
+		delete this->p;	
+		this->p = another.p;	 
+		another.p = NULL;		//一定要置空，避免重析构
+	}
+	return *this;
+}
+```
+
 #### 转换构造/转换赋值
+
 convert_constructor.cpp
 
 ```c++
@@ -1181,8 +1199,9 @@ at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`
 ```c++
 size: 
 	// 容器中元素的个数
-count ：
-    size_type count(const key_type& k) const;//返回key在容器中的数量。对于					unordered_map/unordered_set来说非1即0。		**内部有调用operator==()的操作。**
+count:	// 需要调用operator==
+    size_type count(const key_type& k) const;//返回key在容器中的数量。
+	// 对于unordered_map/unordered_set来说非1即0。	**内部有调用operator==()的操作。**
 clear:
 	// 彻底清空
 begin: 
@@ -1190,38 +1209,47 @@ begin:
 	local_iterator begin ( size_type n );	// 返回桶号为n的第一个元素
 end: 
 	// 同begin.
-find:
+find:	// 需要调用operator==
 	iterator find ( const key_type& k );
 	//查找规则与std::find不同，传入的值可以通过hash函数求得哈希值从而获得value位置，不存在返回end。
 bucket:
-	size_type bucket(const key_type& k) const;	//返回k所在的桶号(数组下标)，取值范围为0 ~ 		bucket_count-1
+	size_type bucket(const key_type& k) const;//返回k所在的桶号(数组下标)，取值范围为0 ~ bucket_count-1
 bucket_size: 
 	size_type bucket_size ( size_type n ) const;//返回桶号为n的位置元素的个数。
 bucket_count: 
 	size_type bucket_count() const noexcept; // 返回桶的数量
-load_factor:
-	float load_factor() const noexcept;	//装填因子 = 容器中元素的个数 / 桶的大小(数组的大小)。
+load_factor: // 装载因子(装满程度，装了百分之多少)
+	float load_factor() const noexcept;	//装载因子 = 容器中元素的个数 / 桶的大小(数组的大小)。
 	// load_factor= size() / bucket_count().
-	// load_factor影响碰撞的概率(两个元素存储在同一个下标的位置)，当load_factor超过阈值(最大装填因		子：max_load_factor)自动增大桶的大小，并进行**rehash**操作。
-max_load_factor:
+	// load_factor影响碰撞的概率(两个元素存储在同一个下标的位置)，当load_factor超过阈值(最大装填因子: max_load_factor)自动增大桶的大小，并进行**rehash**操作。
+max_load_factor: 	// 阈值
 	float max_load_factor() const noexcept;	 // get
 	void max_load_factor ( float z );		 // set
-	// 不过请注意，实现可能会对桶的数量施加一个上限(参见max_bucket_count)，这可能会迫使容器忽略		max_load_factor。
+	// 不过请注意，实现可能会对桶的数量施加一个上限(参见max_bucket_count)，这可能会迫使容器忽略max_load_factor。
 reserve:	// 提前预留空间避免多次rehash
 	void reserve ( size_type n );	// 改变桶数(bucket_count)
-	// 如果n大于当前bucket_count乘以max_load_factor，容器的bucket_count会增加(增加到多少不确		定，**新的桶数可以等于或大于n。**)，并**强制重新散列。**
+	// 如果n大于当前bucket_count乘以max_load_factor，容器的bucket_count会增加(增加到多少不确定，**新的桶数可以等于或大于n。[应该是最接近n的素数]**)，并**强制重新散列。**
 	// 如果n小于该值，则函数可能不起作用。
 rehash:		// 提前预留空间避免多次rehash
 	void rehash( size_type n ); //设置桶数
-	// 如果n大于容器中的当前桶数(bucket_count)，则强制重新散列。**新的桶数可以等于或大于n。**
+	// 如果n大于容器中的当前桶数(bucket_count)，则强制重新散列。**新的桶数可以等于或大于n。**(素数)
 	// 如果n小于容器中的当前桶数(bucket_count)，则该函数可能对桶数没有影响，也可能不会强制重新散列。
 	// rehash可能导致迭代器失效。
 	// 通过调用rehash来在哈希表中保留一定数量的桶，我们避免了容器扩展可能导致的多次rehash。
 equal_range:
-	pair<iterator,iterator> equal_range (const key_type& k);// 返回容器中key等于k值的元素		范围。左闭右开。 如果容器中没有对应的值，则pair中两个迭代器均返回end。
+	pair<iterator,iterator> equal_range (const key_type& k);
+	//返回容器中key等于k值的元素范围。左闭右开。 如果容器中没有对应的值，则pair中两个迭代器均返回end。
 insert:	// 与map类似
-	pair<iterator,bool> insert ( const value_type& val );// 第一个元素是一个迭代器，指向容器	中**新插入的元素或键值相等**的元素； 第二个元素返回true或false,指示元素是否插入成功。
-	iterator insert(const_iterator hint, const value_type& val);// value将被存储在合适的	容器中，无论hint传入的是什么。 该函数返回一个迭代器，指向容器中**新插入的元素或键值相等**的元素。
+	pair<iterator,bool> insert ( const value_type& val );
+	// 第一个元素是一个迭代器，指向容器中**新插入的元素或键值相等**的元素； 
+	// 第二个元素返回true或false,指示元素是否插入成功。
+	iterator insert(const_iterator hint, const value_type& val);
+	// value将被存储在容器中合适的位置，无论hint传入的是什么。 
+	// 该函数返回一个迭代器，指向容器中**新插入的元素或键值相等**的元素。
+erase:	// 需要operator==
+	iterator erase (const_iterator position);
+	//返回下一个元素的位置。注意删除最后一个元素这种情况，返回的迭代器指向end。
+	size_type erase (const key_type& k);	 // 返回删除元素的数量
 ```
 
 
@@ -1246,8 +1274,9 @@ mapped_type& at ( const key_type& k );//与map类似，如果找到则返回valu
 #### unordered_multimap
 #### unordered_multiset
 
-
 ## 迭代器
+
+适配器(stack,queue,priority_queue)没有迭代器。
 
 随机访问迭代器
 
@@ -1259,11 +1288,38 @@ mapped_type& at ( const key_type& k );//与map类似，如果找到则返回valu
 
 ## 算法
 
-### std::sort
+reference: STL-wangguilin 附录A
+
+### 排序
+
+#### std::sort
+
+序列化容器：array,vector,deque不带成员函数sort。list,forward_list, map,unordered_map带sort.
 
  对于自定义类型，需要提供operator<()重载。std::sort随机访问迭代器才能使用。 ==重载的函数记得加上const, 否则const对象编不过。==
 
-### std::find
+#### std::stable_sort
+
+稳定排序。相同元素值排序后保持之前的顺序。
+
+### 查找
+#### std::find
+
+序列化容器：array,vector,list,deque,forward_list 不带成员函数count。
+
+返回在[first,end)范围内等于val的第一个元素的迭代器，没找到返回end。相当于：
+
+```c++
+template<class InputIterator, class T>
+  InputIterator find (InputIterator first, InputIterator last, const T& val)
+{
+  while (first!=last) {
+    if (*first==val) return first;
+    ++first;
+  }
+  return last;
+}
+```
 
 对于自定义类型，需要提供operator==()重载。
 
@@ -1271,11 +1327,99 @@ mapped_type& at ( const key_type& k );//与map类似，如果找到则返回valu
 
 如果传的是值`std::find(v.begin(), v.end(), 5)`, 这样每次比较时都会先创建一个临时对象，比较完再析构，效率较低。
 
-### std::remove
+#### std::find_if
+
+返回在[first,end)范围内等于pred等于true的第一个元素的迭代器。相当于：
+
+```c++
+template<class InputIterator, class UnaryPredicate>
+  InputIterator find_if (InputIterator first, InputIterator last, UnaryPredicate pred)
+{
+  while (first!=last) {
+    if (pred(*first)) return first;
+    ++first;
+  }
+  return last;
+}
+```
+
+#### std::count
+
+序列化容器：array,vector,list,deque,forward_list 不带成员函数count。
+
+计算元素val的个数。对于自定义类型，需要提供operator==()重载。
+
+count函数行为相当于：
+
+```c++
+template <class InputIterator, class T>
+count (InputIterator first, InputIterator last, const T& val)
+{
+  int ret = 0;
+  while (first!=last) {
+    if (*first == val) ++ret;
+    ++first;
+  }
+  return ret;
+}
+```
+
+#### count_if
+
+计算在[first, last)范围内pred为真的元素个数。
+
+count_if行为相当于：
+
+```c++
+template <class InputIterator, class UnaryPredicate>
+count_if (InputIterator first, InputIterator last, UnaryPredicate pred)
+{
+  int ret = 0;
+  while (first!=last) {
+    if (pred(*first)) ++ret;
+    ++first;
+  }
+  return ret;
+}
+```
+
+
+
+#### search/search_n
+
+
+
+
+
+### 删除
+#### std::remove/remove_if
 
 对于自定义类型，需要提供operator==()重载。remove函数并不是真正的把元素删除，而是把要删除的元素覆盖掉，所以中间过程有一个后值覆盖前值的操作，标准库中使用std::move, 如果没移动构造则调拷贝构造，效率会变低。
 
 remove也应该传个临时对象进去：`std::find(v.begin(), v.end(), A(5))`, 原因同上。
+
+### 遍历
+#### std::for_each
+
+```c++
+// [first, end)这个范围内的所有元素调用fn函数, fn可以是函数、仿函数、lambda表达式
+template <class InputIterator, class Function>
+Function for_each (InputIterator first, InputIterator last, Function fn);
+//这个模板函数的行为相当于：
+template <class InputIterator, class Function>
+Function for_each (InputIterator first, InputIterator last, Function fn) {
+    for(;first != last; ++first) {
+        f(*first);
+    }
+    return fn;
+}
+```
+
+
+
+
+
+
 
 
 
@@ -1682,17 +1826,78 @@ rb-tree特性:
 
 不同的key通过hash函数得到一个hashcode(哈希值/散列值), 通过哈希值放到哈希表中存储。
 
+将关键字key通过hash函数转化成数组的下标。
+
 时间复杂度为O(1)，最差为O(n)。使用空间换时间。
 
-#### 哈希函数设计
+#### 哈希函数的设计
 
+##### 直接定址法
 
+取关键字key的某个线性函数为散列地址：Hash(key) = A * key + B.
+
+优点：简单、均匀。缺点：需要事先知道关键字的分布情况。使用场景：适合查找比较小且连续的情况
+
+##### 除留余数法
+
+Hash(key)  = key % p(p为质数且p<=bucket_count).
+
+##### 平方取中法
+
+假设关键字为1234，对它平方就是1522756，抽取中间的3位227作为哈希地址； 再比如关键字为4321，对它平方就是18671041，抽取中间的3位671(或710)作为哈希地址。
+		使用场景：不知道关键字的分布，而位数又不是特别大的情况。
+
+##### 折叠法
+
+折叠法是将关键字从左到右分割成位数相等的几部分(最后一部分位数可以短些)，然后将这几部分叠加求和，并根据哈希表表长，取后几位作为散列地址。
+
+##### 随机函数法
+
+选择一个随机函数，把关键字传入随机函数，计算得到的值作为哈希地址。即Hash(key) = random(key), random为随机函数。
+
+使用场景: 关键字长度不等时采用。
+
+##### 数学分析法
+
+什么鬼玩意
 
 #### 哈希冲突
 
-不同的关键字通过hash函数得到相同的hashcode, 称为hashcode.
+不同的关键字通过hash函数计算得到相同的哈希值, 称为哈希冲突。
 
+##### 开放定址法(闭散列)
 
+**对于开放定址法，加载因子特别重要，应该控制在0.7~0.8以下。**超过0.8探查效率直线上升，所以一些使用开放定址法的hash库, 如java的系统库设置加载因子为0.75，超过则扩容hash表。
+
+因此开放定址法的空间利用率比较低。(空间换时间，要啥自行车)
+
+###### 线性探查
+
+==从发生冲突的位置开始依次向后探测，直到找到空位置。==`Hash(key)=(hash(key)+i) % bucket_count.(i=0,1,2....)`
+
+但是随着元素的增多，可能会出现元素连续的现象，那么线性探查就会一直探测到元素尾才能插入，这种现象叫做“数据堆积“。
+
+优点：实现简单。缺点：”数据堆积“，探查次数增多。
+
+###### 平方探查(二次探查)
+
+我们在探测时可以不一个挨一个的探测，可以**跳跃着探测**，就避免了一次“数据堆积”。
+
+`Hash(key)=(hash(key) + i^2) % bucket_count.` 或者 `Hash(key)=(hash(key) - i^2) % bucket_count.`(i=0,1,2,3......)
+
+甚至可以扩展的更复杂一些：
+
+`Hash(key)=(hash(key) + i + i^2) % bucket_count`。
+
+虽然平方探测解决了线性探测的问题，但是也有一个小问题，当不同的key得到的散列值是相同的时候，它们的探测路径都是一样。所以对于许多落在同一位置的key来说，越后插入的元素，探测次数越多。这种现象称为==“二次堆积”==。
+
+之所以出现探测路径相同的现象是因为计算过程中始终依赖“i”这个变量，它并不会因为key的不同而变化。所以我们可以再用一个hash函数乘以“i”：`Hash(key)=(hash(key) + hash_1(key)*i) % bucket_count` 来找到合适的位置。==(双散列)==
+
+##### 链地址法
+
+​	数组+链表 -> 数组+红黑树。
+
+rehash法
 
 
 
