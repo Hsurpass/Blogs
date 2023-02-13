@@ -1182,7 +1182,7 @@ at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`
 size: 
 	// 容器中元素的个数
 count ：
-    size_type count(const key_type& k) const; //返回key在容器中的数量。对于unordered_map/unordered_set 		来说非1即0。		**内部有调用operator==()的操作。**
+    size_type count(const key_type& k) const;//返回key在容器中的数量。对于					unordered_map/unordered_set来说非1即0。		**内部有调用operator==()的操作。**
 clear:
 	// 彻底清空
 begin: 
@@ -1194,22 +1194,22 @@ find:
 	iterator find ( const key_type& k );
 	//查找规则与std::find不同，传入的值可以通过hash函数求得哈希值从而获得value位置，不存在返回end。
 bucket:
-	size_type bucket(const key_type& k) const; //返回k所在的桶号(数组下标)，取值范围为0 ~ bucket_count-1
+	size_type bucket(const key_type& k) const;	//返回k所在的桶号(数组下标)，取值范围为0 ~ 		bucket_count-1
 bucket_size: 
 	size_type bucket_size ( size_type n ) const;//返回桶号为n的位置元素的个数。
 bucket_count: 
 	size_type bucket_count() const noexcept; // 返回桶的数量
 load_factor:
-	float load_factor() const noexcept;	// 装填因子 = 容器中元素的个数 / 桶的大小(数组的大小)。
+	float load_factor() const noexcept;	//装填因子 = 容器中元素的个数 / 桶的大小(数组的大小)。
 	// load_factor= size() / bucket_count().
-	// load_factor影响碰撞的概率(两个元素存储在同一个下标的位置)，当load_factor超过阈值（最大装填因子：			max_load_factor）自动增大桶的大小，并进行**rehash**操作。
+	// load_factor影响碰撞的概率(两个元素存储在同一个下标的位置)，当load_factor超过阈值(最大装填因		子：max_load_factor)自动增大桶的大小，并进行**rehash**操作。
 max_load_factor:
 	float max_load_factor() const noexcept;	 // get
-	void max_load_factor ( float z );		// set
-	// 不过请注意，实现可能会对桶的数量施加一个上限(参见max_bucket_count)，这可能会迫使容器忽略				max_load_factor。
+	void max_load_factor ( float z );		 // set
+	// 不过请注意，实现可能会对桶的数量施加一个上限(参见max_bucket_count)，这可能会迫使容器忽略		max_load_factor。
 reserve:	// 提前预留空间避免多次rehash
 	void reserve ( size_type n );	// 改变桶数(bucket_count)
-	// 如果n大于当前bucket_count乘以max_load_factor，容器的bucket_count会增加(增加到多少不确定，但不是n的		值)，并**强制重新散列。**
+	// 如果n大于当前bucket_count乘以max_load_factor，容器的bucket_count会增加(增加到多少不确		定，**新的桶数可以等于或大于n。**)，并**强制重新散列。**
 	// 如果n小于该值，则函数可能不起作用。
 rehash:		// 提前预留空间避免多次rehash
 	void rehash( size_type n ); //设置桶数
@@ -1218,11 +1218,10 @@ rehash:		// 提前预留空间避免多次rehash
 	// rehash可能导致迭代器失效。
 	// 通过调用rehash来在哈希表中保留一定数量的桶，我们避免了容器扩展可能导致的多次rehash。
 equal_range:
-	pair<iterator,iterator> equal_range (const key_type& k);// 返回容器中key等于k值的元素范围。左闭右开。
-	// 如果容器中没有对应的值，则pair中两个迭代器均返回end。
+	pair<iterator,iterator> equal_range (const key_type& k);// 返回容器中key等于k值的元素		范围。左闭右开。 如果容器中没有对应的值，则pair中两个迭代器均返回end。
 insert:	// 与map类似
-	pair<iterator,bool> insert ( const value_type& val );// 第一个元素是一个迭代器，指向容器中**新插入的		元素或键值相等**的元素； 第二个元素返回true或false,指示元素是否插入成功。
-	iterator insert(const_iterator hint, const value_type& val);// value将被存储在合适的容器中，无论hint		传入的是什么。 该函数返回一个迭代器，指向容器中**新插入的元素或键值相等**的元素。
+	pair<iterator,bool> insert ( const value_type& val );// 第一个元素是一个迭代器，指向容器	中**新插入的元素或键值相等**的元素； 第二个元素返回true或false,指示元素是否插入成功。
+	iterator insert(const_iterator hint, const value_type& val);// value将被存储在合适的	容器中，无论hint传入的是什么。 该函数返回一个迭代器，指向容器中**新插入的元素或键值相等**的元素。
 ```
 
 
