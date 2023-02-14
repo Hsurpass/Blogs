@@ -2063,6 +2063,8 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 ## references:
 
+[-6- linux系统编程与网络编程](../wangguilin/-6- linux系统编程与网络编程)
+
 [linux系统编程.pdf](../wangguilin/-6- linux系统编程与网络编程/linux系统编程.pdf)
 
 [C_C++多线程编程精髓.md](./fanli/C_C++多线程编程精髓.md)
