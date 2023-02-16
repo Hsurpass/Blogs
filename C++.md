@@ -190,11 +190,11 @@ struct test
 
 1.malloc/free, new/delete new[]/delete[]没有配对使用。
 
-2.循环引用。
+2.没使用虚析构。
 
-3.没使用虚析构。
+3.循环引用。
 
-4.僵尸进程。
+4.僵尸进程。使用wait或waitpid回收子进程。
 
 5.抛异常，栈解旋
 
