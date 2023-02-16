@@ -57,7 +57,7 @@ int fcntl(int fd, int cmd, long arg);// fcntl(fd, F_GETFL, 0) fcntl(fd, F_SETFL,
 
 #### dup/dup2
 
-==重定向文件描述符fd指向另一个文件结构体file_struct。==
+==重定向文件描述符fd指向另一个文件结构体file_struct。== dup.c  dup2_stdout_err.c
 
 ```c++
 int dup(int oldfd); //复制一个文件描述符指向oldfd的file结构体
@@ -70,7 +70,9 @@ file_struct中有引用计数，会记录有多少个引用计数指向它，引
 
 
 
-如果两次open同一个文件，会得到两个文件描述符，它们分别指向不同的文件结构体，各自有自己的filestatus和读写位置；但两个file_struct指向同一个vnode, vnode又指向同一个inode。
+如果两次open同一个文件，会得到两个文件描述符，它们分别指向不同的文件结构体，各自有自己的filestatus和读写位置；但两个file_struct指向同一个vnode, vnode又指向同一个inode。 
+
+double_open_same_file.c
 
 ![2.9多次open同一文件_and_dup同一文件](image/2.9%E5%A4%9A%E6%AC%A1open%E5%90%8C%E4%B8%80%E6%96%87%E4%BB%B6_and_dup%E5%90%8C%E4%B8%80%E6%96%87%E4%BB%B6.png)
 
@@ -83,6 +85,8 @@ file_struct中有引用计数，会记录有多少个引用计数指向它，引
 每个进程都有一个进程控制块PCB，task_struct。
 
 ### 进程的环境变量
+
+env.c
 
 每个进程都有一个环境变量表，它是在进程生成时从父进程拷贝过来的。
 
@@ -105,6 +109,18 @@ void exit(int status);	// 终止当前进程，发送一个SIGCHLD信号通知�
 子进程终止的时候必须由父进程回收PCB，没有回收则子进程处于僵尸状态(==僵尸进程==)。
 
 如果父进程在子进程终止之前退出，那么该子进程由init进程回收。这时子进程被称作==孤儿进程==。
+
+#### wait
+
+
+
+#### waitpid
+
+
+
+### fork后执行其他程序
+
+exec函数族
 
 
 
@@ -191,6 +207,10 @@ void exit(int status);	// 终止当前进程，发送一个SIGCHLD信号通知�
 
 (生产者消费者模型)  和mutex一起使用， 内部有加锁，解锁的操作，所以要使用unique_lock, lockguard没有lock(),unlock()成员函数，但是lockguard的开销最少。
 
+##### 虚假唤醒
+
+
+
 #### 信号量(匿名信号量)
 
 二值信号量可以模拟互斥锁 (生产者消费者模型)
@@ -210,8 +230,6 @@ void exit(int status);	// 终止当前进程，发送一个SIGCHLD信号通知�
   **条件变量+互斥锁能解决大部分的线程同步问题**
 
 
-
-### 内存池
 
 
 

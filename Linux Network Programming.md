@@ -6,6 +6,8 @@
 
 # Linux Network Programming
 
+字节序
+
   ### 如何判断大小端
 
 ```c++
@@ -19,19 +21,28 @@
 
 - 2.
 
-
+[TCP 为什么是三次握手，而不是两次或四次？](https://www.zhihu.com/question/24853633/answer/115173386)
 
 三次握手
 
 四次挥手
 
+流量控制
+
 滑动窗口
 
 拥塞控制
 
+-   慢开始( slow-start )
+-   拥塞避免( congestion avoidance )
+-   快重传( fast retransmit )
+-   快恢复( fast recovery )
+
 粘包。
 
+2MSL
 
+#### TCP 与 UDP 的区别
 
 ## references:
 
@@ -42,5 +53,4 @@
 - cookie和session：
     cookie保存在客户端，session保存在服务端，当访问量增多session会影响服务器的的性能
     cookie不安全
-
 
