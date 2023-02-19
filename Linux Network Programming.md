@@ -46,11 +46,17 @@
 
 ### 网络层
 
+#### ICMP协议
+
+
+
 #### IP协议
 
 Internet Protocol，网际协议。
 
+##### IP数据报格式
 
+![image-20230219123056568](image/image-20230219123056568.png)
 
 
 
@@ -81,6 +87,8 @@ Internet Control Message Protocol，网际控制报文协议
 ### 传输层
 
 #### TCP协议
+
+Transmission Control Protocol，传输控制协议
 
 ##### TCP头部
 

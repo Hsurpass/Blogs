@@ -1951,6 +1951,8 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 [数据结构与算法-王桂林-2nd .pdf](../wangguilin/-3.5- 数据结构与算法(CC++实现)视频教程/数据结构与算法-王桂林-2nd .pdf)
 
+https://blog.csdn.net/m0_51233386/article/details/126000760
+
 
 
 # Design Patterns
