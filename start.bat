@@ -1,4 +1,3 @@
-start D:\WorkSpace\3github\Blogs\README.md
 start D:\WorkSpace\3github\Blogs\summary.md
 start D:\WorkSpace\3github\Blogs\Algorithm.md
 start D:\WorkSpace\3github\Blogs\C.md
