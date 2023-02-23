@@ -199,7 +199,7 @@ UDP是无连接的、不可靠的、基于数据报的协议。
 
    但过了一段时间第一次发送的SYN报文也到达了服务端，**如果采用两次握手**，服务端只要给客户端发送确认报文，新的连接就建立了。但是客户端并没有数据发送，就导致连接的资源就浪费掉了。**如果采用三次握手**，客户端还要发送的一个确认报文给服务端，像刚才那种情况客户端不会发送确认报文，历史连接就不会建立了。
 
-2. ==确认双方发送的序列号==。
+2. ==确认双方发送的序列号==，至少需要三次。
 
    客户端和服务端都会向对方发送seq序列号，确认过程至少3次。**两次握手**不能确认服务端的序列号。**四次握手**效率低，在第二次把SYN和ACK都置1就行了，没必要分开发送两次。(==TCP既要保证可靠传输，又要保证传输效率。==)
 
@@ -218,6 +218,16 @@ UDP是无连接的、不可靠的、基于数据报的协议。
 1. TCP规定，即使SYN/FIN报文段不携带数据，也要消耗掉一个序号。
 
 2. ==凡是需要对方确认的报文，都需要消耗序列号。==
+
+###### TCP都有哪些定时器？<a id="TCP都有哪些定时器"></a>
+
+[重传定时器](#TCP超时重传)	发送完报文时设置
+
+[时间等待定时器](#时间等待定时器)	客户端发送完最后一次ACK时设置
+
+[保活定时器](#保活定时器)	服务端每收到一次数据就重新设置重传定时器
+
+[持续定时器](#持续定时器)	收到“零窗口”时设置。
 
 ###### 为什么有了MTU还要有MSS？
 
@@ -251,7 +261,7 @@ LAST_ACK：服务端发送完数据，然后发送FIN包，进入LAST_ACK状态�
 
 MSL：maximum segment lifetime 最长报文生存时间。
 
-TIME_WAIT: 时间等待定时器，**2MSL是客户端发送完最后一个ACK开始计时的**。如果对方直接发送了`FIN+ACK`则直接进入`TIME_WAIT` 状态，无需经过`FIN_WAIT-2`状态。
+TIME_WAIT: **时间等待定时器**<a id="时间等待定时器"></a>，==**2MSL是客户端发送完最后一个ACK开始计时的**==。如果对方直接发送了`FIN+ACK`则直接进入`TIME_WAIT` 状态，无需经过`FIN_WAIT-2`状态。[TCP都有哪些定时器](#TCP都有哪些定时器)
 
 ==如果服务端主动关闭，则服务端就会有一段时间处于`TIME_WAIT`状态，导致端口被占用不能启动服务。==**”Address already in use“**  
 
@@ -287,23 +297,60 @@ CLOSING：双方同时调用close发送FIN就会处于此状态，表示双方�
 
 
 
-##### TCP的保活机制(keepalive)
-
-TCP设有一个保活计时器(keepalive timer), 服务端每接收到一次数据就会重新设置计时器，如果超过规定的时间(2小时？)没收到数据，就会向客户端发送一个探测报文段，若连续发送10个没有响应，则认为客户端出故障了，接着就关闭这个连接。
-
-
-
 ##### TCP半连接队列和全连接队列
 
+半连接队列又称SYN队列，里面存放着还没收到ACK确认的连接(syn_recv)。
+
+全连接队列又称accept队列，里面存放着三次握手成功的连接(established)。
+
+三次握手成功后内核会把连接从半连接队列移除，放入全连接队列中，等待进程调⽤ accept 函数时把连接取出来。
+
+```bash
+cat /proc/sys/net/ipv4/tcp_max_syn_backlog	#半连接队列长度
+cat /proc/sys/net/core/somaxconn		#全连接队列长度=min(somaxconn, backlog)  backlog最大不能超过它 
+```
+
+![image-20230223175549622](image/image-20230223175549622.png)
 
 
-##### TCP SYN攻击
+
+###### TCP SYN攻击
+
+客户端伪造大量IP发送SYN包，服务端接收发送SYN+ACK，但是客户端不应答，这样就会造成大量处于SYN_RECV状态的半连接，一旦半连接队列满了就不能处理请求了。
+
+
+
+##### TCP的保活机制(keepalive)<a id="保活定时器"></a>
+
+[TCP都有哪些定时器](#TCP都有哪些定时器)
+
+作用：==探测对端连接有没有失效。==
+
+TCP设有一个**==保活定时器(keepalive timer)==**， 服务端==每接收到一次数据就会重新设置计时器==，如果超过规定的时间(2小时)没收到数据，就会向客户端发送一个**探测报文段**，之后每隔75分钟发送一次，若连续发送10个没有响应，则认为客户端出故障了，接着就关闭这个连接。
+
+由于TCP设置的保活定时时间太长了，往往不会打开keepalive机制，而是在应用层做心跳机制。
+
+```c
+int flag = 1;
+int len = sizeof(flag);
+setsockopt(listenfd, IPPROTO_TCP, TCP_NODELAY, &flag, len);	// 打开保活机制
+```
+
+```c
+// Linux 内核可以有对应的参数可以设置保活时间、保活探测的时间间隔、保活探测的次数
+net.ipv4.tcp_keepalive_time=7200	// 保活时间7200秒(2小时)
+net.ipv4.tcp_keepalive_intvl=75		// 检测间隔75分钟
+net.ipv4.tcp_keepalive_probes=9		// 探测次数9次，超过9次认为对方中断了连接
+    
+```
 
 
 
 ##### TCP的重传机制
 
 ###### TCP超时重传<a id="TCP超时重传"></a>
+
+[TCP都有哪些定时器](#TCP都有哪些定时器)
 
 TCP的发送方在规定的时间内没有收到ACK，就要进行重传，但重传时间是个很复杂的问题。
 
@@ -317,7 +364,7 @@ RTO：Retransmission Timeout 超时重传时间 。
 
 不以时间为驱动，⽽是以数据驱动重传。
 
-###### SACK
+###### 选择确认SACK
 
 如果要使用选择确认SACK，就要在TCP首部选项中加上“SACK”，而且双方必须约定好。在 Linux 下，可以通过`net.ipv4.tcp_sack`参数打开这个功能（Linux2.4 后默认打开）。  
 
@@ -366,17 +413,68 @@ TCP首部中的窗口指的是本端的接收窗口(告诉对方我能接收多�
 1. 按序到达的，但未被应用程序读取的数据。
 2. 未按序到达的数据。
 
+###### 发送窗口等于接收窗口吗？
 
+发送窗口受接收窗口rwnd和拥塞窗口cwnd的影响，如果两者都考虑，发送窗口的大小应该是rwnd和cwnd中较小的那个，即==`swnd = Min[rwnd, cwnd]`==
+
+1. 当`rwnd < cwnd`时，接收方的接收能力限制发送窗口的最大值。
+
+2. 当`rwnd > cwnd`时，网络的拥塞程度限制发送窗口的最大值。
+
+   
 
 ##### TCP的流量控制
 
 ==流量控制就是让发送方的发送速率不要太快，要让接收方来得及接收。==
 
-###### 零窗口死锁
+###### 滑动窗口控制发送速率
+
+###### 零窗口死锁<a id="持续定时器"></a>
+
+[TCP都有哪些定时器](#TCP都有哪些定时器)
+
+综述：**非零窗口的通知丢失了，导致双方相互等待。零窗口探测报文打破死锁。**
+
+解释：当接收方的接收速度很慢时，接收窗口有可能变为0，那么发送方收到**“零窗口”**的通知就不会再发送数据，直到等到**“非零窗口”**的通知才会继续发送数据。
+
+如果过了一段时间，接收方的接收缓冲区有空间了，并向发送方发送了“非零窗口”的通知，**<u>但是这个报文段在发送过程中丢失了</u>**，那么就会造成发送方和接收方一直**==相互等待的“死锁”局面==**。
+
+**解决零窗口死锁：**TCP为每一个连接都设置了一个==**持续定时器(persistence timer)**==，只要接收到“零窗口”通知就立即启动定时器，如果当定时器到时还没收到“非零窗口的通知”就发送一个==**零窗口探测报文段(仅携带1字节的数据)**==，对方在确认这个报文时携带上**窗口值**，这样就打破了死锁的局面。
+
+**<u>*如果收到的窗口值还为0，就重新设置计时器。*</u>**
+
+
+
+###### 为什么“零窗口”还能接收报文？
+
+TCP规定，即使设置为”零窗口“，也必须接收以下几种报文段：**==零窗口探测报文，确认报文，携带紧急数据的报文。==**
 
 
 
 ###### 糊涂窗口综合征
+
+综述：**每次接收一个字节效率很低，让接收端等一段时间或等有足够的容量再去接收。**（小窗口问题）
+
+当接收方读取数据的速度很慢，比如每次只接收一个字节，然后把确认报文+窗口值(1字节)又发给了发送端，发送端只能发送一个字节，如果这样进行下去，网络效率会很低。
+
+解决方法：
+
+- 针对接收端：
+  1. 接收端等待一段时间再把窗口值通知给发送方。
+  2. 等待接收缓冲区有足够的空间能够容纳一个最长的报文段再通知发送方。
+  3. 等待接收缓冲区有一半的空闲空间再通知发送方。
+
+- 针对发送端
+  1. 发送端不要发送太小的报文段，等到数据累积到足够大的报文段再发送。
+  2. 或等到接收方缓冲区的空间的一半再发送。
+
+
+
+###### Nagle算法
+
+解决网络传输速率慢的问题。
+
+算法如下：若发送应用进程把**要发送的数据逐个字节地送到TCP的发送缓存，则发送方就把第一个数据字节先发送出去，把后面到达的数据字节都缓存起来**。当发送方收到对第一个数据字符的**确认后**，再**把发送缓存中的所有数据组装成一个报文段发送出去**，同时**继续对随后到达的数据进行缓存**。只有在收到对前一个报文段的确认后才继续发送下一个报文段。当数据到达较快而网络速率较慢时，用这样的方法可明显地减少所用的网络带宽。Nagle 算法还规定，**当到达的数据已达到发送窗口大小的一半或已达到报文段的最大长度时，就立即发送一个报文段**。这样做，就可以有效地提高网络吞吐量。
 
 
 
@@ -387,9 +485,11 @@ TCP首部中的窗口指的是本端的接收窗口(告诉对方我能接收多�
 -   快重传( fast retransmit )
 -   快恢复( fast recovery )
 
+###### 慢开始和拥塞避免
 
 
 
+###### 快重传和快恢复
 
 
 
@@ -404,6 +504,26 @@ UDP（User Datagram Protocol，用户数据报协议）
 首部四个字段各占2字节，一共8字节。
 
 **如果发送端速度快，接收端速度慢，就会丢失数据。**
+
+##### UDP广播
+
+广播地址：IP地址中==主机号==全为1。
+
+例如，对于10.1.1.0 （255.255.255.0 ）网段，其广播地址为10.1.1.255 （255 即为2 进制的11111111 ），当发出一个目的地址为10.1.1.255 的分组(封包)时，它将被分发给**==该网段上的所有计算机。==**  
+
+##### 问答
+
+有分片的情况下如下处理：
+
+问：如果MTU是1500，使用UDP发送 2000，那么recvfrom(2000)是收到1500，还是2000?
+
+答： 还是接收2000，数据分片由IP层处理了，放到UDP还是一个完整的包。接收到的包是由路由路径上最少的MTU来分片，注意转到UDP已经在是组装好的(组装出错的包会经crc校验出错而丢弃)，是一个完整的数据包。
+
+分片后的处理：
+
+问：如果500那个片丢了怎么办？udp又没有重传
+
+答：UDP里有个CRC检验，如果包不完整就会丢弃，也不会通知是否接收成功，所以UDP是不可靠的传输协议，而且TCP不存在这个问题，有自己的重传机制。在内网来说，UDP基本不会有丢包，可靠性还是有保障。当然如果是要求有时序性和高可靠性，还是走TCP，不然就要自己提供重传和乱序处理( UDP内网发包处理量可以达7w~10w/s )  。
 
 
 
@@ -463,16 +583,25 @@ linux下虽然提供了aio的接口，但对异步的支持并不好，只是把
 
 #### 如何判断大小端
 
-```c++
-  union bl
-  {
-      int data; 	// 0x12345678
-      char byte;    // 0x78 -->低字节放在低地址：小端   0x12-->大端
-      // uint8_t byte;
-  };
+```c
+// 方法一:
+typedef union bl {
+ 	int data; 	// 0x12345678
+  	char byte;  // 0x78 -->低字节放在低地址：小端   0x12-->大端
+    // uint8_t byte;
+}ble;
+ble bigOrLittleEndian;
+bigOrLittleEndian.data = 0x12345678;  
+printf("little address = %x\n", bigOrLittleEndian.ch);  // 78
+
+// 方法二:
+int a = 0x12345678;
+printf("little address = %x\n", *(char*)&(a));  // 78 低地址放低字节：小端序
 ```
 
-### IP地址字节序转换
+### socketAPI
+
+#### IP地址字节序转换
 
 ```c
 #include <arpa/inet.h>
@@ -480,7 +609,7 @@ int inet_pton(int af, const char *src, void *dst);	// p:point:点分十进制	�
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 ```
 
-### 端口字节序转换
+#### 端口字节序转换
 
 ```c
 #include <arpa/inet.h>
@@ -490,23 +619,73 @@ uint32_t ntohl(uint32_t netlong);
 uint16_t ntohs(uint16_t netshort);	// 网络序转主机序
 ```
 
-### socketAPI
+#### 设置socket选项
 
-socket,bind,listen,accept
+```c
+#include <sys/types.h>
+#include <sys/socket.h>
+int setsockopt(int sockfd, int level, int optname,const void *optval, socklen_t optlen);
+```
+
+sockfd：文件描述符
+
+level：哪一层次。SOL_SOCKET、IPPROTO_TCP、IPPROTO_IP和IPPROTO_IPV6。SOL是socket option level的意思。
+
+optname：套接字选项。
+
+- SO_REUSEADDR
+
+  在`TIME_WAIT`状态时允许端口复用。
+
+- SO_REUSEPORT
+
+- SO_BROADCAST
+
+optval：optval表示是否启用，为0禁止选项，非0启用选项。
+
+optval：optval的长度。
+
+```c
+int flag = 1;
+int len = sizeof(flag);
+setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, len);
+setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &flag, len);
+setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &flag, len);
+setsockopt(listenfd, SOL_SOCKET, SO_BROADCAST, &flag, len);
+setsockopt(listenfd, IPPROTO_TCP, TCP_NODELAY, &flag, len);
+```
+
+
+
+socket,bind,accept
+
+#### listen
 
 ```c
 #include <sys/socket.h>
 int listen(int sockfd, int backlog);
-// backlog: 在处理上一请求时，还可以接受多少个进入的请求。 就是接受连接队列的大小
 ```
 
-查看系统默认backlog：
-
 ```bash
-cat /proc/sys/net/ipv4/tcp_max_syn_backlog
+cat /proc/sys/net/ipv4/tcp_max_syn_backlog	# tcp_max_syn_backlog指的是半连接队列，linux2.2之后backlog指的是全连接队列
+cat /proc/sys/net/core/somaxconn	#全连接队列长度=min(somaxconn, backlog)  backlog最大不能超过它 
 ```
 
 调用close会发FIN包。
+
+#### 域名转换
+
+##### 通过域名获取ip地址
+
+gethostbyname
+
+##### 通过ip地址获取域名
+
+gethostbyaddr
+
+#### 动态分配端口
+
+getsockname
 
 
 
@@ -539,13 +718,46 @@ cat /proc/sys/net/ipv4/tcp_max_syn_backlog
 
 #### select
 
+最多监听1024个文件描述符，FD_SETSIZE。
+
 #### poll
+
+select是用数组存放fd，而poll把数组改成链表，所以没有限制了。
 
 #### epoll
 
+发送缓冲区不满:
+
+1. LT模式下默认总是会触发EPOLLOUT事件，因为缓冲区总是可写的。
+2. ET模式下由不可写变为可写时，才会触发EPOLLOUT事件。
+
+所以对于poll()和epoll()的LT模式，不应在一开始就监听EPOLLOUT事件，因为这时发送缓冲区为空，总是会触发的(busy loop)。
+
+LT模式监听EPOLLOUT应用场景: 
+
+1. 应用程序向发送缓冲区去写数据，缓冲区写满了，但还没有写完，此时write阻塞并监听EPOLLOUT事件，等到对端把数据取走后(缓冲区不满)，触发EPOLLOUT事件，取消监听并write数据，如果再次写满则再监听。
+
+对于epoll的ET模式,一开始监听EPOLLOUT事件不会触发(不会busy loop，好像客户端连接进来的时候只会触发一次(从不可写到可写)，后面再想触发只会从满到不满。
+
+##### 为什么epoll要使用非阻塞IO？
+
+ET模式下应该使用非阻塞IO，否则一直阻塞在read, 其他连接无法处理。
+
+##### 水平触发
+
+只要缓冲区中有数据，水平触发就会一直返回EPOLLIN事件。边缘触发只会触发一次，只有等有数据再次到达才会再次触发POLLIN事件，所以边沿模式要循环读取数据以防止数据没读完。
+
+##### 边沿触发
 
 
 
+
+
+##### epoll和select的区别
+
+1. select最多监听1024个文件描述符，而epoll没有限制。
+2. 每次调用select都需要把要监听的文件描述符集合拷贝内核，而epoll只需把fd挂到红黑树上。
+3. select/poll需要在内核和用户态中遍历每个文件描述符找到就绪的fd，epoll只需要把就绪的fd拷贝到就绪数组中返回给用户态。
 
 ## references:
 
