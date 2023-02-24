@@ -411,8 +411,21 @@ https://linux.cn/article-11367-1.html
 tcpdump -nt -i eth0 host 192.168.1.1 port 12345 -w tmp.pcap #捕获主机12345端口经过网卡eth0的所有数据包，并输出到tmp.pcap文件
 tcpdump tcp port 22 #捕获在22端口上tcp协议的包
 tcpdump arp 
-tcpdump -i eth0 tcp port 22 and host 192.168.56.210  #捕获主机192.168.56.210在网卡eth0上接收和发出的tcp协议的数据包：
+tcpdump -i eth0 tcp port 22 and host 192.168.56.210  #捕获主机192.168.56.210在网卡eth0上接收和发出的tcp协议的数据包。
+tcpdump -i eth0 tcp and port 22 and host 192.168.56.210 
 ```
+
+过滤表达式
+
+| 选项                       | 示例                                       | 说明            |
+| -------------------------- | ------------------------------------------ | --------------- |
+| host / src host / dst host | tcpdump -nn host 192.168.1.100             | 主机过滤        |
+| port / src port / dst port | tcpdump -nn port 80                        | 端口过滤        |
+| ip/ip6/arp/tcp/udp/icmp    | tcpdump -nn tcp                            | 协议过滤        |
+| and/or/not                 | tcpdump -nn host 192.168.1.100 and port 80 | 逻辑表达式      |
+| tcp[tcpflags]              | tcpdump -nn “tcp[tcpflags] & tcp-syn != 0” | 特定状态的TCP包 |
+
+
 
 https://zhuanlan.zhihu.com/p/349692865
 
