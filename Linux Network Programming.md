@@ -310,18 +310,69 @@ CLOSING：双方同时调用close发送FIN就会处于此状态，表示双方�
 
 全连接队列又称accept队列，里面存放着三次握手成功的连接(established)。
 
-三次握手成功后内核会把连接从半连接队列移除，放入全连接队列中，等待进程调⽤ accept 函数时把连接取出来。
+三次握手成功后内核会把连接从半连接队列移除，放入全连接队列中，**等待进程调⽤ accept 函数时把连接取出来**。
+
+不管是半连接队列还是全连接队列，都有最⼤⻓度限制，超过限制时，内核会直接**丢弃**，或**返回 RST 包**。  
+
+![image-20230223175549622](image/image-20230223175549622.png)
+
+###### 配置全连接队列和半连接队列
 
 ```bash
 cat /proc/sys/net/ipv4/tcp_max_syn_backlog	#半连接队列长度
 cat /proc/sys/net/core/somaxconn		#全连接队列长度=min(somaxconn, backlog)  backlog最大不能超过它 
 ```
 
-![image-20230223175549622](image/image-20230223175549622.png)
+###### 查看全连接队列状态
+
+使用`ss`命令查看全连接队列的状态，对于获取的`Recv-Q/Send-Q`又分为**LISTEN状态**和**非LISTEN状态**。
+
+- listen状态
+
+  ```bash
+  # -l 显示正在Listener 的socket
+  # -n 不解析服务名称
+  # -t 只显示tcp
+  
+  # Recv-Q 当前全连接数目，也就是已完成三次握手并等待服务端accept()的TCP全连接总数。
+  # Send-Q 全连接队列的最大长度
+  
+  [root@server ~]$  ss -lnt | grep 6080
+  State  Recv-Q Send-Q  Local Address:Port   Peer Address:Port
+  LISTEN     0   100       :::6080                  :::*
+  ```
+
+- 非listen状态
+
+  ```bash
+  # Recv-Q 已收到但未被应用进程读取的字节数
+  # Send-Q 已发送但未收到确认的字节数
+  [root@server ~]$  ss -nt | grep 6080
+  State  Recv-Q Send-Q  Local Address:Port   Peer Address:Port
+  ESTAB     0   433       :::6080                  :::*
+  ```
+
+###### 查看半连接队列状态
+
+半连接，也就是处于SYN_RECV状态的TCP连接，这种状态的连接都存在半连接队列，使用如下命令查看：
+
+```bash
+netstat -antp | grep SYN_RECV | wc -l	# 查看半连接队列 wc -l是用来统计数目，把它去掉查看状态
+```
+
+###### 全连接队列溢出
 
 
 
-###### TCP SYN攻击
+###### 半连接队列溢出
+
+
+
+
+
+
+
+##### TCP SYN攻击
 
 客户端伪造大量IP发送SYN包，服务端接收发送SYN+ACK，但是客户端不应答，这样就会造成大量处于SYN_RECV状态的半连接，一旦半连接队列满了就不能处理请求了。
 

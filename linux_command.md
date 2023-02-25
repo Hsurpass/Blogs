@@ -267,6 +267,8 @@ nc -l 12345
 
 -u或--udp：显示UDP传输协议的连线状况。
 
+- -s或--statistics： 显示网络工作信息统计表。
+
 ```bash
 netstat -al
 netstat -anp | grep 8000 #查看8000端口的占用情况
