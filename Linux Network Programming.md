@@ -243,6 +243,59 @@ UDP是无连接的、不可靠的、基于数据报的协议。
 
 ==read并不会返回错误，将会阻塞等待数据。write并不会返回，它会一直往发送缓冲区中写入数据，直到写满。网络恢复正常，通信恢复，不需要重新建立连接，不会丢失数据。==
 
+###### TCP第一次握手SYN丢包了，会发生什么？
+
+客户端发送SYN包超时没收到时，会重发。超时重传次数由内核参数`tcp_syn_retries`指定，超时时间RTO是指数(翻倍)增长的(2,4,8,16)
+
+```bash
+cat /proc/sys/net/ipv4/tcp_syn_retries	# SYN报文重传次数：5			1+2=3 -> 3+4=7 -> 7+8=15 -> 15+16=31
+echo 2 > /proc/sys/net/ipv4/tcp_syn_retries	#修改重传次数
+```
+
+模拟SYN包丢失：
+
+```bash
+# 拔掉服务器网线
+# 在客户端发起连接请求 date;curl http://serverIP;date
+```
+
+###### TCP第二次握手SYN+ACK丢包了，会发生什么？
+
+对于客户端来说收不到ACK，会超时重发；对于服务端来说，收不到客户端的应答也会超时重发，重传次数由内核参数`tcp_synack_retries  `限制，超时时间RTO同SYN一样也是指数增长的。
+
+```bash
+ cat /proc/sys/net/ipv4/tcp_synack_retries	# 第二次握手重传次数
+ echo 2 > /proc/sys/net/ipv4/tcp_synack_retries #修改重传次数
+```
+
+模拟SYN+ACK包丢失：
+
+```bash
+# 客户端配置防火墙限制，把来自服务端的包都丢弃	iptables -I INPUT -s serverIP -j DROP
+# 在客户端发起连接请求 date;curl http://serverIP;date
+```
+
+##### TCP第三次握手ACK丢包了，会发生什么？
+
+服务端处于SYN_RECV状态，没收到ACK会超时重传FIN+ACK，超过最大次数`tcp_synack_retries  `会断开连接；客户端处于established状态，发送数据收不到ACK，会超时重传，超过最大重传次数`tcp_retries2  `断开连接。
+
+```bash
+cat /proc/sys/net/ipv4/tcp_retries2	#TCP建⽴连接后的数据包传输，最⼤超时重传次数 15
+```
+
+那如果客户端不发送数据，那什么时候才会断开处于eatablished状态的连接呢？
+
+- 涉及到TCP保活机制，超过保活时间会断开。[keepalive](#保活定时器)
+
+模拟ACK包丢失：
+
+```bash
+# 服务端配置防火墙限制屏蔽来自客户端的ACK包。 iptables -I INPUT -s clientIP -p tcp --tcp-flag ACK ACK -j DROP
+# 在客户端发起连接请求 date;curl http://serverIP;date 或者 telnet serverIP port
+```
+
+
+
 
 
 ##### 四次挥手
@@ -362,15 +415,85 @@ netstat -antp | grep SYN_RECV | wc -l	# 查看半连接队列 wc -l是用来统�
 
 ###### 全连接队列溢出
 
+使用wrk工具对服务端进行压测，模拟全连接队列溢出。
 
+```bash
+# -t 6 		表示6个线程
+# -c 30000	表示3万个连接
+# -d 60s 	表示持续压测60秒
+wrk -t 6 -c 30000 -d 60s http://serverIP:port
+```
+
+当超过最大全连接队列，服务端会把丢掉的连接个数统计起来，使用`netstat -s`命令查看：
+
+```bash
+date; netstat -s | grep overflowed	#统计丢失的TCP连接
+```
+
+当全连接队列溢出，服务端采用丢弃(**默认**)还是发送RST包来回应客户端是由`tcp_abort_on_overflow  `这个内核选项来控制的。
+
+```bash
+cat /proc/sys/net/ipv4/tcp_abort_on_overflow # 默认值 0
+tcp_abort_on_overflow=0：#表示当全连接队列溢出时，丢弃客户端发过来的ACK。此时服务端处于【syn_rcvd】的状态，客户端处于【established】的状态。在该状态下会有一个定时器重传服务端 SYN+ACK 给客户端（不超过tcp_synack_retries 指定的次数，Linux下默认5）。超过后，服务器不在重传，后续也不会有任何动作。如果此时客户端发送数据过来，服务端会返回RST(有限状态机)。(疑问：为什么丢弃了还要重传？)
+tcp_abort_on_overflow=1：#表示当全连接队列溢出时，服务端直接返回RST通知client，表示废掉这个握手过程和这个连接，client会报connection reset by peer。
+```
 
 ###### 半连接队列溢出
 
+半连接队列溢出其实就是**SYN攻击**(DDos攻击)。可以使用`hping3`工具模拟SYN攻击。
+
+```bash
+# -S		指定TCP标志位为SYN
+# -P 8080	指定目的端口
+# --flood
+hping3 -S -p serverPort --flood serverIP
+```
+
+使用`netstat -s`命令查看半连接队列溢出情况：
+
+```bash
+netstat -s | grep "SYNs to LISTEN"	#统计有多少连接由于半连接队列溢出而被丢弃
+```
+
+增大半连接队列的大小比较麻烦，需要修改内核参数：**tcp_max_syn_backlog、somaxconn、和listen中的backlog。**
+
+除了增大半连接队列，还可以通过开启`tcp_syncookies`参数**避开使用半连接队列**建立连接。当开启了 syncookies 功能就不会丢弃连接。  
+
+```bash
+# 查看tcp_syncookies的默认值
+# 0：不开启该功能
+# 1：当半连接队列满时，开启该功能
+# 2：无条件开启该功能
+cat /proc/sys/net/ipv4/tcp_syncookies
+echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+```
 
 
 
+##### TCP快速打开(TFO)
 
+TCP Fast Open
 
+作用：减少TCP建立连接的时延。
+
+原理：
+
+1. 客户端第一次与服务端建立连接，**服务端**在第二次握手的时候**产生一个cookie**(已加密)并通过FIN+ACK包一起发给客户端，客户端**==缓存这个cookie==**。
+2. 下次客户端再对服务端发起连接请求时，**带上cookie和SYN一同发送**，服务端验证cookie值，验证成功就建立连接，省去了三次握手。==而且在第一次握手就能发送数据，第二次握手就能应答数据。==
+
+![image-20230225225712301](image/image-20230225225712301.png)
+
+通过设置内核参数`tcp_fastopn  `打开fast open功能。	
+
+```bash
+# 查看TCP Fast Open功能开启情况
+# 0：关闭
+# 1：作为客户端使用Fast Open功能
+# 2：作为服务端使用Fast Open功能
+# 3：无论作为客户端还是服务端，都使用Fast Open功能
+
+cat /proc/sys/net/ipv4/tcp_fastopen	# 1默认
+```
 
 ##### TCP SYN攻击
 
