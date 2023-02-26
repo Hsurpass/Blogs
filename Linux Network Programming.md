@@ -306,13 +306,11 @@ cat /proc/sys/net/ipv4/tcp_retries2	#TCP建⽴连接后的数据包传输，最�
 
 FIN_WAIT-1：如果客户端长时间没收到ACK，则会处于此状态。
 
-FIN_WAIT-2：客户端收到ACK后处于此状态(==半关闭状态==)，一直等待服务端发送FIN(==此时服务端还可以继续发送数据给客户端==)。
-
-​		半关闭指的是客户端的TCP连接半关闭：TCP是全双工的，客户端的发送端关了，客户端的接收端还能接收数据。
+FIN_WAIT-2：客户端收到ACK后处于此状态(==半关闭状态==)，此时**客户端的发送通道关闭了**，一直等待服务端发送FIN(==此时服务端还可以继续发送数据给客户端==)。==半关闭==指的是客户端的TCP连接半关闭：TCP是全双工的，**客户端的发送端关了，客户端的接收端还能接收数据。**
 
 LAST_ACK：服务端发送完数据，然后发送FIN包，进入LAST_ACK状态。
 
-MSL：maximum segment lifetime 最长报文生存时间。
+MSL：maximum segment lifetime 最长报文生存时间。默认30秒。
 
 ```c
 #define TCP_TIMEWAIT_LEN (60*HZ) /* how long to wait to destroy TIME-WAIT state, about 60 seconds */
@@ -345,6 +343,43 @@ TIME_WAIT: **时间等待定时器**<a id="时间等待定时器"></a>，==**2MS
 1. 当客户端 timewait 时间超过了 2MSL，则客户端就直接进⼊关闭状态。
 2. 服务端超时重发 FIN 报⽂的次数如果超过 `tcp_orphan_retries` 大小后，服务端也会关闭 TCP 连接  。
 
+###### 孤儿链接<a id="孤儿连接"></a>
+
+调用close方法一方的连接称为孤儿连接。孤儿连接的数量由内核参数==`tcp_max_orphans`==控制。
+
+```bash
+# 查看孤儿连接的数量
+cat /proc/sys/net/ipv4/tcp_max_orphans
+```
+
+###### close和shutdown的区别？
+
+关闭连接的⽅式通常有两种，分别是 RST 报⽂关闭和 FIN 报⽂关闭：
+
+- 如果进程异常退出了，内核就会发送 RST 报⽂来关闭，它可以不⾛四次挥⼿流程，是⼀个暴⼒关闭连接的⽅式。  
+
+- 安全关闭连接的⽅式必须通过四次挥⼿，它由进程调⽤ close 和 shutdown 函数发起 FIN 报⽂。
+
+**close意味着完全断开连接**，既不能发送数据也不能接收数据(先关闭发送[写]：FIN_WAIT2， 后关闭接收[读]：2MSL结束)。`netstat -p`发现连接对应的进程名为空。
+
+**shutdown可以只关闭一个方向的连接。**
+
+```c
+//SHUT_RD(0)：关闭连接的读，如果接收缓冲区中有数据则丢弃，并且后续接收的数据发送ACK确认后丢弃。 
+//SHUT_WR(1)：关闭连接的写，如果发送缓冲区中有数据则马上发送出去，并把FIN发送给对端。通常这种连接成为半关闭连接。
+//SHUT_RDWR(2)：关闭连接的读和写，相当于SHUT_RD和SHUT_WR各操作一次。
+int shutdown(int sock, int howto);
+```
+
+###### 第一次挥手的FIN包丢了，会发生什么？<a id="第一次挥手的FIN包丢了会发生什么"></a>
+
+主动方发送FIN后一直收不到ACK，会处于FIN_WAIT1状态，并超时重传FIN，重传次数由内核参数==`tcp_orphan_retries`==控制。[调整重传FIN的次数](#调整重传FIN的次数)
+
+```bash
+# 查看FIN报文的重发次数，默认值是0，表示特指重发8次
+cat /proc/sys/net/ipv4/tcp_orphan_retries
+```
+
 
 
 ##### TCP的有限状态机
@@ -371,10 +406,10 @@ CLOSING：双方同时调用close发送FIN就会处于此状态，表示双方�
 
 ![image-20230223175549622](image/image-20230223175549622.png)
 
-###### 配置全连接队列和半连接队列
+###### 配置全连接队列和半连接队列<a id="配置全连接队列和半连接队列"></a>
 
 ```bash
-cat /proc/sys/net/ipv4/tcp_max_syn_backlog	#半连接队列长度
+cat /proc/sys/net/ipv4/tcp_max_syn_backlog	#半连接队列长度=tcp_max_syn_backlog，somaxconn，backlog三个的运算
 cat /proc/sys/net/core/somaxconn		#全连接队列长度=min(somaxconn, backlog)  backlog最大不能超过它 
 ```
 
@@ -459,7 +494,7 @@ netstat -s | grep "SYNs to LISTEN"	#统计有多少连接由于半连接队列�
 
 增大半连接队列的大小比较麻烦，需要修改内核参数：**tcp_max_syn_backlog、somaxconn、和listen中的backlog。**
 
-除了增大半连接队列，还可以通过开启`tcp_syncookies`参数**避开使用半连接队列**建立连接。当开启了 syncookies 功能就不会丢弃连接。  其原理是这样：服务端根据当前状态算出一个值，并和SYN+ACK包一起发送给客户端，然后客户端把该值和ACK一起应答给服务端，服务端再取出该值进行验证，验证成功建立连接。
+除了增大半连接队列，还可以通过开启`tcp_syncookies`参数**避开使用半连接队列**建立连接。当开启了 syncookies 功能就不会丢弃连接。其原理是这样：服务端根据当前状态算出一个值，并和SYN+ACK包一起发送给客户端，然后客户端把该值和ACK一起应答给服务端，服务端再取出该值进行验证，验证成功建立连接。<a id="tcp_syncookies"></a>
 
 ```bash
 # 查看tcp_syncookies的默认值
@@ -469,6 +504,8 @@ netstat -s | grep "SYNs to LISTEN"	#统计有多少连接由于半连接队列�
 cat /proc/sys/net/ipv4/tcp_syncookies	# 1 默认打开
 echo 1 > /proc/sys/net/ipv4/tcp_syncookies
 ```
+
+
 
 ##### TCP快速打开(TFO)<a id="TFO"></a>
 
@@ -483,7 +520,7 @@ TCP Fast Open
 
 ![image-20230225225712301](image/image-20230225225712301.png)
 
-通过设置内核参数`tcp_fastopn  `打开fast open功能。	
+通过设置内核参数`tcp_fastopn  `打开fast open功能。==TFO功能需要客户端和服务端同时打开才有效果==。
 
 ```bash
 # 查看TCP Fast Open功能开启情况
@@ -492,7 +529,7 @@ TCP Fast Open
 # 2：作为服务端使用Fast Open功能
 # 3：无论作为客户端还是服务端，都使用Fast Open功能
 cat /proc/sys/net/ipv4/tcp_fastopen	# 1默认
-echo 3 > /proc/sys/net/ipv4/tcp_fastopen	#TFO功能需要客户端和服务端同时打开才有效果。
+echo 3 > /proc/sys/net/ipv4/tcp_fastopen	
 ```
 
 ##### TCP SYN攻击
@@ -503,15 +540,15 @@ echo 3 > /proc/sys/net/ipv4/tcp_fastopen	#TFO功能需要客户端和服务端�
 
 1. 增大半连接队列
 
-   要想增大半连接队列，需要增大tcp_max_syn_backlog，somaxconn，和listen中的backlog。
+   要想增大半连接队列，需要增大tcp_max_syn_backlog，somaxconn，和listen中的backlog。[配置全连接队列和半连接队列](#配置全连接队列和半连接队列)
 
 2. 开启tcp_syncookies功能
 
-   echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+   echo 1 > /proc/sys/net/ipv4/tcp_syncookies [tcp_syncookies](#tcp_syncookies)
 
 3. 减少SYN+ACK的重传次数
 
-   由于处于SYN_RECV状态的连接超出重传次数后才会断开连接，减小`tcp_synack_retries`的值加快连接断开。
+   由于处于SYN_RECV状态的连接超出重传次数后才会断开连接，减小`tcp_synack_retries`的值加快连接断开。[第二次握手SYN+ACK丢包了，会发生什么](#第二次握手SYN+ACK丢包了，会发生什么)
 
    
 
@@ -823,23 +860,206 @@ setsockopt(sock_fd, IPPROTO_TCP, TCP_QUICKACK, (char *)&value, sizeof(int));	// 
 
 #### TCP性能优化
 
+https://cloud.tencent.com/developer/article/1922700
+
 ##### 三次握手性能优化
 
 ###### 调整SYN重传次数
 
-[第一次握手SYN丢包了，会发生什么](#第一次握手SYN丢包了，会发生什么)
+需要调整 `/proc/sys/net/ipv4/tcp_syn_retries`。 [第一次握手SYN丢包了，会发生什么](#第一次握手SYN丢包了，会发生什么)
 
+###### 调整SYN+ACK的重传次数
 
+调整`/proc/sys/net/ipv4/tcp_synack_retries`	[第二次握手SYN+ACK丢包了，会发生什么](#第二次握手SYN+ACK丢包了，会发生什么)
 
+###### 调整半连接队列的大小
 
+调整`tcp_max_syn_backlog`，`somaxconn` 和`backlog`的值。或者开启tcp_syncookies功能，当半连接队列满时不使用半连接队列。[tcp_syncookies](#tcp_syncookies)
+
+###### 调整全连接队列的大小
+
+调整`somaxconn` 和`backlog`的值。
+
+###### 避开三次握手
+
+开启` /proc/sys/net/ipv4/tcp_fastopen`tcp快速打开功能。[TFO](#TFO)
+
+###### 小结
+
+第一个是针对主动端的优化，第
 
 ##### 四次挥手性能优化
 
+###### 调整重传FIN的次数<a id="调整重传FIN的次数"></a>
 
+[第一次挥手的FIN包丢了会发生什么](#第一次挥手的FIN包丢了会发生什么)
+
+如果处于FIN_WAIT1状态的连接很多，可以降低==tcp_orphan_retries==的值，当超过上限后会被直接关闭。
+
+```bash
+echo 1024 > /proc/sys/net/ipv4/tcp_orphan_retries
+```
+
+###### 调整孤儿连接的个数
+
+在遇到恶意攻击，调用了close但是FIN报文无法发出，FIN报文无法发送的原因是：
+
+1. TCP保证报文有序发送，发送缓冲区还有数据，FIN报文不能提前发送。
+2. TCP的流量控制，当接收方窗口为0时，不能发送数据。所以攻击者有可能通过下载大文件等具有占用高带宽的操作使得接收窗口变为0，FIN报文则无法发出。
+
+这种情况下可以通过调整孤儿连接的数量即可，孤儿连接的数量由tcp_max_orphan控制：
+
+```bash
+# 查看孤儿连接的数量
+cat /proc/sys/net/ipv4/tcp_max_orphans
+```
+
+当孤儿连接数量超过上限值时，**不再走四次挥手，而是发送RST包直接关闭。**
+
+###### 调整FIN_WAIT2状态的持续时间
+
+主动方在收到ACK报文后，会处于**FIN_WAIT_2**状态，表示主动方发送通道关闭，等待被动方发送FIN报文，关闭被动方的发送通道。
+
+如果连接使用shutdown函数关闭的，连接可以一直处于FIN_WAIT_2状态，因为它可能还可以发送或接收数据。但对于close函数关闭的孤儿连接，由于无法再发送和接收数据，所以这个状态不可以持续太久，这个状态的最大持续时间受内核参数tcp_fin_timeout控制：
+
+```bash
+# 查看孤儿连接FIN_WAIT_2的时间，默认值是60s
+cat /proc/sys/net/ipv4/tcp_fin_timeout
+```
+
+如果超过60秒还没收到FIN，连接就会直接关闭。
+
+###### 调整TIME_WAIT状态个数
+
+TIME_WAIT 状态的连接，在主动⽅看来确实快已经关闭了。然后，被动⽅没有收到 ACK 报⽂前，还是处于LAST_ACK 状态。如果这个 ACK 报⽂没有到达被动⽅，被动⽅就会重发 FIN 报⽂。==重发次数仍然由前⾯介绍过的**tcp_orphan_retries**参数控制。==  
+
+TIME_WAIT的最大个数受内核参数tcp_max_tw_bucktes控制，当TIME_WAIT的数量超过该参数的限制时，连接关闭将不再经历TIME_WAIT而直接关闭。
+
+```bash
+# 查看TIME_WAIT的最大个数
+cat /proc/sys/net/ipv4/tcp_max_tw_buckets #65535
+```
+
+tcp_max_tw_bucktes的值并不是越大越好，因为内存和端口都是有限资源。
+
+###### 复用TIME_WAIT连接
+
+既然tcp_max_tw_bucktes的参数无法无限变大，还有一种方式就是复用TIME_WAIT状态的连接。是否复用TIME_WAIT的是通过内核参数tcp_tw_reuse参数进行控制，该参数==只对客户端（调用connect）有效==：
+
+```bash
+# 查看tcp_tw_reuse功能
+cat /proc/sys/net/ipv4/tcp_tw_reuse
+```
+
+使用这个选项，还需要双方都打开对TCP时间戳的支持：
+
+```bash
+# 查看是否打开时间戳功能
+cat /proc/sys/net/ipv4/tcp_timestamps
+```
+
+时间戳带来的好处如下：
+
+- 重复的数据包会因为时间戳过期被自然丢弃
+- 防止序列号绕回，重复的数据包会由于时间戳过期被自然丢弃
+
+==复用TIME_WAIT只使用于连接发起方，并且需要连接在TIME_WAIT状态的时间超过1s才可以复用==
+
+小结：这些都是针对主动端的优化。
 
 ##### 数据传输性能优化
 
+###### 扩充滑动窗口以发送更多数据
 
+TCP连接由内核维护，内核会为每个连接建立内存缓冲区。
+
+TCP报文发出去以后，并不会立即从内存中删除，因为重传时还需要使用。
+
+TCP连接在过多时，通过free命令可以看出buff/cache内存是增大的。
+
+[**流量控制**](https://mp.weixin.qq.com/s?__biz=MzU4ODM1NjY5NQ==&mid=2247485764&idx=1&sn=852a495a7bb31d1d4b3726daa1e3b9a2&chksm=fddf447ccaa8cd6ae16f5c4ae5bdfd9769180221e682c828197695511f66d2697773d3b7c4d1&token=352253109&lang=zh_CN&scene=21#wechat_redirect)中我们已经讲述了滑动窗口对数据包发送的影响，TCP头部中窗口字段只占用16位（2字节），因此最大可以发送64KB大小的数据，随着网络的高速发展，64KB的窗口其实是很小的，因此在TCP中采用了**扩充窗口的方式**，具体如下：
+
+在**TCP选项**字段中定义了**窗口扩大因子**，其值大小是2^14^，这样TCP窗口的位数从16位扩大为30位（2^16^ \* 2^14^ = 2^30^），此时窗口最大值可以达到1GB。
+
+是否扩充滑动窗口由内核参数tcp_window_scaling控制：
+
+```bash
+# 查看是否启用扩容滑动窗口 默认是打开
+cat /proc/sys/net/ipv4/tcp_window_scaling
+```
+
+使用扩充滑动窗口功能需要在**双方**的SYN报文中发送这个选项，并且==被动方==**必须在主动方的SYN报文包含这个选项时**==才可以在自己的SYN报文中发送这个选项。==
+
+**如何确定网络的最大传输速度？**<a id="带宽"></a>
+
+网络是有带宽限制的，带宽描述的是网络传输能力，它与内核缓冲区的计量单位是不同的：
+
+- ==带宽==是单位时间内的流量，==表示的是速度==，比如带宽是100MB/s
+- **内核缓冲区单位是字节**，网络速度乘以时间才可以得到字节数
+
+**什么是带宽时延积（BDP）？**
+
+带宽时延积决定了飞行报文的大小，**==飞行报文指的是客户端到服务端上的网络数据包==**。
+
+**带宽时延积BDP = RTT \* 带宽**
+
+假设带宽是100MB/s，RTT为10ms，那么BDP就为1MB的字节，如果在网络上的报文大小超过了1MB，就会导致网络过载，容易丢包。
+
+发送缓冲区决定了发送窗口的上限，发送窗口又决定了已发送未确认的飞行报文的上限，因此==发送缓冲区不能超过带宽时延积==。
+
+**发送缓冲区的大小最好是往带宽时延积靠近。**
+
+###### 配置合适的内存指标，缓冲区动态调节
+
+Linux中发送缓冲区和接收缓冲区都可以使用参数动态调节。
+
+发送缓冲区由内核**tcp_wmem**参数控制：
+
+```bash
+# 查看发送缓冲区的范围
+# 默认（单位字节）是4096 16384 4194304
+# 第一个数值动态调节的最小值4KB
+# 第二个数值是发送缓冲区的初始默认值86KB
+# 第三个数值是动态调节的最大值4MB
+cat /proc/sys/net/ipv4/tcp_wmem
+```
+
+**发送缓冲区是自动调节**，当发送方的数据被确认后并且无新数据要发送，发送缓冲区的内存就会被释放。
+
+接收缓冲区由内核参数**tcp_moderate_rcvbuf**和**tcp_rmem**参数共同控制：
+
+```bash
+# 查看是否启用接收缓冲区自动调节
+# 默认值是1，表示开启
+cat /proc/sys/net/ipv4/tcp_moderate_rcvbuf
+
+# 查看接收缓冲区的范围
+# 默认（单位字节）是4096 131072 6291456
+# 第一个数值是动态调节的最小值4KB
+# 第二个参数是接收缓冲区的初始默认值128KB
+# 第三个参数是动态调节的最大值6MB
+cat /proc/sys/net/ipv4/tcp_rmem
+```
+
+接收缓冲区可以根据**==系统空闲内存==**来调节接收窗口：
+
+- 如果系统空闲内存多，接收缓冲区会增大，接收窗口相应的也会变大，允许发送方发送更多的数据
+- 如果系统内存紧张，接收缓冲区会减少，接收窗口会变小，虽然传输效率会降低，但可以保证更多的TCP连接正常工作
+
+**如何确定内存是否紧张**
+
+内存是否紧张是由内核参数tcp_mem控制：
+
+```bash
+# 查看内存范围
+# 默认（单位是页，1页=4KB）是10320 13762 20640
+# 当TCP内存小于4KB*10320时，不需要进行调节
+# 当TCP内存位于第一个和第二个值时，内核开始调节接收缓冲区的大小
+# 当TCP内存大于第三个值时，内核不再为TCP分配新内存，新连接无法建立
+cat /proc/sys/net/ipv4/tcp_mem
+```
+
+**一定不要在你的应用程序的Socket上设置SO_SNDBUF或者SO_RCVBUF，一旦设置会关闭缓冲区的动态调整功能。**
 
 
 
@@ -1011,9 +1231,16 @@ int flag = 1;
 int len = sizeof(flag);
 setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, len);
 setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &flag, len);
-setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &flag, len);
-setsockopt(listenfd, SOL_SOCKET, SO_BROADCAST, &flag, len);
-setsockopt(listenfd, IPPROTO_TCP, TCP_NODELAY, &flag, len);
+setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &flag, len);
+setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &flag, len);
+setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &flag, len);	//关闭nagle算法
+
+// 设置close关闭连接行为
+struct linger so_linger;
+so_linger.l_onoff=1;
+so_linger.l_linger=0;
+setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));	//l_onoff 为⾮ 0， 且 l_linger 值为 0， 那么调⽤ close 后，会⽴该发送⼀个 RST 标志给对端，该 TCP 连接将跳过四次挥⼿，也就跳过了 TIME_WAIT 状态，直接关闭。
+
 ```
 
 
