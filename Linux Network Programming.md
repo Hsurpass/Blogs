@@ -195,6 +195,8 @@ UDP是无连接的、不可靠的、基于数据报的协议。
 
 2. ==确认双方发送的序列号==，至少需要三次。
 
+   SYN 的全称就叫 Synchronize Sequence Numbers（==同步序列号==）。
+   
    客户端和服务端都会向对方发送seq序列号，确认过程至少3次。**两次握手**不能确认服务端的序列号。**四次握手**效率低，在第二次把SYN和ACK都置1就行了，没必要分开发送两次。(==TCP既要保证可靠传输，又要保证传输效率。==)
 
 ###### TCP的粘包问题
@@ -243,7 +245,7 @@ UDP是无连接的、不可靠的、基于数据报的协议。
 
 ==read并不会返回错误，将会阻塞等待数据。write并不会返回，它会一直往发送缓冲区中写入数据，直到写满。网络恢复正常，通信恢复，不需要重新建立连接，不会丢失数据。==
 
-###### TCP第一次握手SYN丢包了，会发生什么？
+###### TCP第一次握手SYN丢包了，会发生什么？<a id="第一次握手SYN丢包了，会发生什么"></a>
 
 客户端发送SYN包超时没收到时，会重发。超时重传次数由内核参数`tcp_syn_retries`指定，超时时间RTO是指数(翻倍)增长的(2,4,8,16)
 
@@ -259,7 +261,7 @@ echo 2 > /proc/sys/net/ipv4/tcp_syn_retries	#修改重传次数
 # 在客户端发起连接请求 date;curl http://serverIP;date
 ```
 
-###### TCP第二次握手SYN+ACK丢包了，会发生什么？
+###### TCP第二次握手SYN+ACK丢包了，会发生什么？<a id="第二次握手SYN+ACK丢包了，会发生什么"></a>
 
 对于客户端来说收不到ACK，会超时重发；对于服务端来说，收不到客户端的应答也会超时重发，重传次数由内核参数`tcp_synack_retries  `限制，超时时间RTO同SYN一样也是指数增长的。
 
@@ -275,7 +277,7 @@ echo 2 > /proc/sys/net/ipv4/tcp_syn_retries	#修改重传次数
 # 在客户端发起连接请求 date;curl http://serverIP;date
 ```
 
-##### TCP第三次握手ACK丢包了，会发生什么？
+##### TCP第三次握手ACK丢包了，会发生什么？<a id="第三次握手ACK丢包了，会发生什么"></a>
 
 服务端处于SYN_RECV状态，没收到ACK会超时重传FIN+ACK，超过最大次数`tcp_synack_retries  `会断开连接；客户端处于established状态，发送数据收不到ACK，会超时重传，超过最大重传次数`tcp_retries2  `断开连接。
 
@@ -457,20 +459,18 @@ netstat -s | grep "SYNs to LISTEN"	#统计有多少连接由于半连接队列�
 
 增大半连接队列的大小比较麻烦，需要修改内核参数：**tcp_max_syn_backlog、somaxconn、和listen中的backlog。**
 
-除了增大半连接队列，还可以通过开启`tcp_syncookies`参数**避开使用半连接队列**建立连接。当开启了 syncookies 功能就不会丢弃连接。  
+除了增大半连接队列，还可以通过开启`tcp_syncookies`参数**避开使用半连接队列**建立连接。当开启了 syncookies 功能就不会丢弃连接。  其原理是这样：服务端根据当前状态算出一个值，并和SYN+ACK包一起发送给客户端，然后客户端把该值和ACK一起应答给服务端，服务端再取出该值进行验证，验证成功建立连接。
 
 ```bash
 # 查看tcp_syncookies的默认值
 # 0：不开启该功能
 # 1：当半连接队列满时，开启该功能
 # 2：无条件开启该功能
-cat /proc/sys/net/ipv4/tcp_syncookies
+cat /proc/sys/net/ipv4/tcp_syncookies	# 1 默认打开
 echo 1 > /proc/sys/net/ipv4/tcp_syncookies
 ```
 
-
-
-##### TCP快速打开(TFO)
+##### TCP快速打开(TFO)<a id="TFO"></a>
 
 TCP Fast Open
 
@@ -491,15 +491,29 @@ TCP Fast Open
 # 1：作为客户端使用Fast Open功能
 # 2：作为服务端使用Fast Open功能
 # 3：无论作为客户端还是服务端，都使用Fast Open功能
-
 cat /proc/sys/net/ipv4/tcp_fastopen	# 1默认
+echo 3 > /proc/sys/net/ipv4/tcp_fastopen	#TFO功能需要客户端和服务端同时打开才有效果。
 ```
 
 ##### TCP SYN攻击
 
-客户端伪造大量IP发送SYN包，服务端接收发送SYN+ACK，但是客户端不应答，这样就会造成大量处于SYN_RECV状态的半连接，一旦半连接队列满了就不能处理请求了。
+客户端伪造大量IP发送SYN包，服务端接收发送SYN+ACK，但是客户端不应答，这样就会造成**大量处于SYN_RECV状态的半连接**，一旦半连接队列满了就不能处理请求了。
 
+###### 防御SYN攻击
 
+1. 增大半连接队列
+
+   要想增大半连接队列，需要增大tcp_max_syn_backlog，somaxconn，和listen中的backlog。
+
+2. 开启tcp_syncookies功能
+
+   echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+
+3. 减少SYN+ACK的重传次数
+
+   由于处于SYN_RECV状态的连接超出重传次数后才会断开连接，减小`tcp_synack_retries`的值加快连接断开。
+
+   
 
 ##### TCP的保活机制(keepalive)<a id="保活定时器"></a>
 
@@ -544,6 +558,12 @@ RTO：Retransmission Timeout 超时重传时间 。
 ###### 选择确认SACK
 
 如果要使用选择确认SACK，就要在TCP首部选项中加上“SACK”，而且双方必须约定好。在 Linux 下，可以通过`net.ipv4.tcp_sack`参数打开这个功能（Linux2.4 后默认打开）。  
+
+```bash
+ cat /proc/sys/net/ipv4/tcp_sack
+```
+
+
 
 ##### TCP的滑动窗口
 
@@ -658,10 +678,24 @@ Nagle 算法主要用于在 TCP **减少分组的数量**，当我们发送一�
 
 ==但是需要小数据包交互的场景的程序需要关闭此算法。==
 
-算法如下：若发送应用进程把**要发送的数据逐个字节地送到TCP的发送缓存，则发送方就把第一个数据字节先发送出去，把后面到达的数据字节都缓存起来**。当发送方收到对第一个数据字符的**确认后**，再**把发送缓存中的所有数据组装成一个报文段发送出去**，同时**继续对随后到达的数据进行缓存**。只有在收到对前一个报文段的确认后才继续发送下一个报文段。当数据到达较快而网络速率较慢时，用这样的方法可明显地减少所用的网络带宽。Nagle 算法还规定，**当到达的数据已达到发送窗口大小的一半或已达到报文段的最大长度时，就立即发送一个报文段**。这样做，就可以有效地提高网络吞吐量。
+算法如下：若发送应用进程把**要发送的数据逐个字节地送到TCP的发送缓存，则发送方就把第一个数据字节先发送出去，把后面到达的数据字节都缓存起来**。当发送方收到对第一个数据字符的**确认后**，再**把发送缓存中的所有数据组装成一个报文段发送出去**，同时**继续对随后到达的数据进行缓存**。只有在收到对前一个报文段的确认后才继续发送下一个报文段。当数据到达较快而网络速率较慢时，用这样的方法可明显地减少所用的网络带宽。Nagle 算法还规定，**当到达的数据已达到==发送窗口大小的一半==或==已达到报文段的最大长度==(MSS)时，就立即发送一个报文段**。这样做，就可以有效地提高网络吞吐量。
 
 ```c
 setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&value, sizeof(int));	// 关闭nagle算法，默认打开
+```
+
+###### 延迟确认
+
+延迟确认策略：
+
+1. 当有响应数据发送时，ACK随着响应数据一起发送给对方。
+2. 当没有响应数据发送时，等待一段时间，随着响应数据发送。
+3. 当在等待发送ACK期间，又接收到新的报文，立即发送ACK。
+
+TCP 延迟确认可以在 Socket 设置 **TCP_QUICKACK** 选项来关闭这个算法：
+
+```c
+setsockopt(sock_fd, IPPROTO_TCP, TCP_QUICKACK, (char *)&value, sizeof(int));	// 关闭延迟确认算法，默认打开
 ```
 
 
@@ -787,6 +821,28 @@ setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&value, sizeof(int));	// �
 
 ![image-20230224134018285](image/image-20230224134018285.png)
 
+#### TCP性能优化
+
+##### 三次握手性能优化
+
+###### 调整SYN重传次数
+
+[第一次握手SYN丢包了，会发生什么](#第一次握手SYN丢包了，会发生什么)
+
+
+
+
+
+##### 四次挥手性能优化
+
+
+
+##### 数据传输性能优化
+
+
+
+
+
 #### UDP协议
 
 UDP（User Datagram Protocol，用户数据报协议）
@@ -827,7 +883,17 @@ UDP（User Datagram Protocol，用户数据报协议）
 
 ### 应用层
 
-#### http协议
+#### Http协议
+
+#### 输入网址到网页显示中间都发生了什么?
+
+1. 输入网址浏览器解析URL生成HTTP请求。
+2. 通过网址中的域名查询DNS服务器得到目的IP地址。
+3. 经过传输层加入TCP首部，超所MSS进行分段分段。
+4. 经过网络层加上IP头部。
+5. 经过数据链路层加上以太网帧头部和尾部。
+6. 最后经由物理层传输。
+7. 服务端收到后，依次拆包并解析HTTP请求，处理后组装HTTP响应并发给客户端。
 
 
 
