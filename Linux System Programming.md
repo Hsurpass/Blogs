@@ -60,8 +60,11 @@ int fcntl(int fd, int cmd, long arg);// fcntl(fd, F_GETFL, 0) fcntl(fd, F_SETFL,
 ==重定向文件描述符fd指向另一个文件结构体file_struct。== dup.c  dup2_stdout_err.c
 
 ```c++
-int dup(int oldfd); //复制一个文件描述符指向oldfd的file结构体
-int dup2(int oldfd, int newfd); //复制newfd文件描述符指向oldfd的file结构体,newfd如果已经被使用，则先关闭。
+int dup(int oldfd); //复制一个文件描述符指向oldfd的file结构体，并返回这个fd。
+// 复制oldfd指向的file结构体指针到newfd,使newfd指向oldfd的file结构体并返回newfd,newfd如果已经打开，则先关闭。
+// 如果newfd==oldfd，则返回newfd。
+// 如果old是非法的，则返回-1，newfd不会被关闭。
+int dup2(int oldfd, int newfd); 
 ```
 
 file_struct中有引用计数，会记录有多少个引用计数指向它，引用计数为0时释放。
@@ -176,25 +179,52 @@ exec函数族 通常与fork一起使用，先用fork出子进程，再在子进�
 
 细节见：wangguilin/linux系统编程.pdf
 
+```c
+#include <unistd.h>
+int execl(const char* path, const char *arg, ...);
+int execlp(const char* file, const char *arg, ...);
+int execle(const char* path, const char *arg, ..., char * const envp[]);
+int execv(const char* path, char* const argv[]);
+int execvp(const char* file, char * const argv[]);
+int execve(const char* filename, char* const argv[], char* const envp[]);	// 这个才是真正的system call
+int execvpe(const char *file, char *const argv[], char *const envp[]);
+```
 
+l：‘l’表示传递的参数是以==列表==形式出现，即分开的，需要一个一个的传递，比如：`execl("/bin/ps", "ps", "ajx", NULL);`， 其中第一个参数代表传递的一个要执行的程序的==绝对路径==，第二个参数必须和第一个参数的==文件名==保持一致，后边的 ajx,NULL都是参数，而且==最后一个参数必须是NULL==。
 
+p：第一个参数可以是==相对路径==或==程序名==，第二个参数必须和第一个参数的==文件名==保持一致，最后一个参数必须是==NULL==，‘p’参数表示不需要传递文件绝对路径，在执行时会从==环境变量==中来搜索执行，比如：`execlp("ps", "ps", "ajx", NULL);`
 
+v：‘v’参数表示函数传递的参数是以==字符串数组==形式的传递而不用一个一个的传递比如：`char *buf[] = {"ps", "ajx", NULL};  execv("/bin/ps", buf);`，第一个参数代表传递的一个要执行的程序的==绝对路径==，其中buf这个==指针数组==包含了需要传递参数并且==最后一个参数是NULL==。
 
+e：‘e’参数表示传递给新进程的环境变量，比如：`char *buf[] = {"PATH=/usr/bin", NULL}; execve("./test", NULL, buf);`那么在==新的进程中环境变量PATH就变成了`/usr/bin`。==
 
+进程中的环境变量说明在Linux中，Shell进程是所有**命令**的父进程。当一个命令执行时，Shell进程会fork子进程然后调用exec函数去执行**命令**。Shell进程堆栈中存放着该用户下的所有环境变量，**使用execl、execv、execlp、execvp函数使程序执行时，Shell进程会将所有环境变量复制给生成的新进程**；而==使用execle、execve时新进程不继承任何Shell进程的环境变量，而由envp[]数组自行设置环境变量==。
 
-### 守护进程
+**<u>一旦执行了exec函数，除非exec调用失败，否则后面的代码永远不会被执行。</u>**
 
 ### 进程组 <a id="进程组"></a>
 
 [waitpid](#waitpid)
 
-`ps -ajx` 查看进程组
+`ps -ajx` 查看进程组。`kill -9 -12345`：杀死进程组id是12345中的所有进程。
 
 ==进程组是一个或多个进程的集合，==进程组id是一个正整数，==组长进程的pid等于进程组id。==
 
 组长进程可以创建一个进程组，也可以创建组中的进程。
 
-进程组的生存周期：从进程组创建开始，到最后一个进程离开进程组(终止或转移到另一进程组)。
+**进程组的生存周期**：从进程组创建开始，到最后一个进程离开进程组(终止或转移到另一进程组)。
+
+进程组标识：PGID(process group ID)。
+
+### 会话
+
+
+
+![image-20230227175905787](image/image-20230227175905787.png)
+
+### 守护进程
+
+
 
 
 
