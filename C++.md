@@ -133,6 +133,16 @@ void *func(void *, int, size_t);
 
 ==如果想通过基类的指针获得派生类的数据类型，==基类必须带有虚函数
 
+### sizeof
+
+计算所占空间的大小(字节)
+
+```c
+sizeof("hello") == char str[] = {'h', 'e', 'l', 'l', 'o', '\0'}	// 6
+```
+
+
+
 ## 强制类型转换
 
 reinterpret_cast:强制转换。

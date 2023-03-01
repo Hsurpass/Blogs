@@ -1,4 +1,22 @@
-# **GDB**
+# GDB
+
+gdb filename
+
+gdb attach pid
+
+gdb 调试带参数的程序：
+
+```bash
+gdb a.out
+set args ...
+show args
+del args
+#例：
+gdb ./redis-cli
+set args -h xxx -p xxx -a xxx  (不用加“”)
+```
+
+
 
 查看虚函数表：
 
@@ -6,11 +24,9 @@
 info vtbl 类对象指针或引用
 ```
 
-
-
 watch: `watch i`监控变量，当值发生变化时会停下来，并产生一个 watchpoint,类似vs中watch，停止监控和删除断点一样`del 1`。
 
-display: 在break打断点之后使用display,就不用每次在断点停下来后再手动输入命令`p i`查看了。
+display: 在break打断点之后使用display，就不用每次在断点停下来后再手动输入命令`p i`查看了。
 
 
 
@@ -30,19 +46,19 @@ display: 在break打断点之后使用display,就不用每次在断点停下来�
 
   - set detach-on-fork [on|off], 默认是on(也就是你在调试父进程时候，子进程也在跑)。
 
-    $\color{red} {表示调试当前进程的时候，其他的进程继续运行，如果用off,调试当前进程的时候，其他的进程被gdb挂起。}$			
+    $\color{orange} {表示调试当前进程的时候，其他的进程继续运行，如果用off,调试当前进程的时候，其他的进程被gdb挂起。}$			
 
 - 查看调试的进程
 
   - `info inferiors`
 
-    $\color{red} {想要查看调试的进程ID，必须先设置 `set detach-on-fork off` ,否则其他进程会一直跑干扰查看进程ID}$
+    $\color{orange} {想要查看调试的进程ID，必须先设置 `set detach-on-fork off` ,否则其他进程会一直跑干扰查看进程ID}$
 
 - 切换当前调试的进程
 
   - `inferior 进程id`(此id非pid，是前面的NUM)
 
-    $\color{red}{要想调试过程中切换进程id,也必须先设置一下 `set detach-on-fork`}$
+    $\color{orange}{要想调试过程中切换进程id,也必须先设置一下 `set detach-on-fork`}$
 
 ### 调试多线程
   - 查看线程

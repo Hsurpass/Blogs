@@ -13,7 +13,7 @@
 
 ## **nginx 文件结构**
 
-```
+```bash
 ...              #全局块
 
 events {         #events块
@@ -191,13 +191,7 @@ $\color{orange} {CGI使外部程序与Web服务器之间交互成为可能。CGI
 
 $\color{orange} {但效率很差，难以扩展。面对大量请求，进程的大量建立和消亡使操作系统性能大大下降。此外，由于地址空间无法共享，也限制了资源重用。}$
 
-fastcgi:
 
-
-
-
-
- 
 
 *原文地址：https://www.cnblogs.com/knowledgesea/p/5175711.html* 
 
