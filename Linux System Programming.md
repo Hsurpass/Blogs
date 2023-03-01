@@ -48,12 +48,293 @@ off_t lseek(int fd, off_t offest, int whence);//移动文件指针到指定位�
 	off_t ret = lseek(fd, 0xFFFFFFFFl, SEEK_SET);	// 移动文件指针到这么多字节处
 ```
 
-#### 修改文件的属性
+#### 文件掩码
 
-```c++
+==掩码的作用就是屏蔽位。==如果想把一个数的某个位屏蔽掉，就把掩码对应的位置1，再把**掩码取反和相应的数求与**。
+
+==利用子网掩码求主机号也是这个道理，先把子网掩码取反再和IP地址相与就得到主机地址。==
+
+##### 读取掩码的值
+
+- umask：查看掩码数字值，默认0022。umask -S：查看掩码符号值，u=rwx,g=rx,o=rx。
+
+  比如：使用touch创建一个文件，创建权限是0666，由于**touch进程继承了shell进程的文件掩码**，所以创建出来的文件的权限是：0666 &(~0022) = 0644。
+
+  ```c
+  0666 & (~0022) = 0644
+  0110 0110 0110
+  1111 1101 1101 
+  0110 0100 0100 = 644
+  -rw-r--r--  1 hchy hchy     0 Mar  1 08:46 a.txt
+  ```
+
+  同样的道理，使用gcc编译生成一个可执行文件时，创建权限是0777，而最终的文件权限是：0777&(~0022)=0755。
+
+- 使用umask函数读取：
+
+  ```c
+  // 读取掩码，并不是设置掩码!!! 
+  // 由于linux没提供直接读取mask的函数，所以使用umask(0)得到返回值，返回代表前一个掩码的值, 也就是调用umask(0)之前掩码的值。
+  // 但是调用umask(0)后掩码，被修改了，所以用umask(mask)再设置回来。
+  static mode_t read_umask(void) {
+  	mode_t mask = umask(0);
+  	umask(mask);
+  	return mask;
+  }
+  ```
+
+  
+
+##### 修改文件掩码
+
+- 可以在命令行直接修改，`umask 024`不过这只是针对当前shell进程，关闭终端后便会失效。
+
+- 使用umask函数：
+
+  ```
+  #include <sys/stat.h>
+  mode_t umask(mode_t mask);	// 这个系统调用总是成功，并且返回掩码的前一个值。
+  ```
+
+
+
+#### 文件打开个数
+
+##### 查看文件打开个数
+
+```bash
+ulimit -n
+```
+
+##### 临时修改文件打开个数
+
+```bash
+ulimit -n 2048
+```
+
+##### 永久修改文件个数
+
+ ```bash
+cat /etc/security/limits.conf
+* soft nofile 65535
+* hard nofile 65535
+ ```
+
+*表示所有用户都生效，重启后在任何地方执行`ulimit -n`都会显示65535。
+
+#### 文件属性
+
+linux下一切皆文件。
+
+硬链接：文件名和inode一一对应，有引用计数。
+
+软连接：保存着链接文件的绝对地址或相对地址。
+
+文件属性保存在struct stat结构体中：
+
+```c
+struct stat {
+	mode_t st_mode; //文件对应的模式，文件，目录等
+	ino_t st_ino; //inode节点号
+	dev_t st_dev; //设备号码
+	dev_t st_rdev; //特殊设备号码
+	nlink_t st_nlink; //文件的硬链接数连接数
+	uid_t st_uid; //文件所有者的用户ID
+	gid_t st_gid; //文件所有者对应的组的组ID
+	off_t st_size; //普通文件，对应的文件字节数
+	time_t st_atime; //文件最后被访问的时间
+	time_t st_mtime; //文件内容最后被修改的时间
+	time_t st_ctime; //文件属性inode改变时间
+	blksize_t st_blksize; //文件内容对应的块大小
+	blkcnt_t st_blocks; //文件内容对应的块数量
+};
+```
+
+其中st_mode包含的类型如下：<a id="st_mode"></a> [chmod](#chmod)
+
+```bash
+S_IFMT 0170000 文件类型的位遮罩
+S_IFLNK 0120000 符号连接
+S_IFREG 0100000 一般文件
+S_IFBLK 0060000 区块装置
+S_IFDIR 0040000 目录
+S_IFCHR 0020000 字符装置
+S_IFIFO 0010000 先进先出
+S_ISUID 04000 文件的(set user-id on execution)位
+S_ISGID 02000 文件的(set group-id on execution)位
+S_ISVTX 01000 文件的sticky位 粘住位
+S_IRUSR 00400 文件所有者具可读取权限
+S_IWUSR 00200 文件所有者具可写入权限
+S_IXUSR 00100 文件所有者具可执行权限
+S_IRGRP 00040 用户组具可读取权限
+S_IWGRP 00020 用户组具可写入权限
+S_IXGRP 00010 用户组具可执行权限
+S_IROTH 00004 其他用户具可读取权限
+S_IWOTH 00002 其他用户具可写入权限
+S_IXOTH 00001 其他用户具可执行权限
+```
+
+并提供宏函数检查以上类型：
+
+```c
+S_ISLNK (st_mode) 判断是否为符号连接
+S_ISREG (st_mode) 是否为一般文件
+S_ISDIR (st_mode) 是否为目录
+S_ISBLK (st_mode) 是否是块设备
+S_ISCHR (st_mode) 是否为字符设备文件
+S_ISSOCK (st_mode) 是否为socket
+```
+
+
+
+##### 获取文件属性
+
+```c
+#include <sys/types.h>
+#include <sys/stat.h>
+int stat(const char *path, struct stat *struct_stat);
+int lstat(const char *path,struct stat *struct_stat);
+int fstat(int fd, struct stat *struct_stat); //通过文件描述符获取文件对应的属性。fd为文件描述符
+//成功返回0，失败返回-1，并设置errno：
+//	ELOOP： 遍历路径时遇到太多的符号连接
+//	ENAMETOOLONG：文件路径名太长
+//	ENOENT：路径名的部分组件不存在，或路径名是空字串
+//path: 文件的路径
+//fd: 文件描述符
+```
+
+
+
+##### 修改文件属性
+
+
+
+```c
+#include <fcntl.h>
 int fcntl(int fd, int cmd);
 int fcntl(int fd, int cmd, long arg);// fcntl(fd, F_GETFL, 0) fcntl(fd, F_SETFL, 0)
 ```
+
+
+
+
+
+
+
+
+
+##### SUID/SGID位 <a id="SUID/SGID"></a>
+
+**<u>就是为了提升文件权限的。</u>**
+
+SUID作用：使==组用户==和==其他用户==执行文件时，拥有文件所有者的权限。
+
+SGID作用：使==组用户==和==其他用户==执行文件时，拥有文件所属组的权限。
+
+SUID和SGID只有在文件的==可执行位==被设置时才会有效，而可执行位只对普通文件和目录有意义，所以对其他类型的文件设置SUID和SGID没太大意义。
+
+如果一个文件的SUID和SGID被设置，会分别表现在文件的所有者和所属组的==可执行位==上：
+
+```bash
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rw-r--r-- 1 hchy hchy 0 Mar  1 08:46 a.txt
+hchy@DESKTOP-EI7DNUT:~$ chmod u+s a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwSr--r-- 1 hchy hchy 0 Mar  1 08:46 a.txt		# S：所有者权限中的可执行位没有被设置，SUID位被设置
+hchy@DESKTOP-EI7DNUT:~$ chmod u-s a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rw-r--r-- 1 hchy hchy 0 Mar  1 08:46 a.txt
+hchy@DESKTOP-EI7DNUT:~$ chmod u+x a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwxr--r-- 1 hchy hchy 0 Mar  1 08:46 a.txt* 
+hchy@DESKTOP-EI7DNUT:~$ chmod u+s a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwsr--r-- 1 hchy hchy 0 Mar  1 08:46 a.txt*	# s：所有者权限中的可执行位被设置，SUID位被设置
+hchy@DESKTOP-EI7DNUT:~$ chmod g+s a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwsr-Sr-- 1 hchy hchy 0 Mar  1 08:46 a.txt*	# S：所属组权限中的可执行位没有被设置，SGID位被设置
+hchy@DESKTOP-EI7DNUT:~$ chmod g-s a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwsr--r-- 1 hchy hchy 0 Mar  1 08:46 a.txt*
+hchy@DESKTOP-EI7DNUT:~$ chmod g+x a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwsr-xr-- 1 hchy hchy 0 Mar  1 08:46 a.txt*	
+hchy@DESKTOP-EI7DNUT:~$ chmod g+s a.txt
+hchy@DESKTOP-EI7DNUT:~$ ll a.txt
+-rwsr-sr-- 1 hchy hchy 0 Mar  1 08:46 a.txt*	# S：所属组权限中的可执行位被设置，SGID位被设置
+```
+
+###### 判断是否设置了SUID/SGID
+
+[euid](#euid)
+
+```c
+static int issetugid() {
+	return (geteuid() != getuid() || getegid() != getgid());
+}
+```
+
+
+
+
+
+##### 判断文件访问权限
+
+```c
+#include <unistd.h>
+int access(const char *pathname, int mode);
+//mode:
+//	F_OK:判断文件是否存在
+//	R_OK:判断文件是否可读
+//	W_OK:判断文件是否可写
+//  X_OK:判断文件是否可执行。
+//mode参数可以是它们当中的单个值，或是它们的组合。
+access("文件路径", F_OK | R_OK | W_OK | X_OK) == 0;	//成功返回0，只要有一个条件不符合就是失败返回-1。
+```
+
+
+
+##### 修改文件访问权限<a id="chmod"></a>
+
+使用命令：`chmod u+x a.txt`
+
+使用函数：
+
+```c
+#include <sys/stat.h>
+int chmod(const char *path, mode_t mode);
+int fchmod(int fd, mode_t mode);
+```
+
+其中 [mode](#st_mode)可以从S_ISUID ~ S_IXOTH之间任意组合。成功返回0，失败返回-1。
+
+##### 修改文件所属用户/用户组
+
+使用命令：`chown root:root a.txt`
+
+使用函数：
+
+```c
+#include <unistd.h>
+int chown(const char *path, uid_t owner, gid_t group);
+int fchown(int fd, uid_t owner, gid_t group);
+int lchown(const char *path, uid_t owner, gid_t group);
+/*lchown是改变符号链接本身的所有者，而不是该符号链接所指向的文件。*/
+//path:文件路径
+//owner:uid
+//group:gid
+```
+
+
+
+#### 删除文件
+
+```c
+#include<unistd.h>
+int unlink(const char * pathname);
+```
+
+
 
 #### dup/dup2
 
@@ -86,6 +367,53 @@ double_open_same_file.c
 进程：最小的资源分配单位。
 
 每个进程都有一个进程控制块PCB，task_struct。
+
+### 和进程有关的ID
+
+`id`命令可以查看。
+
+uid：user id，启动进程的用户ID，**实际用户ID**。
+
+gid：group id，启动进程的用户所属组的ID，**实际用户组ID**。
+
+euid：effective user id，有效用户ID。==当SUID设置时，有效用户ID == 文件所有者的uid==。<a id="euid"></a>[SUID/SGID](#SUID/SGID)
+
+euid：effective user id，有效用户ID。==当SGID设置时，有效用户组ID == 文件所有者gid==。
+
+比如：当以一个“普通用户”启动一个**文件所有者是root**的程序的时候，如果设置了SUID，则进程的有效用户是root。
+
+```bash
+hchy@DESKTOP-EI7DNUT:~$ ls -lh
+-rwxr-xr-x 1 hchy hchy 17K Mar  1 17:00 a.out
+-rw-r--r-- 1 root root   3 Mar  1 16:26 rootfile.txt
+hchy@DESKTOP-EI7DNUT:~$ ./a.out
+fd:-1
+open: Permission denied
+write to rootfile.txt [n:-1] byte
+finish
+##################################
+hchy@DESKTOP-EI7DNUT:~$ sudo chown root a.out
+hchy@DESKTOP-EI7DNUT:~$ ls -lh
+-rwxr-xr-x 1 root hchy 17K Mar  1 17:00 a.out
+-rw-r--r-- 1 root root   3 Mar  1 16:26 rootfile.txt
+hchy@DESKTOP-EI7DNUT:~$ ./a.out
+fd:-1
+open: Permission denied
+write to rootfile.txt [n:-1] byte
+finish
+##################################
+hchy@DESKTOP-EI7DNUT:~$ sudo chmod u+s a.out
+hchy@DESKTOP-EI7DNUT:~$ ls -lh
+-rwsr-xr-x 1 root hchy 17K Mar  1 17:00 a.out
+-rw-r--r-- 1 root root   3 Mar  1 16:26 rootfile.txt
+hchy@DESKTOP-EI7DNUT:~$ ./a.out
+fd:3
+open: Success
+write to rootfile.txt [n:3] byte
+finish
+```
+
+
 
 ### 进程的环境变量
 
@@ -208,7 +536,7 @@ e：‘e’参数表示传递给新进程的环境变量，比如：`char *buf[]
 
 `ps -ajx` 查看进程组。`kill -9 -12345`：杀死进程组id是12345中的所有进程。
 
-==进程组是一个或多个进程的集合，==进程组id是一个正整数，==组长进程的pid等于进程组id。==进程组也称之为==“作业”。==
+==进程组就是进程的集合，==每个进程组有一个组长进程，==组长进程的pid就是进程组id。==进程组也称之为==“作业”。==
 
 组长进程可以创建一个进程组，也可以创建组中的进程。
 
@@ -254,7 +582,9 @@ Alt + F7       图形终端
 
 ### 会话
 
-==用户登录是会话的开始。登录之后，会产生一个与用户终端相连的进程，这个进程称为会话的leader。==会话的id就是该进程的pid。
+==会话就是进程组集合，每个会话有一个组长进程，其进程pid就是会话id。==
+
+用户登录是会话的开始。登录之后，会产生一个与用户终端相连的进程，这个进程称为会话的leader。
 
 1. 一个会话可以包含多个进程组。
 2. 每个会话都有一个leader进程，leader进程的退出会向会话中的所有的进程发送SIGHUP信号，默认处理动作就是进程都退出。
@@ -282,13 +612,21 @@ pid_t setsid(void)
 
 后台进程，没有控制终端。像internet服务器inetd，web服务器httpd等这些就是守护进程。==结尾字母d就是daemon的意思。==
 
+linux下可以调用系统调用创建守护进程：
+
+```c
+#include <unistd.h>
+int daemon(int nochdir, int noclose);
+```
+
+也可以手动创建，如下：
+
 #### 创建守护进程
 
 1. 创建子进程，在子进程中调用==setsid==函数创建新会话，==使子进程脱离父进程和终端==。
 2. 在子进程中调用==chdir==函数改变当前目录为根目录，**防止占用可卸载的文件系统**，==也可以换成其它路径==。进程活动时，其工
    作目录所在的文件系统不能卸下。一般需要将工作目录改变到根目录。
-3. 在子进程中调用==umask==函数重设文件掩码。子进程从父进程那里继承了文件创建掩码，调用umask()函数设置为0,防止继承的文
-   件创建屏蔽字拒绝某些权限, 增加守护进程灵活性。
+3. 在子进程中调用==umask==函数重设文件掩码。子进程从父进程那里继承了文件创建掩码，调用**umask()函数设置为0**，**为了不受父进程的影响能够自由的创建读写文件**。 防止继承的文件创建屏蔽字拒绝某些权限, 增加守护进程灵活性。
 4. 在子进程中调用==close==关闭文件描述符。继承的打开文件不会用到，浪费系统资源，无法卸载。或者重定向。
 5. 执行守护进程核心逻辑。
 6. kill -9 守护进程退出。

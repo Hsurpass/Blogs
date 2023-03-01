@@ -381,6 +381,22 @@ https://linux.cn/article-11367-1.html
 
 
 
+# sudo
+
+## 切换root用户
+
+- sudo -i
+
+- sudo passwd root 
+
+  su
+
+  su -
+
+  su root
+
+
+
 # strip
 
 移除可执行程序中的调试信息。

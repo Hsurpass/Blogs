@@ -63,7 +63,7 @@ https://draw.io
 ```bash
 g++ -E hello.cpp -o hello.i
 g++ -S hello.cpp -o hello.s
-g++ -C hello.cpp -o hello.o
+g++ -c hello.cpp -o hello.o
 g++ hello.o -o hello
 ```
 
