@@ -334,6 +334,21 @@ int lchown(const char *path, uid_t owner, gid_t group);
 int unlink(const char * pathname);
 ```
 
+1. 如果是符号链接，删除符号链接
+2. 如果是硬链接，引用计数减一，减到0则删除数据块和inode。
+3. 如果硬链接计数减到0，但是有进程已打开该文件且持有文件描述符，**==则等到进程关闭该文件时再删除==**。
+
+返回值：成功返回0，失败返回-1，错误值存在于errno中。
+
+```bash
+EROFS #文件存在于只读文件系统内
+EFAULT #参数pathname指针超出可存取内存空间
+ENAMETOOLONG #参数pathname太长
+ENOMEM #核心内存不足
+ELOOP #参数pathname 有过多符号连接问题
+EIO I/O #存取错误
+```
+
 
 
 #### dup/dup2
@@ -370,7 +385,7 @@ double_open_same_file.c
 
 ### 和进程有关的ID
 
-`id`命令可以查看。
+`id` or `id root` or `id 0`命令可以查看。root的uid和gid都是0。
 
 uid：user id，启动进程的用户ID，**实际用户ID**。
 
@@ -422,6 +437,43 @@ env.c
 每个进程都有一个环境变量表，它是在进程生成时从父进程拷贝过来的。
 
 ![image-20230214161701146](image/image-20230214161701146.png)
+
+libc中定义了一个全局变量==`char** environ`==指向了环境变量表，由于environ没有包含在任何环境变量中，所以需要使用==extern==导入。
+
+```c
+extern char** environ;
+int i = 0;
+while(environ[i]!=NULL) {
+	printf("%s\n", environ[i++]);
+}
+```
+
+#### 获取环境变量
+
+```c
+#include <stdlib.h>
+char * getenv(const char* name);	// name为环境变量的键值，找到返回value，失败返回NULL
+```
+
+#### 设置环境变量
+
+```c
+#include <stdlib.h>
+int setenv(const char* name, const char* value, int rewrite);
+// rewrite为1则覆盖原来值，rewrite为0不覆盖原来的值。
+int putenv(char *string);	// putenv("MYTEST=MYTEST"); // 如果原来值存在则覆盖
+```
+
+==环境变量key是唯一的==。
+
+#### 删除环境变量
+
+```c
+int unsetenv (const char *name);	//成功返回0失败返回-1
+int putenv(char *string);	// putenv("MYTEST");   //只写key值，不写value。如果有key对应的值则清空
+```
+
+
 
 ### 创建进程
 
