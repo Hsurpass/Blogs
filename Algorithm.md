@@ -20,6 +20,32 @@
 
 #### 二叉树
 
+##### 满二叉树
+
+##### 完全二叉树
+
+##### 二叉树的重要性质
+
+##### 二叉树的遍历
+
+前序
+
+中序
+
+后序
+
+层序
+
+已知前序中序求后序
+
+已知后序中序求前序
+
+##### 树的高度
+
+
+
+
+
 #### 二叉搜索树
 
 左子树都比根节点小，右子树都比根节点大。
@@ -162,7 +188,33 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 ### sort
 
+时间复杂度：
+
+
+
 #### bubble sort
+
+
+
+#### select sort
+
+
+
+#### insert sort
+
+#### shell sort
+
+#### quick sort
+
+
+
+#### merge sort
+
+
+
+#### heap sort
+
+
 
 
 
@@ -172,7 +224,39 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 #### binary search
 
+##### 递归方式
+
+
+
+##### 迭代方式
+
+
+
 ### graph theory
+
+#### DFS
+
+
+
+#### BFS
+
+
+
+#### Dijkstra
+
+
+
+#### Astar
+
+
+
+### HMM
+
+
+
+### DBSCAN
+
+
 
 
 
