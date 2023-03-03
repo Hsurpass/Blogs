@@ -1,4 +1,4 @@
-# nginx+fastcgi原理
+# webServer+fastcgi原理
 
 ![image-20230228211304779](image/image-20230228211304779.png)
 
@@ -7,6 +7,12 @@
 3. ==客户端请求web服务器==，web服务器将请求通过socket转发给cgi进程。
 4. ==fastcgi进程通过socket把处理结果返回给web服务器==，web服务器组装好响应包返回给客户端。
 5. fastcgi进程不用退出，接着等待下一个进程。
+
+
+
+spwan-fcgi功能：就是创建监听套接字，绑定端口，进行监听，创建子进程->建立新会话(脱离父进程和终端)->子进程中进行重定向(标准输入重定向到监听套接字，标准输出和标准错误重定向到/dev/null)->关闭其他fd，最后使用exec函数执行fastcgi程序。
+
+ncserver：
 
 # 编译spawn-fcgi-c
 
@@ -25,6 +31,15 @@ autogen.sh configure 这些文件由CRLF改成LF。
 mkdir build && cd build && cmake .. 
 make
 make install
+```
+
+
+
+使用spawn启动fastcgi进程：
+
+```bash
+spawn-fcgi -F 1 -s /home/hchy/test.sock -f /mnt/d/WorkSpace/4openSourceCode/fcgilib/fcgi-2.4.1-SNAP-0910052249/examples/echo
+set args -F 1 -s /home/hchy/test.sock -f /mnt/d/WorkSpace/4openSourceCode/fcgilib/fcgi-2.4.1-SNAP-0910052249/examples/echo
 ```
 
 
@@ -118,5 +133,41 @@ https://stackoverflow.com/questions/62662905/inig-status-error-cannot-find-input
 
 
 
-# 配置nginx
+# 配置nginx+fastcgi
+
+```nginx
+ server {
+                listen 80;
+                server_name localhost;
+
+                location / {
+                        include fastcgi_params;
+                        proxy_pass 127.0.0.1:9090;
+                }
+                # location / {
+                #       include proxy_params;
+                #       proxy_pass http://127.0.0.1:9090;
+                # }
+}
+```
+
+
+
+# 配置nginx+uwsgi
+
+```nginx
+ server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass 127.0.0.1:9090;
+    }
+    # location / {
+    #       include proxy_params;
+    #       proxy_pass http://127.0.0.1:9090;
+    # }
+}
+```
 

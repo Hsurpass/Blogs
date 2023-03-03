@@ -878,6 +878,38 @@ mount -t mqueue none /dev/mqueue
 
 
 
+## #unistd.h
+
+### getopt
+
+解析命令行选项。
+
+```c
+#include <unistd.h>
+int getopt(int argc, char *const argv[], const char *optstring);
+extern char *optarg;
+extern int optind, opterr, optopt;
+```
+
+功能：处理以'-'开头的命令行参数。
+
+optstring:  "a?bc:d::"	**注意：？是单个字符的选项**
+
+1. 单个字符：表示选项，后面不跟参数。
+2. 单个字符后接一个冒号：表示选项后==必须==跟一个参数。**参数紧跟在选项后或以空格隔开**。参数指针赋给optarg。
+3. 单个字符后接两个冒号：表示选项后可以跟一个参数也可以不跟。==如果跟一个参数，该参数必须紧跟在选项后不能以空格隔开==。参数指针赋给optarg。
+
+返回值：
+
+1. 如果optstring中的选项被找到，则返回这个选项。switch...case
+2. 如果所有命令行选项都已经解析，则返回-1。退出while循环条件
+3. 如果命令行选项的字符不在optstring中则返回'?'。
+4. 如果某个命令行选项缺少参数，它的返回值依赖optstring的第一个字符，如果第一个字符是':'则返回':'。否则返回'?'
+
+optind: 初始值为1，指向argv中下一个待处理值得下标。可以把它重置为1，重新开始扫描。
+
+
+
 ## references:
 
 [linux系统编程.pdf](../wangguilin/-6- linux系统编程与网络编程/linux系统编程.pdf)
