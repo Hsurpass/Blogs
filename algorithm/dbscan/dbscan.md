@@ -1,3 +1,27 @@
+
+
+
+
+在聚类分析问题中，如果数据集的各类呈球形分布，可以采用kmeans聚类算法，如果各类数据呈非球形分布（如太极图、笑脸图等），采用kmeans算法效果将大打折扣，这种情况可尝试使用DBSCAN聚类算法。
+
+DBSCAN既可以解决球形分布的数据集分类问题，也可以解决非球形分布的数据集分类问题（如太极图、笑脸等）。
+
+# 基本概念
+
+## r邻域
+
+半径为r的球
+
+![](image/v2-6d3f634b73af64ba63d21f3c1b502577_r.jpg)
+
+## 密度可达
+
+
+
+# dbscan算法原理
+
+
+
 DBSCAN 算法是基于密度的算法，所以它将密集区域内的点看作核心点（核心样本）。主要有两个参数：min_samples和eps。
 eps表示数据点的邻域半径，如果某个数据点的邻域内至少有min_sample个数据点，则将该数据点看作为核心点。
 如果某个核心点的邻域内有其他核心点，则将它们看作属于同一个簇。
@@ -7,8 +31,12 @@ eps表示数据点的邻域半径，如果某个数据点的邻域内至少有mi
 
 如果min_samples设置地太大，那么意味着更少的点会成为核心点，而更多的点将被标记为噪声。
 
-reference:
+# reference
+
 https://zhuanlan.zhihu.com/p/185623849
+
 https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/
+
 https://zhuanlan.zhihu.com/p/94022640
+
 https://zhuanlan.zhihu.com/p/459927289
