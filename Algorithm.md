@@ -449,11 +449,7 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 #### bubble sort
 
-
-
 #### select sort
-
-
 
 #### insert sort
 
@@ -461,17 +457,9 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 #### quick sort
 
-
-
 #### merge sort
 
-
-
 #### heap sort
-
-
-
-
 
 ### search
 

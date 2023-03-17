@@ -262,7 +262,56 @@ void mergeSort(int *arr, int *tmp, int start, int end)
 
 ### 二分查找
 
-如何查找插入位置？只需把left位置返回回来即可。
+迭代版：
+
+```c
+/*
+    二分查找: 复杂度O(logn)
+    前提是序列必须是有序的。
+*/
+int binarySearch_iteration(int *arr, int low, int high, int find) {
+    int mid = 0;
+    // 循环结束条件  当high>low时表示没查找到，
+    // 一定要有等号，让high往前移；没等号也会少比一次
+    while (low <= high) {
+        mid = (low + high) / 2;
+        if (arr[mid] == find) {
+            return mid;
+        }
+        else if (find < arr[mid]) {
+            high = mid - 1;
+        }
+        else {
+            low = mid + 1;
+        }
+    }
+    // return low;  // 如何找到插入元素的位置？只需要返回low那个位置
+    return -1;
+}
+```
+
+递归版：
+
+```c
+int binarySearch_recursive(int *arr, int low, int high, int find) {
+    int mid = 0;
+    if (low <= high) { // 递归结束条件
+        mid = (low + high) / 2;
+        if (arr[mid] == find) {
+            return mid;
+        }
+        else if (find < arr[mid]) {
+            return binarySearch_recursive(arr, low, mid - 1, find);
+        }
+        else {
+            return binarySearch_recursive(arr, mid + 1, high, find);
+        }
+    }
+    return -1;
+}
+```
+
+如何查找插入位置？只需把left位置返回回来即可。(==没问题==)
 
 ![image-20220903151156428](image/image-20220903151156428.png)
 
