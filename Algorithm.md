@@ -211,7 +211,7 @@ void postOrderIteratorWithStack(TreeNode *root) {
 
 ##### 树的高度
 
-```
+```c
 int tree_depth(tree* root) {
 	int maxH, leftH, rightH;
 	if(root) {
@@ -226,7 +226,7 @@ int tree_depth(tree* root) {
 }
 ```
 
-
+![](image/%E6%A0%91%E7%9A%84%E6%B7%B1%E5%BA%A6.png)
 
 #### 二叉搜索树
 
