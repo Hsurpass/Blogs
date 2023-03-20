@@ -2,25 +2,42 @@
 
 # 后端架构
 
-nginx+fastcgi。
+[nginx+fastcgi](nginx/fastcgi.md)。nginx和fastcgi进程之间和使用unix域套接字进行通信，也可以使用ip+port的形式进程通信。需要修改nginx的配置文件nginx.conf中的fastcgi_pass等参数。 
 
-验证进程之间是否共享全局变量、信号处理函数。
+进程之间不会共享全局变量、信号处理函数，fork之后就是单独的进程了。
 
-boss进程创建manager进程，manager进程创建worker进程 ，manager进程先加载数据再fork。
+## 为什么采用多进程架构？
 
-3个功能
+1. 一个原因是进程之间不会相互影响，一个进程崩溃了，不会影响其他进程。
+2. 第二个原因是利用linux操作系统的==写时复制(copy-on-write)==的的特性。由于程序只是需要访问数据，不需要改数据，所以多个进程之间共享静态内存，即使开很多进程也不会占用太多的内存。
 
-1.写时复制
+## ncserver的两个功能
 
-2.reload
+boss进程创建manager进程，manager进程创建worker进程，worker进程的数量由配置文件指定。**静态数据的加载是在manager进程中进行的**，先加载数据再进行fork，这样就利用了写时复制的特性。
 
-3.挂了添加新的。
+### reload数据无需重启
+
+主要用在日更数据的更新上，当数据更新时，不需要手动重启，只需设置一个定时脚本来发送reload信号。
+
+在boss进程中注册一个SIGUSR1的信号处理函数，当boss进程收到==SIGUSR1==信号时，fork一个新的进程作为manager进程，然后新的manager进程再去创建新的worker进程，==当所有的worker进程都创建完成时==，会向旧的manager进程发送一个终止信号(SIGTERM)，收到终止信号后，开始回收worker进程，直到所有worker进程都被回收，manager进程也就结束了。至此，这个reload流程结束。
+
+![image-20230320164845169](image/image-20230320164845169.png)
+
+### 自动补充worker进程
+
+某个进程崩溃了或者被杀掉了（==都会产生SIGCHLD信号==），manager进程会马上fork出一个worker进程补充上。也就是说manager进程中有一个循环，不断的在检查worker进程的数量。
+
+流程：循环遍历每个worker进程的pid，使用 `waitpid(m_children[i], NULL, WNOHANG);`如果返回值大于0，说明某个进程退出了；则manager进程立刻fork出一个worker进程。
 
 
 
-压测：
+## ncserver的压测
 
-最大并发200。
+压测工具使用apache benchmark: ab -n 100000 -c 200 。 -n：表示一共发送多少请求，-c：表示并发数。
+
+最大并发可以达到200。
+
+可以通过spawn-fcgi -b backlog修改全连接的队列的容量来修改增加并发，还可以通过修改内核参数：net.core.somaxconn, net.ipv4.tcp_max_syn_backlog.
 
 # 差路剔除算法
 
