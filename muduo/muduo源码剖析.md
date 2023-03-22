@@ -199,3 +199,221 @@ void TcpConnection::send(const StringPiece& message)
 所以 muduo 的处理方式是，当 OutputBuffer 还有数据时，socket 可写事件是注册状态。当 OutputBuffer 为空时，则将 socket 的可写事件移除。
 
 此外，==highWaterMarkCallback 和 writeCompleteCallback 一般配合使用，起到限流的作用==。在《linux 多线程服务器端编程》一书的 8.9.3 一节中有详细讲解。这里就不再赘述了。
+
+
+
+# 连接的断开
+
+我们看下 muduo 对于连接的断开是怎么处理的。连接的断开分为被动断开和主动断开。主动断开和被动断开的处理方式基本一致，因此本文只讲下被动断开的部分。
+
+被动断开即客户端断开了连接，server 端需要感知到这个断开的过程，然后进行的相关的处理。
+
+其中感知远程断开这一步是在 Tcp 连接的可读事件处理函数 `handleRead` 中进行的：当对 socket 进行 ==read== 操作时，==返回值为 0==，则说明此时连接已断开。
+
+接下来会做四件事情：
+
+1. 将该 TCP 连接对应的事件从 EventLoop 移除
+2. 调用用户的 ConnectionCallback
+3. 将对应的 TcpConnection 对象从 Server 移除。
+4. close 对应的 fd。此步骤是在析构函数中自动触发的，**当 TcpConnection 对象被移除后，引用计数为 0，对象析构时会调用 close**。
+
+# runInLoop 的实现
+
+在讲解消息的发送过程时候，我们讲到<u>为了保证对 buffer 和 socket 的写动作是在 IO 线程中进行，使用了一个 `runInLoop` 函数，将该写任务抛给了 IO 线程处理。</u>
+
+我们接下来看下 `runInLoop` 的实现：
+
+```c++
+void EventLoop::runInLoop(Functor cb)
+{
+  if (isInLoopThread())
+  {
+    // 如果是当前IO线程调用runLoop, 则同步调用cb
+    cb();
+  }
+  else
+  {
+    // 如果是其他线程调用runLoop, 则异步地将cb添加到队列
+    queueInLoop(std::move(cb));
+  }
+}
+```
+
+这里可以看到，做了一层判断。如果调用时是此EventLoop的运行线程，则直接执行此函数。否则调用`queueInLoop`函数。我们看下`queueInLoop`的实现。
+
+```c++
+void EventLoop::queueInLoop(Functor cb)
+{
+  {
+    MutexLockGuard lock(mutex_);
+    pendingFunctors_.push_back(std::move(cb));  //添加到任务队列
+  }
+
+  // 调用queueInLoop的线程不是当前IO线程(eventloop那个线程)需要唤醒
+  // 或者调用queueInLoop的线程是当前IO线程，并且此时正在调用pendingfunctor, 需要唤醒
+  // 只有当前IO线程的事件回调中调用queueInLoop才不需要唤醒
+  if (!isInLoopThread() || callingPendingFunctors_)
+  {
+    wakeup();
+  }
+}
+```
+
+这里有两个动作：
+
+1. 加锁，然后将该函数放到该 EventLoop 的 pendingFunctors_ 队列中。
+2. 判断是否要唤醒 EventLoop，如果是则调用 wakeup() 唤醒该 EventLoop。
+
+这里有几个问题：
+
+- **为什么要唤醒 EventLoop？**
+- wakeup 是怎么实现的?
+- pendingFunctors_是如何被消费的?
+
+## 为什么要唤醒 EventLoop
+
+我们首先调用了 `pendingFunctors_.push_back(cb)`, 将该函数放在 pendingFunctors_中。==EventLoop 的每一轮循环<u>**在最后**</u>会调用 doPendingFunctors 依次执行这些函数。==
+
+而 EventLoop 的唤醒是通过 epoll_wait 实现的，如果此时该 EventLoop 中迟迟没有事件触发，那么 epoll_wait 一直就会阻塞。 这样会导致，pendingFunctors_中的任务迟迟不能被执行了。
+
+所以必须要唤醒 EventLoop ，从而让pendingFunctors_中的任务尽快被执行。
+
+## wakeup 是怎么实现的
+
+muduo 这里采用了对 eventfd 的读写来实现对 EventLoop 的唤醒。
+
+在 EventLoop 建立之后，就创建一个 eventfd，并将其可读事件注册到 EventLoop 中。
+
+`wakeup()` 的过程本质上是对这个 eventfd 进行写操作，以触发该 eventfd 的可读事件。这样就起到了唤醒 EventLoop 的作用。
+
+```c++
+void EventLoop::wakeup()
+{
+  uint64_t one = 1;
+  ssize_t n = sockets::write(wakeupFd_, &one, sizeof one);
+  if (n != sizeof one)
+  {
+    LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
+  }
+}
+```
+
+很多库为了兼容 macOS，往往使用 pipe 来实现这个功能。muduo 采用了 eventfd，性能更好些，但代价是不能支持 macOS 了。不过 muduo 似乎从一开始的定位就不打算支持？
+
+## doPendingFunctors 的实现
+
+本部分讲下 `doPendingFunctors` 的实现，muduo 是如何处理这些待处理的函数的，以及中间用了哪些优化操作。代码如下所示：
+
+```c++
+void EventLoop::doPendingFunctors()
+{
+  std::vector<Functor> functors;
+  callingPendingFunctors_ = true;
+
+  {
+    MutexLockGuard lock(mutex_);
+    functors.swap(pendingFunctors_);
+  }
+
+  for (const Functor &functor : functors)
+  {
+    functor();
+  }
+  callingPendingFunctors_ = false;
+}
+```
+
+从代码可以看到，函数非常简单。大概只有十行代码，但是这十行代码中却有两个非常巧妙的地方。
+
+1. **callingPendingFunctors_的作用**
+
+   从代码可以看出，如果 callingPendingFunctors_为 false，则说明此时尚未开始执行 doPendingFunctors 函数。这个有什么作用呢，我们需要结合下 queueInLoop 中，对是否执行 wakeup() 的判断。
+
+   ```c++
+   if (!isInLoopThread() || callingPendingFunctors_)
+   {
+     wakeup();
+   }
+   ```
+
+   这里还需要结合下 EventLoop 循环的实现，其中 `doPendingFunctors()` 是 **每轮循环的最后一步处理**。
+   如果调用 queueInLoop 和 EventLoop 在同一个线程，且 callingPendingFunctors_ 为 false 时，则说明：**此时尚未执行到 doPendingFunctors()。**
+   那么此时即使不用 wakeup，也可以在之后照旧执行 doPendingFunctors() 了。
+
+   ==这么做的好处非常明显，可以减少对 eventfd 的 IO 读写。==
+
+2. **锁范围的减少**
+   在此函数中，有一段特别的代码：
+
+   ```c++
+   std::vector<Functor> functors;
+   {
+     MutexLockGuard lock(mutex_);
+     functors.swap(pendingFunctors_);
+   }
+   ```
+
+   这个作用是 pendingFunctors_ 和 functors 的内容进行交换，实际上就是此时 functors 持有了 pendingFunctors_ 的内容，==而 pendingFunctors_被清空了。==
+   
+   ==这个好处是什么呢？==
+   
+   如果不这么做，直接遍历 pendingFunctors_, 然后处理对应的函数。这样的话，锁会一直等到所有函数处理完才会被释放。<u>**在此期间，queueInLoop 将不可用。**</u>
+   
+   *而以上的写法，可以极大减小锁范围，整个锁的持有时间就是 swap 那一下的时间。待处理函数执行的时候，其他线程还是可以继续调用 queueInLoop。*
+
+# muduo 的线程模型
+
+muduo 默认是单线程模型的，即只有一个线程，里面对应一个 EventLoop。这样整体对于线程安全的考虑可能就比较简单了，
+但是 muduo 也可以支持以下几种线程模型：
+
+## 主从 reactor 模式
+
+主从 reactor 是 Netty 的默认模型，一个 reactor 对应一个 EventLoop。主 Reactor 只有一个，只负责监听新的连接，accept 后将这个连接分配到子 Reactor 上。子 Reactor 可以有多个。这样可以分摊一个 Eventloop 的压力，性能方面可能会更好。如下图所示：
+
+![](image/main_sub_reactor.jpg)
+
+在 muduo 中也可以支持主从 Reactor，**其中主 Reactor 的 EventLoop 就是 TcpServer 的构造函数中的 `EventLoop*` 参数**。Acceptor 会在此 EventLoop 中运行。
+
+而子 Reactor 可以通过 `TcpServer::setThreadNum(int)` 来设置其个数。**因为一个 Eventloop 只能在一个线程中运行，所以线程的个数就是子 Reactor 的个数。**
+
+如果设置了子 Reactor，新的连接会通过 Round Robin 的方式分配给其中一个 EventLoop 来管理。如果没有设置子 Reactor，则是默认的单线程模型，新的连接会再由主 Reactor 进行管理。
+
+但其实这里似乎有些不合适的地方：多个 TcpServer 之间可以共享同一个主 EventLoop，但是子 Eventloop 线程池却不能共享，这个是每个 TcpServer 独有的。
+
+这里不太清楚是 muduo 的设计问题，还是作者有意为之。<u>不过 Netty 的主 EventLoop 和子 Eventloop 池都是可以共享的。</u>
+
+## 业务线程池
+
+对于一些阻塞型或者耗时型的任务，例如 MySQL 操作等。这些显然是不能放在 IO 线程（即 EventLoop 所在的线程）中运行的，因为会严重影响 EventLoop 的正常运行。具体原理可以查看 [另外一篇博客](http://www.cyhone.com/articles/reunderstanding-of-non-blocking-io/)。
+
+对于这类耗时型的任务，一般做法是可以放在另外单独线程池中运行，这样就不会阻塞 IO 线程的运行了。我们一般把这种处理耗时任务的线程叫做 ==Worker 线程。==
+
+muduo 的网络框架本身没有直接集成 Worker 线程池，但是 muduo 的基础库提供了线程池的相关类 `ThreadPool`。muduo 官方的推荐做法是，在 OnMessage 中，自行进行包的切分，然后将数据和对应的处理函数打包成 Task 的方式提交给**线程池**。
+
+# 总结
+
+个人认为，muduo 源码对于学习网络编程和项目设计非常有帮助, 里面几乎包含了大部分网络编程和框架设计的最佳实践，配合《Linux 多线程服务器端编程》一书，可以学到很多东西。基于这几个方面来说，muduo 绝对是一个值得一探究竟的优质源码。
+
+此外，不但是网络编程方面，如何将复杂的底层细节封装好，暴露出友好的通用业务层接口，如何设计类的职责，对象的生命周期管理等方面，muduo 都给了我们一个很好的示范。
+
+# 参考
+
+- 《Linux 多线程服务器端编程》
+- [Scalable IO in Java](http://gee.cs.oswego.edu/dl/cpjslides/nio.pdf)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-#### 安装
+# redis安装
 
 ```text
 make PREFIX=/usr/local/redis install
@@ -6,11 +6,12 @@ make PREFIX=/usr/local/redis install
 
 这里多了一个关键字 'PREFIX=' 这个关键字的作用是编译的时候用于指定程序存放的路径。比如我们现在就是指定了 redis 必须存放在 '/usr/local/redis' 目录。假设不添加该关键字 linux 会将可执行文件存放在 '/usr/local/bin' 目录，库文件会存放在 '/usr/local/lib' 目录。配置文件会存放在 '/usr/local/etc 目录。其他的资源文件会存放在 'usr/local/share' 目录。这里指定好目录也方便后续的卸载，后续直接 `rm -rf /usr/local/redis` 即可删除 Redis。
 
-#### 服务器启动
+## 服务器启动
+
     服务启动要加上配置文件，否则还是启动的本地回环(127.0.0.1)，并且密码也不会生效
     ./redis-server ../redis.conf
 
-#### 客户端连接
+## 客户端连接
 
 指定 IP 和端口连接 redis：./redis-cli -h 127.0.0.1 -p 6379 -a 密码
 
@@ -20,7 +21,17 @@ make PREFIX=/usr/local/redis install
 
 
 
-#### referenece:
+#跳表
+
+# 布隆过滤器
+
+编程沉思录
+
+https://zhuanlan.zhihu.com/p/85042394
+
+
+
+# referenece:
 
 教程: https://zhuanlan.zhihu.com/p/469102289
 

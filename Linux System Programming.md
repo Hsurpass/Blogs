@@ -876,6 +876,18 @@ mount -t mqueue none /dev/mqueue
 
 
 
+## 协程
+
+协程需要不断拷贝和切换上下文，在对性能要求比较高的场景并不适用。
+
+编程沉思录
+
+https://zhuanlan.zhihu.com/p/85639686
+
+https://zhuanlan.zhihu.com/p/84935949
+
+
+
 
 
 ## #unistd.h
@@ -907,6 +919,8 @@ optstring:  "a?bc:d::"	**注意：？是单个字符的选项**
 4. 如果某个命令行选项缺少参数，它的返回值依赖optstring的第一个字符，如果第一个字符是':'则返回':'。否则返回'?'
 
 optind: 初始值为1，指向argv中下一个待处理值得下标。可以把它重置为1，重新开始扫描。
+
+
 
 
 
