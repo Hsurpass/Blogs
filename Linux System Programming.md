@@ -22,15 +22,71 @@ Linux的文件类型：普通文件(-)，目录文件(d)，管道文件(p)，链
 
 #### 文件的创建、打开和关闭，读与写
 
-fd=open(),fd=create(),close(fd)
+##### open
+
+```c
+#include <fcntl.h>
+int open(const char *pathname, int flags);
+int open(const char *pathname, int flags, mode_t mode);
+int creat(const char *pathname, mode_t mode);
+```
+
+flags：文件的读写权限。flag之间用可以用或(|)的方式组合。<a id="flags"></a>
+
+- O_CREAT：文件不存在则创建，需要同时指定mode。
+
+- O_RDONLY：只读 
+
+- O_WRONLY：只写
+
+- O_RDWR：读写
+
+- O_APPEND：追加
+
+- O_TRUNC：如果文件已经存在并且是可写的(O_RDWR、O_WRONLY)，则清除文件中的所有内容。
+
+- O_NONBLOCK：非阻塞。<a id="O_NONBLOCK"></a>
+
+- O_CLOEXEC：<a id="O_CLOEXEC"></a> ==O_CLOEXEC的作用是在fork后，在子进程执行exec函数时fd被关闭，并不是在fork后就立即关闭，在子进程是可以使用的。==。close on exec, not on-fork。
+
+  在进程执行exec系统调用时关闭此打开的文件描述符。防止父进程泄露打开的文件给子进程，即便子进程没有相应权限。设置**O_CLOEXEC**一般是在open时设置，这个是原子操作；也可以用fcntl()的F_SETFD命令来设置，但它有并发危险，如多线程中，一个线程将要设置O_CLOEXEC标志时，另一个线程fork()，且先得到执行，导致打开的文件描述符泄露到子进程中。
+
+  当调用exec成功后，文件会自动关闭。在2.6.23以前需要调用**`fcntl(fd,F_SETFD, FD_CLOEXEC)`** 来设置这个属性。在新版本中只需要在open函数中设置O_CLOEXEC这个标志就可以。
+
+  虽然新版本支持在open时设置CLOEXEC，但是在编译的时候还是会提示错误，`error: ‘O_CLOEXEC’ undeclared (first use in this function)`。原来这个新功能要求我们手动去打开，需要设置一个宏(==_GNU_SOURCE==)。可通过以下两种方法来设置这个宏以打开新功能：
+
+  1. 在源代码中加入 **#define _GNU_SOURCE**
+  2. 在编译参数中加入 **-D_GNU_SOURCE**
+
+mode_t：用户的访问权限。<a id="mode_t"></a>
+
+0777、0664
+
+##### create
+
+```
+
+```
+
+##### read
 
 ```c++
 ssize_t read(int fd, void *buf, size_t count);	// 成功返回读到的字节数，失败返回-1.
-//文件是没有'\0'的概念的；字符串才有。如果读的是字符串，末尾是不会加'\0'的。
-// read被EINTR中断，文件指针不会移动，所以需要重新读数据。
+```
 
+==文件是没有'\0'的概念的；字符串才有。如果读的是字符串，末尾是不会加'\0'的==。
+
+==read被EINTR中断，文件指针不会移动，所以需要重新读数据。==
+
+##### write
+
+```c
 ssize_t write(int fd, const void* buf, size_t count);// 成功返回实际写入的字节数，失败返-1.
 ```
+
+
+
+
 
 #### 文件的读写位置
 
@@ -44,6 +100,7 @@ off_t lseek(int fd, off_t offest, int whence);//移动文件指针到指定位�
 //SEEK_CUR: 从文件指针当前位置开始计算，向后移动offset个字节的位置。
 //SEEK_END: 文件指针移动到文件结尾
 //example:
+	off_t ret = lseek(fd, 0, SEEK_SET);	// 移动到文件头部
 	file_size = lseek(fd_lseek, 0, SEEK_END);	// 移动文件指针到末尾
 	off_t ret = lseek(fd, 0xFFFFFFFFl, SEEK_SET);	// 移动文件指针到这么多字节处
 ```
@@ -369,6 +426,8 @@ file_struct中有引用计数，会记录有多少个引用计数指向它，引
 
 
 
+#### 两次open同一个文件
+
 如果两次open同一个文件，会得到两个文件描述符，它们分别指向不同的文件结构体，各自有自己的filestatus和读写位置；但两个file_struct指向同一个vnode, vnode又指向同一个inode。 
 
 double_open_same_file.c
@@ -377,11 +436,39 @@ double_open_same_file.c
 
 
 
+#### 先open再fork
+
+fork之后的文件描述符一样，指向同一个文件结构体。
+
+![](image/3.6open%E4%B9%8B%E5%90%8E%E5%86%8Dfork.png)
+
+#### 先fork再open
+
+相当于对同一个文件open两次，所以每个进程有各自文件描述符，并指向各自的文件结构体，但是Vnode只有一个。
+
+<img src="image/3.7fork%E5%90%8E%E5%86%8Dopen.png" style="zoom:75%;" />
+
+
+
 ## 进程Process
+
+
 
 进程：最小的资源分配单位。
 
 每个进程都有一个进程控制块PCB，task_struct。
+
+
+
+### 进程控制块PCB
+
+<img src="image/3.3PCB%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6%E5%9D%97.png" style="zoom:75%;" />
+
+### 进程与线程的区别
+
+<img src="image/5.1%E7%BA%BF%E7%A8%8B%E8%BF%9B%E7%A8%8B%E5%8C%BA%E5%88%AB.png" style="zoom:75%;" />
+
+
 
 ### 和进程有关的ID
 
@@ -921,6 +1008,102 @@ optstring:  "a?bc:d::"	**注意：？是单个字符的选项**
 optind: 初始值为1，指向argv中下一个待处理值得下标。可以把它重置为1，重新开始扫描。
 
 
+
+## #time.h
+
+timespec：<a id="timespec"></a>
+
+```c
+struct timespec {
+	time_t   tv_sec;        /* seconds */	// time_t == long int
+    long     tv_nsec;       /* nanoseconds */
+};
+```
+
+clockid_t：<a id="clockid_t"></a>
+
+- CLOCK_REALTIME：	从UTC1970-1-1 0:0:0到现在的时间。<a id="CLOCK_REALTIME"></a>
+- CLOCK_MONOTONIC：从系统启动到现在的时间。
+- CLOCK_PROCESS_CPUTIME_ID：当前进程在CPU上所消耗的时间。
+- CLOCK_THREAD_CPUTIME_ID： 当前线程在CPU上所消耗的时间。
+
+### clock_gettime<a id="clock_gettime"></a>
+
+```c
+int clock_gettime(clockid_t clockid, struct timespec *tp);
+```
+
+在glibc 2.17版本之前需要连接rt库，`-lrt`。
+
+
+
+## #sys/timerfd.h
+
+itimerspec：<a id="itimerspec"></a>
+
+```c++
+struct itimerspec {
+	struct timespec it_interval;  /* Interval for periodic timer */
+	struct timespec it_value;     /* Initial expiration */
+};
+```
+
+timespec：[timespec](#timespec)
+
+it_value：定时器第一次到期的间隔。如果是绝对定时器，则先用 [clock_gettime](#clock_gettime) 的 [CLOCK_REALTIME](#CLOCK_REALTIME)标志获得绝对时间，再加上时间间隔。如果是相对定时器，直接填入时间间隔即可。
+
+it_interval：定时器后续超时间隔。(写相对时间即可)
+
+- it_interval为0表示定时器只会触发一次。
+- it_interval不为0表示定时器会周期性触发N次。
+
+
+
+### timerfd_create
+
+```c
+aint timerfd_create(int clockid, int flags);	// 创建一个定时器对象，并返回一个与之关联的文件描述符。
+```
+
+clockid：[clockid_t](#clockid_t)
+
+flags：在2.6.26及以下版本中，flags必须被指定为0。从2.6.27版本开始，可以使用以下标志进行按位或组合：
+
+- TFD_NONBLOCK：同 [O_NONBLOCK](#O_NONBLOCK)
+
+- TFD_CLOEXEC：同 [O_CLOEXEC ](#O_CLOEXEC )
+
+### timerfd_settime
+
+```c
+int timerfd_settime(int fd, int flags, const struct itimerspec *new_value, struct itimerspec *old_value);
+```
+
+flags：根据 timerfd_create 的 ==clockid== 来确定使用**相对时间**还是**绝对时间**。
+
+- 0：表示是==相对时间==。
+
+- TFD_TIMER_ABSTIME：绝对时间。
+
+new_value：超时时间。根据第二个参数设置绝对时间还是相对时间。为0表示停止定时器。
+
+
+
+## #sys/eventfd.h
+
+### eventfd
+
+```c
+int eventfd(unsigned int initval, int flags);
+```
+
+initval：
+
+flags：
+
+- EFD_CLOEXEC：同 [O_CLOEXEC](#O_CLOEXEC)
+- EFD_NONBLOCK：同 [O_NONBLOCK](#O_NONBLOCK)
+- EFD_SEMAPHORE：每次读操作，计数器值自减1。
 
 
 
