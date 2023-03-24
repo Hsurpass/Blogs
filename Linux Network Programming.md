@@ -1199,7 +1199,7 @@ uint32_t ntohl(uint32_t netlong);
 uint16_t ntohs(uint16_t netshort);	// 网络序转主机序
 ```
 
-#### 设置socket选项
+#### 设置socket选项 <a id="setsockopt"></a>
 
 ```c
 #include <sys/types.h>
@@ -1316,6 +1316,98 @@ select/poll都是顺序扫描fd是否就绪。
 
 #### epoll
 
+##### epoll_create
+
+```c
+#include <sys/epoll.h>
+
+int epoll_create(int size);		//创建一个epoll的句柄
+int epoll_create1(int flags);	//创建一个epoll的句柄
+```
+
+自从linux2.6.8之后，size参数是被忽略的，但是必须比0大。更推荐使用epoll_create1(2)来替代，flags可以设置==EPOLL_CLOEXEC==(同 [O_CLOEXEC](#O_CLOEXEC))标志。
+
+##### epoll_ctl
+
+```c
+#include <sys/epoll.h>
+int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+```
+
+epfd：epoll_create创建的文件描述符。
+
+op：表示动作。
+
+- EPOLL_CTL_ADD：==注册==新的fd到epfd。
+- EPOLL_CTL_MOD：==修改==已经注册的fd的监听事件。
+- EPOLL_CTL_DEL：从epfd==删除==一个fd。
+
+fd：待监听的fd。
+
+epoll_event：<a id="epoll_event"></a>
+
+```c
+typedef union epoll_data {
+	void        *ptr;
+	int          fd;
+	uint32_t     u32;
+	uint64_t     u64;
+} epoll_data_t;
+
+struct epoll_event {
+	uint32_t     events;      /* Epoll events */
+    epoll_data_t data;        /* User data variable */
+};
+```
+
+events成员是由以下可用事件类型的零个或多个==组合==在一起组成的位掩码：
+
+- EPOLLIN ：关联的文件描述符可以读（==包括对端SOCKET正常关闭==）；
+- EPOLLOUT：关联的文件描述符可以写；
+- EPOLLPRI：关联的文件描述符有紧急的数据可读（这里应该表示有==带外数据==到来）；
+- EPOLLERR：关联的文件描述符发生错误；
+- EPOLLHUP：关联的文件描述符==被挂断==；
+- EPOLLRDHUP：==流套接字对端关闭连接，或半关闭写==。(当使用**边缘触发**监视时，此标记对于编写简单代码**检测对等端是否关闭**特别有用。2.6.17引入)
+- EPOLLET： 将EPOLL设为边缘触发(Edge Triggered)模式，这是相对于水平触发(Level Triggered)来说的。
+- EPOLLONESHOT：==只监听一次事件==，当监听完这次事件之后，如果还需要继续监听这个fd的话，需要再次把这个fd加入到EPOLL队列里
+
+
+
+##### epoll_wait
+
+```c
+// 等待在epoll监控的事件中已经发生的事件。
+#include <sys/epoll.h>
+
+int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+int epoll_pwait(int epfd, struct epoll_event *events, int maxevents, int timeout, const sigset_t *sigmask);
+int epoll_pwait2(int epfd, struct epoll_event *events, int maxevents, const struct timespec *timeout, const sigset_t *sigmask);
+```
+
+epfd：epoll_create创建的句柄。
+
+events：传出参数。epoll会把发生的事件拷贝到events数组(就绪队列)。
+
+maxevents：events数组的大小。必须大于0(否则Error ：Invalid argument)。
+
+timeout：超时时间。
+
+- -1：阻塞等待。
+- 0：非阻塞，立即返回。
+- **>0**：指定超时时间，单位：毫秒。 
+
+返回值：
+
+1. 成功返回就绪的文件描述符个数。
+2. 超过timeout没有就绪的fd，则返回0。
+3. 失败返回-1，并设置errno。
+
+
+
+
+
+
+
 发送缓冲区不满:
 
 1. LT模式下默认总是会触发EPOLLOUT事件，因为缓冲区总是可写的。
@@ -1331,7 +1423,7 @@ LT模式监听EPOLLOUT应用场景:
 
 ##### 为什么epoll要使用非阻塞IO？
 
-边沿触发模式(ET)只会在收到新数据时才会触发可读事件，但是并不会告诉你总共有多少数据可读。如果使用阻塞IO读取数据而没有一次性读取完的话，只能等到下次可读事件触发再去读取数据了；或者一次性读取完了，再次调用read，如果没有数据可读就会一直阻塞在read函数，==进而导致当前线程一直被阻塞==。**所以最好的方式是使用 while循环 + 非阻塞IO 读取数据，当没有数据可读时，read就会返回错误(EWOULDBLOCK)，这时就可以跳出循环了。** 
+边沿触发模式(ET)只会在收到新数据时才会触发可读事件，但是并不会告诉你总共有多少数据可读。如果使用阻塞IO读取数据而没有一次性读取完的话，只能等到下次可读事件触发再去读取数据了；或者一次性读取完了，再次调用read，如果没有数据可读就会一直阻塞在read函数，==进而导致当前线程一直被阻塞==。**所以最好的方式是使用 while循环 + 非阻塞IO 读取数据，当没有数据可读时，read就会返回错误(EWOULDBLOCK/EAGAIN)，这时就可以跳出循环了。** 
 
 水平触发模式(LT)可以使用阻塞IO，因为只要有数据可读，它就会一直返回可读事件，所以不需要一次性把数据读完，可以等到下一次系统调用select/poll/epoll返回时再继续读取剩下的数据，==但是这样读取数据就会有延迟。==
 
