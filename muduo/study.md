@@ -26,17 +26,21 @@
 
 ### Channel
 
-设置事件，设置回调函数。
+设置fd事件，和设置对应的回调函数。
 
 channel -> eventloop -> poller
 
 ### Poller
+
+封装了poll、epoll，是EventLoop的成员函数，使用unique_ptr来管理。
 
 
 
 
 
 ### EventLoop
+
+事件循环
 
 eventloop从poller拿到就绪的channel，channel再去处理事件。
 
