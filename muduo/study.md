@@ -1,8 +1,120 @@
-![image-20220820092138087](image/image-20220820092138087.png)
 
-![image-20220820092216252](image/image-20220820092216252.png)
 
-![image-20220820092542526](image/image-20220820092542526.png)
+
+
+# net库
+
+## muduo网络库模块组成
+
+### moduo类图
+
+<img src="image/image-20220820092542526.png" alt="image-20220820092542526" style="zoom: 67%;" />
+
+根据muduo类图，总体可以划分为以下几个部分。
+
+- Reactor反应器：EventLoop、Poller、Channel
+- 连接器：Connector
+- 监听器：Acceptor
+- 连接：TcpConnection
+- 服务器和客户端：TCPServer、TCPClient。
+- 定时器：TimerQueue
+- 唤醒机制：Eventfd
+
+总体来说muduo网络库是一个Reactor模型，Reactor模式中有一个循环的过程(one loop per thread)，并且提供注册事件、监听事件、分发事件的接口。muduo中主要由EventLoop、Poller、Channel这三个类来实现。
+
+## 反应器Reactor
+
+### Channel
+
+设置事件，设置回调函数。
+
+channel -> eventloop -> poller
+
+### Poller
+
+
+
+
+
+### EventLoop
+
+eventloop从poller拿到就绪的channel，channel再去处理事件。
+
+#### 怎么保证一个线程只拥有一个EventLoop对象的？
+
+1. 使用线程局部存储： `__thread EventLoop *t_loopInThisThread = 0;`
+
+2. 进行判空：
+
+   ```c++
+   if (t_loopInThisThread)
+   {
+   	// 如果当前线程已经创建了EventLoop对象，终止(LOG_FATAL)
+       LOG_FATAL << "Another EventLoop " << t_loopInThisThread << " exists in this thread " << threadId_;
+   }
+   ```
+
+   
+
+### 时序图
+
+更新事件时序图：
+
+<img src="image/image-20220820092216252.png" alt="image-20220820092216252" style="zoom:67%;" />
+
+
+
+获取就绪通道，分发事件 时序图：
+
+<img src="image/image-20220820092138087.png" alt="image-20220820092138087" style="zoom:67%;" />
+
+
+
+
+
+
+
+
+
+## 定时器TimerQueue
+
+
+
+## 唤醒机制
+
+
+
+## socket连接TcpConnection
+
+
+
+## 监听器Acceptor
+
+
+
+## 连接器Connector
+
+
+
+## 服务器TcpServer
+
+
+
+## 客户端TcpClient
+
+
+
+缓冲区Buffer
+
+日志库
+
+同步日志
+
+异步日志
+
+
+
+
 
 reference:
 
