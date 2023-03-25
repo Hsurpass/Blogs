@@ -26,23 +26,33 @@
 
 ### Channel
 
-设置fd事件，和设置对应的回调函数。
+1. ==发起==事件更新。Channel::update() --> EventLoop::updateChannel() -> Poller::updateChannel()。最终是在Poller中更新事件。
+2. ==封装==了fd事件所对应的回调函数。EventLoop::loop() -> Poller::poll() -> Channel::handleEvent()。最终在Channel中处理事件。
 
-channel -> eventloop -> poller
+```mermaid
+graph LR
+enableReading/enableWriting-->Channel::update
+disableReading/disableWriting/disableAll-->Channel::update
+Channel::update-->EventLoop::updateChannel
+EventLoop::updateChannel-->Poller::updateChannel
+```
+
+```mermaid
+graph LR
+EventLoop::loop-->Poller::poll--->|activeChannels_|Channel::handleEvent
+```
+
+
 
 ### Poller
 
-封装了poll、epoll，是EventLoop的成员函数，使用unique_ptr来管理。
-
-
-
-
+1. ==封装了poll、epoll==。是EventLoop的成员函数，使用unique_ptr来管理。
 
 ### EventLoop
 
-事件循环
+1. 提供事件循环EventLoop::loop()。
 
-eventloop从poller拿到就绪的channel，channel再去处理事件。
+2. eventloop从poller拿到就绪的channel，然后遍历channel去处理事件。
 
 #### 怎么保证一个线程只拥有一个EventLoop对象的？
 
@@ -74,13 +84,19 @@ eventloop从poller拿到就绪的channel，channel再去处理事件。
 
 
 
-
-
-
-
-
-
 ## 定时器TimerQueue
+
+[timerfd_create](../Linux System Programming.md)
+
+
+
+timerfd_*入选的原因：
+
+1. sleep(3) / alarm(2) / usleep(3)在实现时有可能用了SIGALRM信号， 在多线程程序中处理信号是个相当麻烦的事情， 应当尽量避免， 再说， 如果主程序和程序库都使用SIGALRM， 就糟糕了。
+2. nanosleep(2)和clock_nanosleep(2)是线程安全的， 但是在非阻塞网络编程中， 绝对不能用让线程挂起的方式来等待一段时间， 这样一来程序会失去响应。 正确的做法是注册一个时间回调函数。
+3. getitimer(2)和timer_create(2)也是用信号来deliver超时，在多线程程序中也会有麻烦。timer_create(2)可以指定信号的接收方是进程还是线程， 算是一个进步， 不过信号处理函数（signal handler） 能做的事情实在很受限。
+4. `timerfd_create(2)`把时间变成了一个文件描述符， 该“文件”在定时器超时的那一刻变得可读， 这样就能很方便地融入select(2)/poll(2)框架中， 用统一的方式来处理IO事件和超时事件， 这也正是Reactor模式的长处。
+5. 传统的Reactor利用select(2)/poll(2)/epoll(4)的timeout来实现定时功能， 但poll(2)和epoll_wait(2)的定时精度只有毫秒，远低于timerfd_settime(2)的定时精度。
 
 
 
@@ -163,6 +179,11 @@ std::shared_ptr<Data> data_;
 
 
 ## Timestamp.h
+
+gettimeofday(2)入选原因（这也是muduo::Timestamp class的主要设计考虑） ：
+1． time(2)的精度太低， ftime(3)已被废弃； clock_gettime(2)精度最高， 但是其系统调用的开销比gettimeofday(2)大。
+2． 在x86-64平台上， gettimeofday(2)不是系统调用， 而是在用户态实现的， 没有上下文切换和陷入内核的开销32。
+3． gettimeofday(2)的分辨率（resolution） 是1微秒， 现在的实现确实能达到这个计时精度， 足以满足日常计时的需要。 muduo::Timestamp用一个int64_t来表示从Unix Epoch到现在的微秒数， 其范围可达上下30万年。
 
 ### static_assert
 
