@@ -1041,6 +1041,10 @@ int clock_gettime(clockid_t clockid, struct timespec *tp);
 
 ## #sys/timerfd.h
 
+timerfd是linux内核==2.6.25==版本中加入的接口。
+
+==timerfd、eventfd、signalfd==配合epoll使用，可以构造出一个**零轮询**的程序，但程序没有处理的事件时，程序是被阻塞的。这样的话在某些移动设备上程序更省电。
+
 itimerspec：<a id="itimerspec"></a>
 
 ```c++

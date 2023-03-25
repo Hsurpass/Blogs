@@ -31,8 +31,8 @@
 
 ```mermaid
 graph LR
-enableReading/enableWriting-->Channel::update
-disableReading/disableWriting/disableAll-->Channel::update
+Channel::enableReading/enableWriting-->Channel::update
+Channel::disableReading/disableWriting/disableAll-->Channel::update
 Channel::update-->EventLoop::updateChannel
 EventLoop::updateChannel-->Poller::updateChannel
 ```
@@ -86,11 +86,69 @@ EventLoop::loop-->Poller::poll--->|activeChannels_|Channel::handleEvent
 
 ## 定时器TimerQueue
 
-[timerfd_create](../LinuxSystemProgramming.md)
+TimerQueue封装了 [timerfd_create](../LinuxSystemProgramming.md) 等系统调用。**TimerQueue在构造时，就会把timerfd注册到poller，并监听读事件。**
+
+==一个timerfd可以对应多个定时器任务==。这是怎么做到的呢，一般不都是一个定时器对应一个任务？**准确的说是多个定时器任务可以复用同一个timerfd。**我们在Timer类中存储定时器回调函数、超时时间、超时间隔、定时器序号等参数，然后把不同的Timer存储在TimeList(定时器队列)中。
+
+```c
+typedef std::pair<Timestamp, Timer *> Entry;
+typedef std::set<Entry> TimerList;  // 按照pair的规则排序，先比较时间戳再比较指针
+typedef std::pair<Timer *, int64_t> ActiveTimer;	// ActiveTimer 将Timer和sequence组成一对主要作用来索引迭代的.
+typedef std::set<ActiveTimer> ActiveTimerSet; // 按照pair的operator<排序，先比较指针再比较时间戳。
+```
+
+### 为什么使用pair来存储时间戳和Timer？
+
+**为了解决定时器超时时间相同的情况**，使用pair将时间戳和Timer地址组成一对，再使用set来存储。
+
+### 为什么使用set来存储pair？
+
+利用set的排序功能，按照时间戳排序，然后把==第一个==Timer的超时时间(也就是最先到期的时间)设置到 ==timerfd_settime== 中，等到timefd可读时，从TimerList中取出==所有超时==的定时器事件进行处理；<u>如果是周期性定时器，则把定时事件重新添加到定时器队列中。</u>
+
+### 添加定时任务
 
 
 
-timerfd_*入选的原因：
+```mermaid
+graph LR
+TimerQueue::addTimer -->|new Timer| TimerQueue::addTimerInLoop --> TimerQueue::insert
+TimerQueue::insert --> earliestChanged{最早到期时间是否改变?} --> resetTimerfd --> timerfd_settime
+
+```
+
+
+
+
+
+### 处理超时任务
+
+
+
+```mermaid
+graph LR
+TimerQueue::handleRead --> TimerQueue::getExpired --> Timer::run-cb --> TimerQueue::reset
+TimerQueue::reset --> repeat{是否是周期性定时器} -.true.-> insert-timer* --> resetTimerfd --> timerfd_settime  --> End
+repeat{是否是周期性定时器} -.false.-> delete-timer* --> End
+```
+
+### 删除定时任务
+
+```mermaid
+graph LR
+TimerQueue::cancel-->TimerQueue::cancelInLoop
+```
+
+
+
+
+
+### 时序图
+
+<img src="image/1384555-20181111185511304-276483654.png" style="zoom: 67%;" />
+
+
+
+### timerfd_*入选的原因：
 
 1. sleep(3) / alarm(2) / usleep(3)在实现时有可能用了SIGALRM信号， 在多线程程序中处理信号是个相当麻烦的事情， 应当尽量避免， 再说， 如果主程序和程序库都使用SIGALRM， 就糟糕了。
 2. nanosleep(2)和clock_nanosleep(2)是线程安全的， 但是在非阻塞网络编程中， 绝对不能用让线程挂起的方式来等待一段时间， 这样一来程序会失去响应。 正确的做法是注册一个时间回调函数。
