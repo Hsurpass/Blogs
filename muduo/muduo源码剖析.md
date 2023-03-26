@@ -250,7 +250,7 @@ void EventLoop::queueInLoop(Functor cb)
   }
 
   // 调用queueInLoop的线程不是当前IO线程(eventloop那个线程)需要唤醒
-  // 或者调用queueInLoop的线程是当前IO线程，并且此时正在调用pendingfunctor, 需要唤醒
+  // 或者调用queueInLoop的线程是当前IO线程，并且此时正在调用pendingfunctor, 需要唤醒。为了防止在执行pendingFunctors_时，Functor函数中又调用了queueInLoop
   // 只有当前IO线程的事件回调中调用queueInLoop才不需要唤醒
   if (!isInLoopThread() || callingPendingFunctors_)
   {
@@ -337,7 +337,7 @@ void EventLoop::doPendingFunctors()
    ```
 
    这里还需要结合下 EventLoop 循环的实现，其中 `doPendingFunctors()` 是 **每轮循环的最后一步处理**。
-   如果调用 queueInLoop 和 EventLoop 在同一个线程，且 callingPendingFunctors_ 为 false 时，则说明：**此时尚未执行到 doPendingFunctors()。**
+   如果调用 queueInLoop 和 EventLoop **在同一个线程**，且 callingPendingFunctors_ 为 false 时，则说明：**此时尚未执行到 doPendingFunctors()。**
    那么此时即使不用 wakeup，也可以在之后照旧执行 doPendingFunctors() 了。
 
    ==这么做的好处非常明显，可以减少对 eventfd 的 IO 读写。==
