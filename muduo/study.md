@@ -22,6 +22,12 @@
 
 总体来说muduo网络库是一个Reactor模型，Reactor模式中有一个循环的过程(one loop per thread)，并且提供注册事件、监听事件、分发事件的接口。muduo中主要由EventLoop、Poller、Channel这三个类来实现。
 
+说白了Reactor就是用来注册、监听、分发事件的，而事件总体又可分为可读、可写事件，所以模块又可以这么划分：
+
+监听可读事件：**Eventfd**的接收到通知属于可读，**Timer**定时器到期属于可读，**Accptor**新连接到来属于可读，**关闭连接**属于可读，连接套接字有数据可读。
+
+可写：
+
 ## 反应器Reactor
 
 ### Channel
@@ -33,13 +39,22 @@
 graph LR
 Channel::enableReading/enableWriting-->Channel::update
 Channel::disableReading/disableWriting/disableAll-->Channel::update
-Channel::update-->EventLoop::updateChannel
-EventLoop::updateChannel-->Poller::updateChannel
+Channel::update-->EventLoop::updateChannel-->Poller::updateChannel
+Poller::updateChannel --> EPollPoller::updateChannel
+Poller::updateChannel --> PollPoller::updateChannel
 ```
 
 ```mermaid
 graph LR
-EventLoop::loop-->Poller::poll--->|activeChannels_|Channel::handleEvent
+事件循环-->EventLoop::loop-->Poller::poll--->|activeChannels_|Channel::handleEvent
+```
+
+调用Channel::remove之前一定要先调用disableAll。
+
+```mermaid
+graph LR
+删除fd-->Channel::remove --> EventLoop::removeChannel --> Poller::removeChannel --> EPollPoller::removeChannel
+Poller::removeChannel --> PollPoller::removeChannel
 ```
 
 
@@ -118,8 +133,6 @@ TimerQueue::insert --> earliestChanged{最早到期时间是否改变?} --> rese
 
 
 
-
-
 ### 处理超时任务
 
 
@@ -135,10 +148,9 @@ repeat{是否是周期性定时器} -.false.-> delete-timer* --> End
 
 ```mermaid
 graph LR
-TimerQueue::cancel-->TimerQueue::cancelInLoop
+TimerQueue::cancel-->TimerQueue::cancelInLoop --> 是否在任务队列中找到还没过期的的定时任务{activeTimers_} -.true.-> erase
+是否在任务队列中找到还没过期的的定时任务{activeTimers_} -.false.-> 是否正在运行到期的任务{callingExpiredTimers_} -.true.-> cancelingTimers_.insert
 ```
-
-
 
 
 
@@ -160,6 +172,24 @@ TimerQueue::cancel-->TimerQueue::cancelInLoop
 
 ## 唤醒机制
 
+eventfd的作用就是为了解决==其他线程==向eventloop添加任务时，不能得到及时执行的问题。
+
+### 为什么需要唤醒？
+
+[muduo源码剖析](muduo源码剖析)
+
+其他线程向EventLoop添加任务的时候，会把任务放到 pendingFunctors_ 中，而 pendingFunctors_ 是在每轮循环的最后才会调用。只有在epoll_wait有事件触发的时候才会唤醒每一轮循环，如果一直没有事件被触发，那么其他线程添加的任务就会一直不被执行**(因为程序一直阻塞在epoll_wait，走不到doPendingFunctors 函数**)。
+
+
+
+```mermaid
+graph LR
+EventLoop::runInLoop --> 是否是loop所在线程调用runInLoop{isInLoopThread} -.true.-> call-cb
+是否是loop所在线程调用runInLoop{isInLoopThread} -.false.-> pendingFunctors_.push_back --> wakeup --> Poller::poll --> handleRead --> doPendingFunctors 
+```
+
+
+
 
 
 ## socket连接TcpConnection
@@ -167,6 +197,8 @@ TimerQueue::cancel-->TimerQueue::cancelInLoop
 
 
 ## 监听器Acceptor
+
+
 
 
 
