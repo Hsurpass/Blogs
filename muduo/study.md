@@ -226,6 +226,10 @@ Acceptor关注的是可读事件，==Connector关注的是可写事件==。**还
 
 还有就是触发了可写事件(handleWrite)，要么是连接成功了，要么是发生了错误；从poller中移除fd，并将channel置空，停止监听写事件并停止监听fd(因为可写事件会一直触发)。
 
+Connector只管建立连接，不用管首发数据，也就是说当建立连接成功后，就删除了channel。
+
+步骤：
+
 1. 调用socket创建非阻塞连接套接字。
 2. 调用connect进行连接。
 3. 进行返回值判断(因为是非阻塞fd，所以返回值可能五花八门)：
@@ -260,9 +264,13 @@ sockets::connect -.EACCES.-> sockets::close
 
 ## 服务器TcpServer
 
+管理多个TcpConection，有个映射表ConnectionMaps
+
 
 
 ## 客户端TcpClient
+
+管理一个TcpConection。
 
 
 
