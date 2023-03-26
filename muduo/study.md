@@ -26,7 +26,7 @@
 
 监听可读事件：**Eventfd**的接收到通知属于可读，**Timer**定时器到期属于可读，**Accptor**新连接到来属于可读，**关闭连接**属于可读，**连接套接字**有数据可读，**连接关闭**属于可读。
 
-可写：
+监听可写事件：**Connector**连接成功属于可写。
 
 
 
@@ -200,11 +200,61 @@ EventLoop::runInLoop --> 是否是loop所在线程调用runInLoop{isInLoopThread
 
 ## 监听器Acceptor
 
+Acceptor主要作用就是封装了socket、bind、listen。其中创建监听套接字(socket)，绑定端口(bind)，**设置**可读事件回调函数都是在Acceptor的构造函数中完成的。**注册**可读事件是在`Acceptor::listen`中完成的。
 
+### 流程图
+
+```mermaid
+graph LR
+Acceptor::handleRead --> connfd=Socket::accept --> connfd -.true.-> newConnectionCallback_
+newConnectionCallback_ -.true.-> call
+newConnectionCallback_ -.false.->close
+connfd -.false.-> close
+```
+
+
+
+### 时序图
+
+<img src="image/1384555-20181206210652797-1926529373.png" style="zoom: 67%;" />
 
 
 
 ## 连接器Connector
+
+Acceptor关注的是可读事件，==Connector关注的是可写事件==。**还有一点需要注意**，可写不一定表示连接建立好了，发生错误会触发可读、可写事件，所以使用`getsockopt`函数获得返回值，判断是否连接成功(0为成功)。
+
+还有就是触发了可写事件(handleWrite)，要么是连接成功了，要么是发生了错误；从poller中移除fd，并将channel置空，停止监听写事件并停止监听fd(因为可写事件会一直触发)。
+
+1. 调用socket创建非阻塞连接套接字。
+2. 调用connect进行连接。
+3. 进行返回值判断(因为是非阻塞fd，所以返回值可能五花八门)：
+   - 0、EINPROGRESS、EINTR、EISCONN：表示正在连接。
+   - EAGAIN、EADDRINUSE、EADDRNOTAVAIL、ECONNREFUSED、ENETUNREACH：表示可以重连的错误。
+   - EACCES、EPERM、EAFNOSUPPORT、EALREADY、EBADF、EFAULT、ENOTSOCK：表示直接关闭的错误。
+
+### Connector的超时重连<a id="Connector的超时重连"></a>
+
+connect返回错误会进行重连，注册一个重连定时器，初始超时时间是0.5s，**随着重连次数的增多超时时间也会变长**，每次重连【超时时间】都会乘2，直到达到最大超时间隔==30s==。
+
+
+
+### 建立连接流程图
+
+```mermaid
+graph LR
+Connector::start --> Connector::startInLoop-->Connector::connect --> sockets::connect
+sockets::connect -.EINPROGRESS.-> connecting --> handleWrite --> err -.>0.->retry
+err -.=0.->cb
+sockets::connect -.EAGAIN.-> retry
+sockets::connect -.EACCES.-> sockets::close
+```
+
+
+
+### Connector时序图
+
+<img src="image/1384555-20181206210636064-1121087237.png" style="zoom:67%;" />
 
 
 
