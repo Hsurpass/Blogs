@@ -198,15 +198,37 @@ EventLoop::runInLoop --> 是否是loop所在线程调用runInLoop{isInLoopThread
 
 
 
+### 连接的断开
+
+[连接的断开](./muduo源码剖析.md)
+
+```mermaid
+graph LR
+TcpConnection::handleRead --> read=0 --> TcpConnection::handleClose 
+TcpConnection::handleClose --> 1.将TCP连接对应的事件从EventLoop上移除[1.channel_->disableAll]
+TcpConnection::handleClose --> 2.调用用户的connectionCallback_[2.connectionCallback_]
+TcpConnection::handleClose --> TcpServer::removeConnection --> 3.将TcpConnection从TcpServer中移除[3.connections_.erase]
+TcpServer::removeConnection --> TcpConnection::connectDestroyed --> 4.将fd从EventLoop上移除[4.Channel::remove]
+TcpConnection::handleClose --> handleClose函数执行完引用计数为0[TcpConnectionPtr.usecount=0] --> 析构Socket --> 关闭套接字[5.close-fd]
+```
+
+
+
+
+
+
+
 ## 监听器Acceptor
 
-**Acceptor主要功能就是建立连接**。
+**Acceptor主要功能就是建立连接**。[连接的建立](./muduo源码剖析.md)
 
 1. 其构造函数中完成了<u>创建监听套接字(socket)</u>，<u>绑定端口(bind)</u>，<u>**设置**监听套接字可读事件回调函数</u>这3件事情。 
 2. `Acceptor::listen`函数中完成了<u>调用listen()函数</u>，在EventLoop上<u>**注册**监听套接字可读事件</u>这两件事情。
 3. 当可读事件被触发，调用`Acceptor::handleRead`，`Acceptor::handleRead`中完成了调用accept得到连接套接字，创建 **TcpConnection** 对象，将连接套接字的可读事件注册到EventLoop上。
 
-### 流程图
+由于newConnectionCallback_回调函数中需要创建**TcpConnection**对象，而TCPServer又需要管理此对象，所以回调函数定义在TcpServer中比较合适。其实也可以定义在**TcpConnection**中，然后在通过回调通知TCPServer。
+
+### 连接的建立流程图
 
 ```mermaid
 graph LR
@@ -215,8 +237,6 @@ newConnectionCallback_ -.true.-> newTcpconnection --> enableReading
 newConnectionCallback_ -.false.->close
 connfd -.false.-> close
 ```
-
-
 
 ### 时序图
 
