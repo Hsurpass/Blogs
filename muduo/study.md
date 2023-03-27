@@ -198,7 +198,7 @@ EventLoop::runInLoop --> 是否是loop所在线程调用runInLoop{isInLoopThread
 
 
 
-### 连接的断开
+### 服务器连接的断开
 
 [连接的断开](./muduo源码剖析.md)
 
@@ -228,7 +228,7 @@ TcpConnection::handleClose --> handleClose函数执行完引用计数为0[TcpCon
 
 由于newConnectionCallback_回调函数中需要创建**TcpConnection**对象，而TCPServer又需要管理此对象，所以回调函数定义在TcpServer中比较合适。其实也可以定义在**TcpConnection**中，然后在通过回调通知TCPServer。
 
-### 连接的建立流程图
+### 服务器连接的建立流程图
 
 ```mermaid
 graph LR

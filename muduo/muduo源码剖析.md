@@ -97,8 +97,7 @@ echo-server的代码量非常简洁。一个典型的muduo的TcpServer工作流�
 1. 在监听socket上启动listen函数，也就是**步骤3**；
 2. 将监听socket的可读事件注册到EventLoop中。
 
-此时，程序已完成对socket的监听，但还不够，因为此时程序的主角 `EventLoop` 尚未启动。
-当调用 `loop.loop()` 时，程序开始循环监听该 socket 的可读事件。
+此时，程序已完成对socket的监听，但还不够，因为此时程序的主角 `EventLoop` 尚未启动。当调用 `loop.loop()` 时，程序开始循环监听该 socket 的可读事件。
 
 当新连接请求建立时，可读事件触发，此时该事件对应的 callback 在 EventLoop::loop() 中被调用。**该事件的 callback 实际上就是 Acceptor::handleRead() 方法。**
 
@@ -114,14 +113,12 @@ echo-server的代码量非常简洁。一个典型的muduo的TcpServer工作流�
 
 # 消息的读取
 
-上节讲到，在新连接建立的时候，会将新连接的 socket 的可读事件注册到 EventLoop 中。
-假如客户端发送消息，导致已连接 socket 的可读事件触发，该事件对应的 callback 同样也会在 EventLoop::loop() 中被调用。
+上节讲到，在新连接建立的时候，会将新连接的 socket 的可读事件注册到 EventLoop 中。假如客户端发送消息，导致已连接 socket 的可读事件触发，该事件对应的 callback 同样也会在 EventLoop::loop() 中被调用。
 
-该事件的 callback 实际上就是 TcpConnection::handleRead 方法。
-在 TcpConnection::handleRead 方法中，主要做了两件事：
+该事件的 callback 实际上就是 TcpConnection::handleRead 方法。在 TcpConnection::handleRead 方法中，主要做了两件事：
 
-1. 从 socket 中读取数据，并将其放入 inputbuffer 中
-2. 调用 messageCallback，执行业务逻辑。
+1. **从 socket 中读取数据，并将其放入 inputbuffer 中**。
+2. **调用 messageCallback，执行业务逻辑**。
 
 ```c++
   ssize_t n = inputBuffer_.readFd(channel_->fd(), &savedErrno);
@@ -133,18 +130,17 @@ echo-server的代码量非常简洁。一个典型的muduo的TcpServer工作流�
 
 <u>messageCallback 是在建立新连接时，将 `TcpServer::messageCallback` 方法 bind 到了 `TcpConnection::messageCallback` 的方法。</u>
 
-`TcpServer::messageCallback` 就是业务逻辑的主要实现函数。通常情况下，我们可以在里面实现消息的编解码、消息的分发等工作，这里就不再深入探讨了。
+`TcpServer::messageCallback` 就是业务逻辑的主要实现函数。**通常情况下，我们可以在里面实现消息的编解码、消息的分发等工作**，这里就不再深入探讨了。
 
 在我们上面给出的示例代码中，echo-server 的 messageCallback 非常简单，就是直接将得到的数据，重新 send 回去。在实际的业务处理中，一般都会调用 TcpConnection::send() 方法，给客户端回复消息。
 
-==这里需要注意的是==，在 messageCallback 中，用户会有可能会把任务抛给自定义的 Worker 线程池处理。
-但是这个在 Worker 线程池中任务，**切忌直接对 Buffer 的操作**。因为 ==Buffer 并不是线程安全的。==
+==这里需要注意的是==，在 messageCallback 中，用户会有可能会把任务抛给自定义的 Worker 线程池处理。但是这个在 Worker 线程池中任务，**切忌直接对 Buffer 的操作**。因为 ==Buffer 并不是线程安全的。==
 
 我们需要记住一个准则:
 
 > **所有对 IO 和 buffer 的读写，都应该在 IO 线程中完成。**
 
-一般情况下，先在交给 Worker 线程池之前，应该先在 IO 线程中把 Buffer 进行切分解包等动作。将解包后的消息交由线程池处理，避免多个线程操作同一个资源。
+一般情况下，**在交给 Worker 线程池之前，应该先在 IO 线程中把 Buffer 进行切分解包等动作**。将解包后的消息交由线程池处理，避免多个线程操作同一个资源。
 
 # 消息的发送
 
