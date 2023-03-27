@@ -172,29 +172,40 @@ TimerQueue::cancel-->TimerQueue::cancelInLoop --> 是否在任务队列中找到
 
 
 
-## 唤醒机制
+## 唤醒机制Eventfd
 
 eventfd的作用就是为了解决==其他线程==向eventloop添加任务时，不能得到及时执行的问题。
+
+### 两种需要唤醒的情况
+
+1. 当**其他线程**向EventLoop添加任务时，需要唤醒。
+
+2. **当在EventLoop线程执行pendingFunctors_ 时**，Functors函数内部又添加了任务，需要唤醒。
+
+   
 
 ### 为什么需要唤醒？
 
 [muduo源码剖析](./muduo源码剖析.md)
 
-其他线程向EventLoop添加任务的时候，会把任务放到 pendingFunctors_ 中，而 pendingFunctors_ 是在每轮循环的最后才会调用。只有在epoll_wait有事件触发的时候才会唤醒每一轮循环，如果一直没有事件被触发，那么其他线程添加的任务就会一直不被执行**(因为程序一直阻塞在epoll_wait，走不到doPendingFunctors 函数**)。
+上面1、2种情况向EventLoop添加任务的时候，会把任务放到 pendingFunctors_ 中，而 pendingFunctors_ 是在每轮循环的最后才会调用。只有在epoll_wait有事件触发的时候才会唤醒每一轮循环，如果一直没有事件被触发，那么其他线程添加的任务就会一直不被执行**(因为程序一直阻塞在epoll_wait，走不到doPendingFunctors 函数**)。
 
+**既然第二种情况是在当前线程执行的，为什么不在执行functor时就执行新的任务？**
 
+- 想一下：如果新的任务中又添加了新任务呢？pendingFunctors_ 就会一直执行下去了。所以为了避免这一轮循环无限的执行下去，到不了下轮loop，就先把它放到pendingFunctors_中，等到下轮循环再执行。
 
 ```mermaid
 graph LR
 EventLoop::runInLoop --> 是否是loop所在线程调用runInLoop{isInLoopThread} -.true.-> call-cb
-是否是loop所在线程调用runInLoop{isInLoopThread} -.false.-> pendingFunctors_.push_back --> wakeup --> Poller::poll --> handleRead --> doPendingFunctors 
+是否是loop所在线程调用runInLoop{isInLoopThread} -.false.-> queueInLoop-->pendingFunctors_.push_back --> wakeup --> Poller::poll --> handleRead --> doPendingFunctors 
+
+当前loop线程[loop.queueInLoop] --> pendingFunctors.push_back --> callingPendingFunctors_ -.true.-> wakeup
+callingPendingFunctors_ -.false.-> 说明还没执行到doPendingFunctors,不需要唤醒[end]
 ```
 
 
 
-
-
-## socket连接TcpConnection
+## TCP连接TcpConnection
 
 
 
@@ -267,7 +278,7 @@ connect返回错误会进行重连，注册一个重连定时器，初始超时�
 
 
 
-### 建立连接流程图
+### 客户端建立连接流程图
 
 ```mermaid
 graph LR
@@ -298,7 +309,28 @@ sockets::connect -.EACCES.-> sockets::close
 
 
 
-缓冲区Buffer
+## 应用层缓冲区Buffer
+
+
+
+### 内核有缓冲区为什么还需要应用层缓冲区？
+
+简单来说，就是为了避免在读取/写入数据的时候应用程序被阻塞住，导致不能执行其他操作。
+
+- 当应用程序发送数据时，由于对方接收的很慢导致**滑动窗口写满**了，write就会阻塞，但是应用程序并不关心阻塞的问题，它只是要把数据发送出去，所以我们就要把没有发送的**应用层数据**暂存到一个缓冲区中，当内核的发送缓冲区又有空间了再把剩余的数据写入，那么就需要设置一个**应用层的发送缓冲区(output buffer)**。
+
+- 当应用程序接收数据时，有可能空间不够**没有一次性读完**，导致数据不完整的情况，对于水平触发模式(LT)就会一直触发可读事件(POLLIN)，导致忙等待(busy loop)，对于这种情况就需要一个**应用层的接收缓冲区(input buffer)**把内核中的数据全部读出来。
+
+
+
+### Buffer设计的要求
+
+1. **既要一次性能够读取足够多的数据**。
+2. **又不能占用大量内存**。
+
+
+
+
 
 日志库
 
