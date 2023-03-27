@@ -200,7 +200,11 @@ EventLoop::runInLoop --> 是否是loop所在线程调用runInLoop{isInLoopThread
 
 ## 监听器Acceptor
 
-Acceptor主要作用就是封装了socket、bind、listen。其中创建监听套接字(socket)，绑定端口(bind)，**设置**可读事件回调函数都是在Acceptor的构造函数中完成的。**注册**可读事件是在`Acceptor::listen`中完成的。
+**Acceptor主要功能就是建立连接**。
+
+1. 其构造函数中完成了<u>创建监听套接字(socket)</u>，<u>绑定端口(bind)</u>，<u>**设置**监听套接字可读事件回调函数</u>这3件事情。 
+2. `Acceptor::listen`函数中完成了<u>调用listen()函数</u>，在EventLoop上<u>**注册**监听套接字可读事件</u>这两件事情。
+3. 当可读事件被触发，调用`Acceptor::handleRead`，`Acceptor::handleRead`中完成了调用accept得到连接套接字，创建 **TcpConnection** 对象，将连接套接字的可读事件注册到EventLoop上。
 
 ### 流程图
 
