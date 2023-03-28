@@ -36,6 +36,14 @@ std::allocator
 
  底层是数组，超过容量后会成倍增长，随机访问迭代器，在尾部插入/删除元素比较高效，中间插入比较低效(会有元素的搬移)
 
+##### constructors
+
+```c++
+explicit vector (size_type n);	// 显示调用，调用n次构造函数。
+vector (size_type n, const value_type& val, const allocator_type& alloc = allocator_type());	// 调用n次拷贝构造。
+vector (initializer_list<value_type> il, const allocator_type& alloc = allocator_type()); // il有多少个，就调用多少次拷贝构造。
+```
+
 ##### reserve：
 
 不会调用构造函数, 不过超过容量后还是会发生拷贝, 且内存成倍增长。==reverse扩充的是总容量大小，不是追加空间，可以多次调用。==
@@ -65,13 +73,12 @@ v.assign(v1); // 将v1的内容赋值给v, size大小改为和v1一样。
 
 造成迭代器失效有两种情况：
 
-​	1.insert(itr++, 10)：插入元素后，元素后移，itr实际指向的元素已经不是所期望的内容了。
-
-​	2.另一种情况就是当插入元素时导致容器扩容，扩容就会发生元素拷贝，则原来的迭代器就会全都失效了。
+1. insert(itr++, 10)：插入元素后，元素后移，itr实际指向的元素已经不是所期望的内容了。
+2. 另一种情况就是当插入元素时导致容器扩容，扩容就会发生元素拷贝，则原来的迭代器就会全都失效了。
 
 解决：用返回的迭代器进行下一轮循环。`itr = insert(itr, 10);`
 
-##### emplace/emplace_back:  
+##### emplace/emplace_back:
 
 ```c++
 emplace_back(5);  //直接调用构造, 省去了一次拷贝, 传入的参数必须和构造函数的类型相匹配。 
@@ -112,17 +119,17 @@ while(itr != v.end()) {
 
 ##### erase+remove：
 
-高效删除元素： 验证remove会不会调拷贝构造
+高效删除元素：使用 [std::remove](#std::remove) 把相同的元素覆盖掉(中间过程会调用**移动赋值**或**拷贝赋值**)，再使用erase(remove返回值，end)。
 
 ##### clear:
 
 清除vector中的所有元素，但是capacity不变。
 
-##### shrink_to_fit: 
+##### shrink_to_fit:
 
 减小容器容量(capacity)为size大小。
 
-##### clear+shrink_to_fit: 
+##### clear+shrink_to_fit:
 
 彻底清空容器，先调clear清空元素，size为0；再调shrink_to_fit清除空间，capacity就变为0了。
 
@@ -227,7 +234,7 @@ list.merge(list1, Comp()); //对于自定义类型需要定义排序准则(仿�
 
 容器适配器，底层结构可以选用deque, list. ==vector没有pop_back==
 
-#### priority_queue: 
+#### priority_queue:
 
 底层可以使vector, 算法为[二叉堆](Algorithm.md)。
 
@@ -249,10 +256,6 @@ void pushheap(first_pointer,end_pointer,compare_function);	// 插入节点调整
 void pop_heap(first_pointer,end_pointer,compare_function);// 并不是真的把堆顶元素弹出，而是把堆顶元素和最后一个元素交换，然后在[0, last-1]这个范围内从根节点开始重新调整堆，包含节点的下沉操作。	要想真正弹出使用pop_back。
 void sort_heap(first_pointer,end_pointer,compare_function);	// 堆排序。内部从 last-1 号节点开始一直到0为止，执行last-1次pop_heap操作，最后数组中的元素就是有序的。
 ```
-
-
-
-
 
 
 
@@ -321,7 +324,7 @@ for (set<A>::iterator itr = sa.begin(); itr != sa.end(); ++itr)
 ```c++
 // erase不会造成迭代器失效，以下两种写法均正确 
 itr = v.erase(itr); //correct
- v.erase(itr++); // correct ++指向了下一节点
+v.erase(itr++); // correct ++指向了下一节点
 ```
 
 如果插入和删除操作导致了树不平衡，则会进行自平衡操作。
@@ -602,7 +605,48 @@ count_if (InputIterator first, InputIterator last, UnaryPredicate pred)
 
 
 
-#### search/search_n
+#### search
+
+```c++
+template <class ForwardIterator1, class ForwardIterator2>
+ForwardIterator1 search (ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+
+template <class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+ForwardIterator1 search (ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,              BinaryPredicate pred);
+```
+
+在 [first1, last1) 范围内查找**第一次**出现 [first2, last2) 的位置。对于自定义类型需要重载**operator==()**。
+
+返回值：成功返回第一次出现的位置，失败返回 last1 。
+
+其行为相当于：
+
+```c++
+template<class ForwardIterator1, class ForwardIterator2>
+ForwardIterator1 search ( ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2)
+{
+  if (first2==last2) return first1;  // specified in C++11
+  
+  while (first1!=last1)
+  {
+    ForwardIterator1 it1 = first1;
+    ForwardIterator2 it2 = first2;
+    while (*it1==*it2) {    // or: while (pred(*it1,*it2)) for version 2
+        ++it1; ++it2;		// 注意：first1和first2都是左闭右开区间
+        if (it2==last2) return first1;	// 找到了，返回第一次出现的位置。
+        if (it1==last1) return last1;	// 没找到，返回last1。
+    }
+    ++first1;
+  }
+  return last1;
+}
+```
+
+
+
+
+
+#### search_n
 
 
 
@@ -610,9 +654,9 @@ count_if (InputIterator first, InputIterator last, UnaryPredicate pred)
 
 ### 删除
 
-#### std::remove/remove_if
+#### std::remove/remove_if<a id="std::remove"></a>
 
-对于自定义类型，需要提供operator==()重载。remove函数并不是真正的把元素删除，而是把要删除的元素覆盖掉，所以中间过程有一个后值覆盖前值的操作，标准库中使用std::move, 如果没移动构造则调拷贝构造，效率会变低。
+对于自定义类型，需要提供==`operator==()`==重载。remove函数并不是真正的把元素删除，而是把要删除的元素覆盖掉，所以**中间过程有一个后值覆盖前值的操作**，标准库中使用std::move, **如果没移动构造则调拷贝构造**，效率会变低。
 
 remove也应该传个临时对象进去：`std::find(v.begin(), v.end(), A(5))`, 原因同上。
 

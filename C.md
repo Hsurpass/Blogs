@@ -110,6 +110,20 @@ C语言指针危险在哪？
 
 
 
+## string.h
+
+### memchr
+
+```c
+// 在ptr所指向的内存块的前num个字节内，搜索value第一次出现的位置。成功返回第一次出现的位置，失败返回NULL。
+const void * memchr ( const void * ptr, int value, size_t num );
+      void * memchr (       void * ptr, int value, size_t num );
+```
+
+
+
+
+
 ## references:
 
 [零基础入门C语言-王桂林.pdf](../wangguilin/-1- C 语言--从放弃到入门/零基础入门C语言-王桂林.pdf)

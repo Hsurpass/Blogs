@@ -65,6 +65,16 @@ Poller::removeChannel --> PollPoller::removeChannel
 
 1. ==封装了poll、epoll==。是EventLoop的成员函数，使用unique_ptr来管理。
 
+#### muduo为什么使用epoll的LT模式？
+
+1. **与poll兼容**。
+2. **LT模式不会漏掉事件**。
+   - 对于水平触发模式：只要内核接收缓冲区有**数据**可读，内核发送缓冲区有**空间**可写就会一直触发可读、可写事件。但是对于EPOLLOUT事件不能一开始就关注，因为发送缓冲区总是可写的会一直触发EPOLLOUT事件，造成**busyLoop**。==应该在内核发送缓冲区被写满时才关注==，并将未写入的数据写入**应用层的发送缓冲区(output buffer)**；==直到把output buffer中的数据全部写完才停止关注可写事件。==
+   - 对于边沿触发模式：内核接收缓冲区有**数据**可读时只会触发一次，只有等**再次**接收到数据时才会再次触发可读事件；内核发送缓冲区有**空间**可写时只会触发一次，只有等内核发送缓冲区空间再次变化时(**滑动窗口向前移动**)才会再次触发可写事件。
+3. **读写时不必等候EAGAIN，可以减少系统调用次数**，降低延迟。也就是说：
+   - 对于LT模式：可以不必一次性读/写完，没读完时下次还会触发。
+   - 对于ET模式：可能要多次调用read把接收缓冲区中的数据读完(**EAGAIN**)。写时，需要一次性把数据**写完**或者直到发送缓冲区被**写满**(**EAGAIN**)
+
 ### EventLoop
 
 1. 提供事件循环EventLoop::loop()。
@@ -87,7 +97,7 @@ Poller::removeChannel --> PollPoller::removeChannel
 
    
 
-### 时序图
+### Reactor时序图
 
 更新事件时序图：
 
@@ -207,11 +217,15 @@ callingPendingFunctors_ -.false.-> 说明还没执行到doPendingFunctors,不需
 
 ## TCP连接TcpConnection
 
+每个连接都配备了 [应用层缓冲区Buffer](#Buffer)
+
 
 
 ### 服务器连接的断开
 
 [连接的断开](./muduo源码剖析.md)
+
+#### 连接关闭流程图
 
 ```mermaid
 graph LR
@@ -223,9 +237,9 @@ TcpServer::removeConnection --> TcpConnection::connectDestroyed --> 4.将fd从Ev
 TcpConnection::handleClose --> handleClose函数执行完引用计数为0[TcpConnectionPtr.usecount=0] --> 析构Socket --> 关闭套接字[5.close-fd]
 ```
 
+#### 连接关闭时序图
 
-
-
+<img src="image/%E8%BF%9E%E6%8E%A5%E5%85%B3%E9%97%AD%E6%97%B6%E5%BA%8F%E5%9B%BE.jpg" style="zoom:50%;" />
 
 
 
@@ -309,7 +323,7 @@ sockets::connect -.EACCES.-> sockets::close
 
 
 
-## 应用层缓冲区Buffer
+## 应用层缓冲区Buffer<a id="Buffer"></a>
 
 
 
@@ -327,6 +341,53 @@ sockets::connect -.EACCES.-> sockets::close
 
 1. **既要一次性能够读取足够多的数据**。
 2. **又不能占用大量内存**。
+
+
+
+### inputBuffer
+
+接收到数据存储到inputbuffer中，并通知上层的应用程序(**OnMessage**)，应用程序根据**应用层协议**去判断是否为一个完整的包。如果不是一个完整的包，则不会取走input buffer中的数据，也不会做处理；如果是一个完整的包，则把数据从input buffer中取走，并做处理。
+
+
+
+### outputBuffer
+
+
+
+### Buffer的数据结构
+
+```c++
+std::vector<char> buffer_;  // 可变长数组
+size_t readerIndex_;        // 读位置 从这个位置开始读
+size_t writerIndex_;        // 写位置 从这个位置开始写
+```
+
+```bash
+/// A buffer class modeled after org.jboss.netty.buffer.ChannelBuffer
+///
+/// @code
+/// +-------------------+------------------+------------------+
+/// | prependable bytes |  readable bytes  |  writable bytes  |
+/// |                   |     (CONTENT)    |                  |
+/// +-------------------+------------------+------------------+
+/// |                   |                  |                  |
+/// 0      <=      readerIndex   <=   writerIndex    <=     size
+/// @endcode
+```
+
+
+
+
+
+长度不够用了怎么办？
+
+扩充空间
+
+
+
+数据搬移
+
+
 
 
 
