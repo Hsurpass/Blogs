@@ -335,6 +335,12 @@ sockets::connect -.EACCES.-> sockets::close
 
 - 当应用程序接收数据时，有可能空间不够**没有一次性读完**，导致数据不完整的情况，对于水平触发模式(LT)就会一直触发可读事件(POLLIN)，导致忙等待(busy loop)，对于这种情况就需要一个**应用层的接收缓冲区(input buffer)**把内核中的数据全部读出来。
 
+### inputBuffer
+
+接收到数据存储到inputbuffer中，并通知上层的应用程序(**OnMessage**)，应用程序根据**应用层协议**去判断是否为一个完整的包。如果不是一个完整的包，则不会取走input buffer中的数据，也不会做处理；如果是一个完整的包，则把数据从input buffer中取走，并做处理。
+
+### outputBuffer
+
 
 
 ### Buffer设计的要求
@@ -342,17 +348,16 @@ sockets::connect -.EACCES.-> sockets::close
 1. **既要一次性能够读取足够多的数据**。
 2. **又不能占用大量内存**。
 
+如果有5K个连接，每个连接就要分配64K+64K的缓冲区(input buffer + output buffer)的话，将占用640M内存，而大多数时候，这些缓冲区的使用率很低。使用 [readv](../LinuxSystemProgramming.md) + **临时栈上空间** 就可以巧妙的解决这个问题。Buffer::readFd()就是这么设计的。
 
+```c
+ssize_t readv(int fd, const struct iovec *iov, int iovcnt);	// 分散读：按照iov数组的顺序，先填满一个缓冲区，再填写下一个缓冲区。
+```
 
-### inputBuffer
+先在栈上准备一个65536字节extrabuf，iov第一个数组指向inputBuffer 中的[writable](#writable)部分，第二个数组指向extrabuf。如果 [writable](#writable) 读满了，就读到extrabuf中，然后再把extrabuf Append到Buffer中。**这么设计的好处**：
 
-接收到数据存储到inputbuffer中，并通知上层的应用程序(**OnMessage**)，应用程序根据**应用层协议**去判断是否为一个完整的包。如果不是一个完整的包，则不会取走input buffer中的数据，也不会做处理；如果是一个完整的包，则把数据从input buffer中取走，并做处理。
-
-
-
-### outputBuffer
-
-
+- 一个是使用临时栈上空间，**避免**了开巨大Buffer造成**内存浪费**。
+- **减少了反复调用 read 的开销**。(通常调用一次 readv 系统调用就能读完全部的数据)
 
 
 
@@ -419,7 +424,7 @@ readerIndex 和 writerIndex 肯定满足以下条件：
 
 长度不够用了，肯定就要扩充可写部分 [writable](#writable)，在muduo中有两种扩充 [writable](#writable) 的方法：
 
-1. 内部腾挪：如果把prepend的空间太大，就把可读部分的数据往前面挤一挤()，然后看看 [writable](#writable) 的空间够不够。
+1. 内部腾挪：如果 prepend **闲置**的空间太多，就把可读部分的数据往前面挤一挤()，然后看看 [writable](#writable) 的空间够不够。
 2. 扩充空间：调用vector.resize()在后面扩容。
 
 #### 内部腾挪
@@ -428,7 +433,7 @@ readerIndex 和 writerIndex 肯定满足以下条件：
 
 ![image-20230329154950009](image/image-20230329154950009.png)
 
-如果此时想写入300字节的数据，就会导致writable的空间不够，但是前面 [prependable](#prependable) 又有很多的空间被浪费。针对这种情况，muduo中先比较 [prependable](#prependable) + [writable](#writable) 的长度是否小于 **需要写入的数据长度 + 8(kCheapPrepend)**，如果小于说明目前还有空间进行存储。那么接下来就做如下操作：
+如果此时想写入300字节的数据，就会导致writable的空间不够，但是前面 [prependable](#prependable) 又有很多**闲置**的空间被浪费。针对这种情况，muduo中先比较 [prependable](#prependable) + [writable](#writable) 的长度是否小于 **需要写入的数据长度 + 8(kCheapPrepend)**，如果小于说明目前还有空间进行存储。那么接下来就做如下操作：
 
 1. 把 [readable](#readable) 部分的数据移动到kCheapPrepend位置，同时 readIndex 和 writeIndex 也跟着改变。
 2. 然后再把新数据从 writeIndex 位置开始拷贝。如下图：
@@ -445,17 +450,24 @@ readerIndex 和 writerIndex 肯定满足以下条件：
 
 
 
-
-
 ### prepend的作用
 
+一般在prepend部分存储消息的长度。例如消息长度为200字节，那么就把200这个整数存储到prepend。
 
+![image-20230329161336011](image/image-20230329161336011.png)
+
+先把 readIndex 往前移4字节，再把200进行写入。
 
 
 
 ### Buffer的线程安全性
 
+Buffer本身不是线程安全的，因为vector不是线程安全的。
 
+但是Buffer不必是线程安全的。
+
+- **对于 input buffer 来说**，input buffer是在用户的回调函数**onMessage**进行操作的，而onMessage函数始终是在TcpConnection所属的线程中进行执行的。只要不把Buffer暴露给其他线程(也不需要暴露给其他线程，在onMessage中进行解密，反序列化之后再交给其他线程)，**Buffer类不必是线程安全的**。
+- **对于output buffer来说**，用户程序并不直接操作它，而是调用**TcpConnection::send()**函数来发送数据。如果send()是在TcpConnection所属的IO线程调用的则直接对 output buffer 进行操作，如果send()是在其他线程调用的则使用**EventLoop::runInLoop()**函数转到IO线程上去操作，总之output buffer总是在IO线程上去操作的，不会有线程安全的问题。当然，跨线程的函数转移调用肯定会涉及到**用户数据的拷贝**。
 
 
 

@@ -46,7 +46,7 @@ vector (initializer_list<value_type> il, const allocator_type& alloc = allocator
 
 ##### reserve：
 
-不会调用构造函数, 不过超过容量后还是会发生拷贝, 且内存成倍增长。==reverse扩充的是总容量大小，不是追加空间，可以多次调用。==
+不会调用构造函数, 不过超过容量后还是会发生拷贝, 且内存成倍增长。==reverse扩充的是总容量大小，不是追加空间，可以多次调用。==**多次调用时会分配新的内存（容量会增大），中间过程会发生数据搬移**。
 
 ##### resize：
 
