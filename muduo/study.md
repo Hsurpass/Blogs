@@ -354,6 +354,8 @@ sockets::connect -.EACCES.-> sockets::close
 
 
 
+
+
 ### Buffer的数据结构
 
 ```c++
@@ -366,28 +368,92 @@ size_t writerIndex_;        // 写位置 从这个位置开始写
 /// A buffer class modeled after org.jboss.netty.buffer.ChannelBuffer
 ///
 /// @code
-/// +-------------------+------------------+------------------+
-/// | prependable bytes |  readable bytes  |  writable bytes  |
-/// |                   |     (CONTENT)    |                  |
-/// +-------------------+------------------+------------------+
-/// |                   |                  |                  |
-/// 0      <=      readerIndex   <=   writerIndex    <=     size
+/// +-------------------+------------------+------------------+-------------------+
+/// | prependable bytes |  readable bytes  |  writable bytes  |					|
+/// |                   |     (CONTENT)    |                  |					|
+/// +-------------------+------------------+------------------+-------------------+
+/// |                   |                  |                  |					|
+/// 0      <=      readerIndex   <=   writerIndex    <=     size			  capacity
 /// @endcode
 ```
 
+**一个**vector**数组**，使用**两个**下标**索引**，分割出**三个区域**：vector存储的是char类型，两个索引一个指向可读部分的起始位置(==readerIndex==)，一个指向可写位置的起始位置(==writerIndex==)，三个区域分别指的是预留部分、可读部分、可写部分。
+
+size：**vector.size**，非capacity。muduo中写入之前需resize(数据大小)，但是vector是会自动扩容的，capacity有可能不和size相同。
+
+可读部分的长度(**readable**) = writerIndex - readerIndex。<a id="readable"></a>
+
+可写部分的长度(**writable**) =  size - writerIndex。<a id="writable"></a>
+
+预留部分的长度(**prependable**) = readerIndex - 0。<a id="prependable"></a>
+
+readerIndex 和 writerIndex 肯定满足以下条件：
+
+```bash
+0 <= readerIndex <= writerIndex <= vector.capacity
+```
+
+**Buffer初始化**：<a id="Buffer初始化"></a>
+
+预留部分的初始大小([prependable](#prependable))为8字节，可读部分的初始大小([readable](#readable))为0字节，可写部分的初始大小([writable](#writable))为1024字节。那么初始化时，readerIndex和writerIndex指向的位置是相同的。如下图：
+
+![image-20230329113404071](image/image-20230329113404071.png)
+
+为什么使用vector作为底层容器？
+
+- vector是可变长的，且自动回收内存。
+
+为什么使用索引不使用指针？
+
+- vector扩容时，迭代器会失效。
+
+### 基本的读写操作
+
+1. 读取n字节数据后，readerIndex向后移动n字节，writerIndex保持不变。
+2. 写入n字节数据后，writerIndex向后移动n字节，readerIndex保持不变。
+3. 当全部数据读取完后，readerIndex 和 writerIndex 复位到 [初始位置](#Buffer初始化) 以备下一次使用。
+
+
+
+### 长度不够用了怎么办？
+
+长度不够用了，肯定就要扩充可写部分 [writable](#writable)，在muduo中有两种扩充 [writable](#writable) 的方法：
+
+1. 内部腾挪：如果把prepend的空间太大，就把可读部分的数据往前面挤一挤()，然后看看 [writable](#writable) 的空间够不够。
+2. 扩充空间：调用vector.resize()在后面扩容。
+
+#### 内部腾挪
+
+有时候经过多次读写，readIndex移到了比较靠后的位置，导致留下了巨大的 [prependable](#prependable) 空间，如下图：
+
+![image-20230329154950009](image/image-20230329154950009.png)
+
+如果此时想写入300字节的数据，就会导致writable的空间不够，但是前面 [prependable](#prependable) 又有很多的空间被浪费。针对这种情况，muduo中先比较 [prependable](#prependable) + [writable](#writable) 的长度是否小于 **需要写入的数据长度 + 8(kCheapPrepend)**，如果小于说明目前还有空间进行存储。那么接下来就做如下操作：
+
+1. 把 [readable](#readable) 部分的数据移动到kCheapPrepend位置，同时 readIndex 和 writeIndex 也跟着改变。
+2. 然后再把新数据从 writeIndex 位置开始拷贝。如下图：
+
+![image-20230329160037284](image/image-20230329160037284.png)
+
+为什么要这么做呢？目的是**减少一次resize的过程**，反正resize后还是要把数据拷贝到**新分配**的内存中的，还不如这原来的内存进行腾挪。
+
+
+
+#### 扩充空间
+
+如果 [prependable](#prependable) + [writable](#writable) 的长度大于 **需要写入的数据长度 + 8(kCheapPrepend)** ，说明即使进行内部腾挪空间也不足以容纳所有数据，那么就只能使用resize进行扩容了。可以尝试使用reserve。
 
 
 
 
-长度不够用了怎么办？
 
-扩充空间
-
+### prepend的作用
 
 
-数据搬移
 
 
+
+### Buffer的线程安全性
 
 
 
