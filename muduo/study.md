@@ -219,13 +219,42 @@ callingPendingFunctors_ -.false.-> 说明还没执行到doPendingFunctors,不需
 
 每个连接都配备了 [应用层缓冲区Buffer](#Buffer)
 
+### 消息的读取
+
+消息的读取是在 **TcpConnection::handleRead** 中进行的，该函数主要做两件事情：
+
+1. 使用 [Buffer::readFd](#Buffer::readFd) 读取数据到 应用层接收缓冲区(input buffer)。
+2. 调用应用层回调函数 **messageCallback**，执行业务逻辑。
+
+通常会在**messageCallback**中进行数据的加解密、序列化/反序列化、判断是否为完整的包、向worker线程池分发任务等操作。注意：[不要把 input buffer暴露给其他线程](#Buffer的线程安全性)。
+
+应用程序根据**应用层协议**去判断是否为一个完整的包。如果不是一个完整的包，则不会取走input buffer中的数据，也不会做处理；如果是一个完整的包，则把数据从input buffer中取走，并做处理。
 
 
-### 服务器连接的断开
+
+### 消息的发送
+
+
+
+
+
+### 当连接断开时还有数据没发送完怎么办？
+
+1. 假设当客户端(主动方)主动关闭连接时，还有数据要发送(此时POLLOUT事件被触发)，**不能直接调用 close** 关闭连接，而是应该先调用 **TcpConnection::send** 把output buffer中的数据发送完？(此时不再监听POLLOUT事件)，然后调用 **TcpConnection::shutdown** 再关闭**本方的写端**，此时处于**半关闭状态**。
+
+2. 当客户端(主动方)写端关闭后，服务器(被动方)read到0时，说明连接关闭了(**此时会触发POLLIN事件**)，然后就走下面的 [连接关闭流程](#连接关闭流程)，最后调用close关闭fd(读/写都关闭了)。
+
+3. 当客户端(主动方)read到0时，说明对端也关闭了，**此时会触发 POLLIN | POLLHUP 事件**，走下面的 [连接关闭流程](#连接关闭流程) ，最后close fd。这样双方连接都正常关闭了。<u>POLLHUP：说明是被挂起了，并没有完全关闭</u>。
+
+服务器作为主动方关闭时有数据没发完，和上面同理。
+
+
+
+### 客户端/服务器连接的断开
 
 [连接的断开](./muduo源码剖析.md)
 
-#### 连接关闭流程图
+#### 连接关闭流程图<a id="连接关闭流程"></a>
 
 ```mermaid
 graph LR
@@ -337,7 +366,7 @@ sockets::connect -.EACCES.-> sockets::close
 
 ### inputBuffer
 
-接收到数据存储到inputbuffer中，并通知上层的应用程序(**OnMessage**)，应用程序根据**应用层协议**去判断是否为一个完整的包。如果不是一个完整的包，则不会取走input buffer中的数据，也不会做处理；如果是一个完整的包，则把数据从input buffer中取走，并做处理。
+
 
 ### outputBuffer
 
@@ -347,6 +376,8 @@ sockets::connect -.EACCES.-> sockets::close
 
 1. **既要一次性能够读取足够多的数据**。
 2. **又不能占用大量内存**。
+
+### Buffer::readFd<a id="Buffer::readFd"></a>
 
 如果有5K个连接，每个连接就要分配64K+64K的缓冲区(input buffer + output buffer)的话，将占用640M内存，而大多数时候，这些缓冲区的使用率很低。使用 [readv](../LinuxSystemProgramming.md) + **临时栈上空间** 就可以巧妙的解决这个问题。Buffer::readFd()就是这么设计的。
 
@@ -460,7 +491,7 @@ readerIndex 和 writerIndex 肯定满足以下条件：
 
 
 
-### Buffer的线程安全性
+### Buffer的线程安全性<a id="Buffer的线程安全性"></a>
 
 Buffer本身不是线程安全的，因为vector不是线程安全的。
 
@@ -468,6 +499,10 @@ Buffer本身不是线程安全的，因为vector不是线程安全的。
 
 - **对于 input buffer 来说**，input buffer是在用户的回调函数**onMessage**进行操作的，而onMessage函数始终是在TcpConnection所属的线程中进行执行的。只要不把Buffer暴露给其他线程(也不需要暴露给其他线程，在onMessage中进行解密，反序列化之后再交给其他线程)，**Buffer类不必是线程安全的**。
 - **对于output buffer来说**，用户程序并不直接操作它，而是调用**TcpConnection::send()**函数来发送数据。如果send()是在TcpConnection所属的IO线程调用的则直接对 output buffer 进行操作，如果send()是在其他线程调用的则使用**EventLoop::runInLoop()**函数转到IO线程上去操作，总之output buffer总是在IO线程上去操作的，不会有线程安全的问题。当然，跨线程的函数转移调用肯定会涉及到**用户数据的拷贝**。
+
+综上：Buffer类不必是线程安全的，也避免了加锁导致性能降低。
+
+
 
 
 

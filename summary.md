@@ -2137,6 +2137,8 @@ https://blog.csdn.net/m0_51233386/article/details/126000760
 
 # Libevent
 
+evbuffer： muduo-manual 2.4.6 Zerocopy
+
 # Zeromq
 
 # Qt
