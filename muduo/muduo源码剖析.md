@@ -146,7 +146,7 @@ echo-server的代码量非常简洁。一个典型的muduo的TcpServer工作流�
 
 用户通过调用 TcpConnection::send() 向客户端回复消息。由于 muduo 中使用了 OutputBuffer，因此消息的发送过程比较复杂。
 
-首先需要注意的是线程安全问题, 上文说到对于消息的读写必须都在 EventLoop 的同一个线程 (通常称为 IO 线程) 中进行。因此，TcpConnection::send 必须要保证线程安全性，它是这么做的：
+首先需要注意的是线程安全问题, 上文说到对于消息的读写必须都在 EventLoop 的同一个线程 (通常称为 IO 线程) 中进行。因此，**TcpConnection::send** 必须要保证线程安全性，它是这么做的：
 
 ```c++
 void TcpConnection::send(const StringPiece& message)
@@ -170,10 +170,9 @@ void TcpConnection::send(const StringPiece& message)
 }
 ```
 
-检测 send 的时候，是否在当前 IO 线程，如果是的话，直接进行写相关操作 `sendInLoop`。
-如果不在一个线程的话，需要将该任务抛给 IO 线程执行 `runInloop`, 以保证 write 动作是在 IO 线程中执行的。我们后面会讲解 `runInloop` 的具体实现。
+检测 send 的时候，是否在当前 IO 线程，如果是的话，直接进行写相关操作 `sendInLoop`。如果不在一个线程的话，需要将该任务抛给 IO 线程执行 `runInloop`, 以保证 write 动作是在 IO 线程中执行的。我们后面会讲解 `runInloop` 的具体实现。
 
-在 sendInloop 中，做了下面几件事：
+在 **sendInloop** 中，做了下面几件事：
 
 1. 假如 OutputBuffer 为空，则直接向 socket 写数据
 2. 如果向 socket 写数据没有写完，则统计剩余的字节个数，并进行下一步。没有写完可能是因为此时 socket 的 TCP 缓冲区已满了。
@@ -182,8 +181,7 @@ void TcpConnection::send(const StringPiece& message)
 
 ==注意==：直到发送消息的时候，muduo 才会把 socket 的可写事件注册到了 EventLoop 中。在此之前只注册了可读事件。
 
-连接 socket 的可写事件对应的 callback 是 TcpConnection::handleWrite()
-当某个 socket 的可写事件触发时，TcpConnection::handleWrite 会做两个工作：
+连接 socket 的可写事件对应的 callback 是 **TcpConnection::handleWrite()** 当某个 socket 的可写事件触发时，TcpConnection::handleWrite 会做两个工作：
 
 1. 尽可能将数据从 OutputBuffer 中向 socket 中 write 数据
 2. 如果 OutputBuffer 没有剩余的，则 **将该 socket 的可写事件移除**，并调用 writeCompleteCallback

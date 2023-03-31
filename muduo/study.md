@@ -234,7 +234,68 @@ callingPendingFunctors_ -.false.-> 说明还没执行到doPendingFunctors,不需
 
 ### 消息的发送
 
+用户通过调用 **TcpConnection::send()** 向对端发送息。该函数主要做了下面几件事情：
 
+1. **当output buffer为空时**，直接调用write写入数据。
+2. **当有数据没有一次性写完时**，写入output buffer，并监听POLLOUT事件。(没有写完说明内核发送缓冲已经写满了)。
+3. **统计output buffer中的数据是否超过了高水位**，超过则调用高水位回调函数highWaterMarkCallback ，通知用户程序停止写入。(highWaterMarkCallback 是用户层来定义的。)
+
+当可写事件触发时，调用**TcpConnection::handleWrite()**函数，该函数主要做了下面几件事情：
+
+1. 调用write把output buffer中的数据写入fd，应该**尽可能多的写入**数据(数据长度=readable)。
+2. **如果数据已经被写完(或者低于低水位标)**，则停止监听可写事件，并调用低水位回调函数writeCompleteCallback，通知用户程序继续写入。
+3. 如果连接状态是**正在关闭状态**，则关闭写端，此时处于半关闭状态。
+
+
+
+#### 消息发送流程图
+
+```mermaid
+graph LR
+send --> isInLoopThread{isInLoopThread} -.true.-> sendInLoop
+isInLoopThread{isInLoopThread} -.false.-> runInLoop --> sendInLoop
+sendInLoop --> ouptbuffer中是否还有数据{outputBuffer.readable=0} -.true.-> n=write --> 是否把数据全部写完了
+ouptbuffer中是否还有数据{outputBuffer.readable=0} -.false.-> 3
+3 --> 添加到outputbufer中[outputbuffer.append]
+3 --> enableWriting
+3 --> highWaterMarkCallback_
+
+是否把数据全部写完了 -.true.-> writeCompleteCallback_
+是否把数据全部写完了-.false.-> 3
+
+```
+
+```mermaid
+graph LR
+handleWrite --> write --> outputBuffer.readable=0 --> disableWriting
+outputBuffer.readable=0 --> writeCompleteCallback_
+outputBuffer.readable=0 --> state=kDisconnecting{state=kDisconnecting} --> shutdownInLoop
+```
+
+
+
+#### 为什么要移除可写事件？
+
+当 output buffer 中的数据都被写完时，说明此时fd一直是可写的，所以**会一直触发POLLOUT事件**；但是output buffer 中数据为0，并没有数据要写入，所以这个事件被触发是没有意义的，还会**导致busy loop**。所以POLLOUT事件的监听、移除时机是：
+
+==当output buffer 有数据时，监听写事件；当output buffer为空时，移除写事件==。
+
+
+
+#### 高水位标和低水位标是干什么用的？
+
+一般来说，高水位回调(**highWaterMarkCallback**)和低水位回调(**writeCompleteCallback**)配合使用，来起到**限流**的作用。也就是说，利用高低水位可以控制input buffer 和 output buffer。
+
+以客户端为例：
+
+- 当客户端**处理**数据慢，数据都被读到inputbuffer时，为了防止**客户端的** input buffer被撑爆，当超过上水位标时，就可以在**highWaterMarkCallback**中**停止读取**数据(停止监听读事件)；当低于低水位标时，就可以在**lowWaterMarkCallback** 中**恢复读取**数据(重新监听读事件)。
+- 当客户端发送数据快，服务器接收数据慢时，为了防止**客户端的** output buffer被撑爆，当超过上水位标时，就可以在**highWaterMarkCallback**中**停止写入**数据(设置一个标志通知用户程序，让用户程序来==停止调用==TcpConnection::send()?)；当低于低水位标时，就可以在**lowWaterMarkCallback** 中**恢复写入**数据(设置一个标志通知用户程序，让用户程序来==恢复调用==TcpConnection::send()?)。
+
+服务器和客户端同理。
+
+这和粗水管往水桶里灌水，细水管往外取水一个道理，上下两个水龙头要轮流开合。当灌水的速度快，当超过高水位标时，要关闭灌水开关。当水位低于低水位标时，开启灌水开关。
+
+![image-20230331130420444](image/image-20230331130420444.png)
 
 
 
@@ -253,6 +314,14 @@ callingPendingFunctors_ -.false.-> 说明还没执行到doPendingFunctors,不需
 ### 客户端/服务器连接的断开
 
 [连接的断开](./muduo源码剖析.md)
+
+read 返回值为0时，说明连接已经断开，接下来会做下面这几件事情：
+
+1. 将TCP连接对应的事件从EventLoop上移除
+2. 调用用户的connectionCallback_ (只是为了打印以下信息或其他操作？)
+3. 将TcpConnection从TcpServer中移除
+4. 将fd从EventLoop上移除
+5. 关闭套接字fd，TcpConnectionPtr引用计数为0时，析构对象时会调用close关闭socket。
 
 #### 连接关闭流程图<a id="连接关闭流程"></a>
 
@@ -317,7 +386,7 @@ Connector只管建立连接，不用管首发数据，也就是说当建立连�
 
 ### Connector的超时重连<a id="Connector的超时重连"></a>
 
-connect返回错误会进行重连，注册一个重连定时器，初始超时时间是0.5s，**随着重连次数的增多超时时间也会变长**，每次重连【超时时间】都会乘2，直到达到最大超时间隔==30s==。
+connect返回错误时会进行自动重连，注册一个重连定时器，初始超时时间是0.5s，**随着重连次数的增多超时时间也会变长**，每次重连【超时时间】都会乘2，直到达到最大超时间隔==30s==。
 
 
 
@@ -350,11 +419,18 @@ sockets::connect -.EACCES.-> sockets::close
 
 管理一个TcpConection。
 
+### TcpClient的自动重连功能
+
+```c++
+bool retry_;   // atomic  重连，是指连接建立之后又意外断开的时候是否重连
+void enableRetry() { retry_ = true; }
+```
+
+需要开启retry_ 选项，当连接建立之后又意外断开的时候，会调用`connector_->restart()` 进行重连。
+
 
 
 ## 应用层缓冲区Buffer<a id="Buffer"></a>
-
-
 
 ### 内核有缓冲区为什么还需要应用层缓冲区？
 

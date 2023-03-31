@@ -1,11 +1,20 @@
 
-boost源码目录下的index.html就是全部文档
-```
-boost_1_76_0\index.html
-```
 
 
-reference:
+
+# boost::any
+
+相对于 void* 的好处：
+
+1. void*不是类型安全的。
+2. 任意类型的类型安全存储以及安全的取回。
+3. 在标准库容器中，存放不同类型的对象，比如说：vector< boost::any >。
+
+
+
+# reference:
+
+boost源码目录下的index.html就是全部文档，`boost_1_76_0\index.html`
 
 1. https://mmoaay.gitbooks.io/boost-asio-cpp-network-programming-chinese/content/
 2. https://ishare.iask.sina.com.cn/f/137GZAuLfBa.html
