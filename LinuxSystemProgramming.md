@@ -943,7 +943,11 @@ mount -t mqueue none /dev/mqueue
 
 ##### 虚假唤醒
 
+- 
 
+- 在多核处理器中，pthread_cond_signal 可能唤醒多个等待条件变量的线程。
+
+虚假唤醒要使用while来不断判断 **等待条件** 是否成立。
 
 #### 信号量(匿名信号量)
 
