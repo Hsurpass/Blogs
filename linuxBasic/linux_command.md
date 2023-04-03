@@ -30,8 +30,11 @@ apt --help
 cp a.txt /tmp/b.txt
 ```
 
+# c++filt 
 
-
+```bash
+c++filt _Z5printIiJiEEvRKT_DpRKT0_	# 根据函数符号反推回函数
+```
 
 # grep
 
@@ -277,6 +280,13 @@ netstat -anp | grep 8000 #查看8000端口的占用情况
 https://www.runoob.com/linux/linux-comm-netstat.html
 
 
+
+# objdump
+
+```bash
+gcc -c test.c -o test.o
+objdump -t test.o	#查看二进制码
+```
 
 # pstack
 
