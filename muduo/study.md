@@ -822,9 +822,23 @@ SourceFile类的主要作用就是处理 `__FILE__` 返回的路径，最终得�
 
 ### FixedBuffer类(固定缓冲区)
 
-FixedBuffer类主要由两个数据成员来构成：一个是char类型的数组，一个是指向数组中**可写区域起始位置**的指针，数组的长度由**非类型模板参数SIZE**来指定。
+FixedBuffer类主要由两个数据成员来构成：一个是char类型的数组，一个是指向数组中**可写区域起始位置**的指针，数组的长度由**非类型模板参数SIZE**来指定。固定缓冲区模型如下：
 
 ![](image/20160910105002231.png)
+
+data_：起始位置指针
+
+cur_：当前位置指针
+
+end()：末尾位置指针，data_ + sizeof data_;
+
+缓冲区中数据长度length()：cur_ - data_
+
+剩余空间avail()：end() - cur_
+
+复位reset()：cur_ = data_，不必清空数据，因为下次从头写时数据就被覆盖了。
+
+写入数据append：memcpy(cur_, buf, len); cur += len;
 
 
 
