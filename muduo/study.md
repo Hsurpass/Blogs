@@ -713,15 +713,21 @@ noncopyable <|-- FixedBuffer : public Inheritance
 
 实际上的实现会更加细一点，在Logger类的内部有嵌套**Impl类**来负责实际的实现， Logger类就是负责一些日志的级别，是外层的一个日志类；而Impl类借助LogStream类**重载 << 运算符**来输出日志到一个缓冲区**FixedBuffer**中，然后当Logger对象析构的时候通过 **刷新缓冲区** 再输出到标准输出或文件(==默认是输出到标准输出==)。
 
+以 LOG_INFO 为例，其宏定义如下：
+
 ```c++
 #define LOG_INFO                                          \
     if (muduo::Logger::logLevel() <= muduo::Logger::INFO) \
     muduo::Logger(__FILE__, __LINE__).stream()
 ```
 
+使用方法如下：
 
+```c++
+LOG_INFO << "Hello";
+```
 
-
+通过宏定义可知，调用时要做下面几件事情：
 
 1. 构造Logger**临时对象**，返回LogStream对象。
 2. 日志消息写入LogStream。
@@ -796,23 +802,27 @@ int main()
 
 
 
-#### Impl类
+### Impl类
 
 类内私有类
 
-#### SourceFile类
+### SourceFile类
 
-类内共有类
+SourceFile类的主要作用就是处理 `__FILE__` 返回的路径，最终得到**文件名**。
 
+主要算法：利用 **strrchr** 函数找到字符 **‘/’** 最后出现的位置，然后指针加1就得到了文件名。
 
-
-#### LogStream类
-
-
-
-#### FixedBuffer类(固定缓冲区)
+例：传进路径 /home/xxx/test.c ，经过处理最终得到文件名 test.c
 
 
+
+### LogStream类
+
+
+
+### FixedBuffer类(固定缓冲区)
+
+FixedBuffer类主要由两个数据成员来构成：一个是char类型的数组，一个是指向数组中**可写区域起始位置**的指针，数组的长度由**非类型模板参数SIZE**来指定。
 
 ![](image/20160910105002231.png)
 
