@@ -1978,13 +1978,11 @@ https://blog.csdn.net/m0_51233386/article/details/126000760
 
 [Linux 系统编程-基础篇12_05.pdf](../wangguilin/-5- linux基础课程/Linux 系统编程-基础篇12_05.pdf)
 
-[linux](../ElegantTest/linux)
+[linux_command.md](./linuxBasic/linux_command.md)
 
-[command.md](../ElegantTest/linux/command.md)
+[gcc_g++.md](./linuxBasic/gcc_g++.md)
 
-[gcc_g++.md](../ElegantTest/linux/gcc_g++.md)
-
-[ubuntu换源.md](../ElegantTest/linux/ubuntu换源.md)
+[ubuntu换源.md](./linuxBasic/ubuntu换源.md)
 
 # Linux System Programming
 
@@ -2023,9 +2021,9 @@ https://blog.csdn.net/m0_51233386/article/details/126000760
 
 ## reference
 
-[md](../ElegantTest/test_boost/md)
+[test_boost](../ElegantTest/test_boost)
 
-[boost.md](../ElegantTest/test_boost/md/boost.md)
+[boost.md](./boost/boost.md)
 
 [linux下编译boost.md](../ElegantTest/test_boost/md/linux下编译boost.md)
 

@@ -2,7 +2,25 @@
 
 
 
-# boost::any
+
+
+# boost/operators.hpp
+
+## boost::less_than_comparable
+
+只要实现 **operator<() const** 就可自动实现<=，>，>=。
+
+less_than_comparable.cpp
+
+## boost::equality_comparable
+
+只要实现 **operator==() const** ，就能自动实现 operator !=() const
+
+less_than_comparable.cpp
+
+# boost/any.hpp
+
+## boost::any
 
 相对于 void* 的好处：
 

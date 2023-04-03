@@ -910,7 +910,36 @@ mount -t mqueue none /dev/mqueue
 
 #### 	atomic
 
-​	(多线程对一个变量进行++操作，使用atomic比使用mutex的效率高), gcc提供的同步函数
+多线程对一个变量进行++操作，使用atomic比使用mutex的效率高。
+
+#### gcc提供的常用原子性操作
+
+```c++
+// 原子自增操作，将value更新到*ptr，并返回操作之前*ptr的值
+type __sync_fetch_and_add(type* ptr, type value)
+    
+// 原子比较和交换(设置)操作
+// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值
+type __sync_val_compare_and_swap(type* ptr, type oldval, type newval)
+// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true
+bool __sync_bool_compare_and_swap(type* ptr, type oldval, type newval)
+    
+// 原子赋值操作，将*ptr设置为value,对*ptr加锁, 并返回*ptr操作之前的值.
+type __sync_lock_test_and_set(type* ptr, type value) 
+
+// 使用这些原子性操作，编译的时候需要加-march=cpu-type
+// cpu-type就是cpu体系结构:(如:native, i386, pentium等) 
+```
+
+##### references:
+
+[Gcc内置原子操作__sync_系列函数简述及例程](https://zhuanlan.zhihu.com/p/32303037)
+
+https://gcc.gnu.org/onlinedocs/gcc/_005f_005fsync-Builtins.html
+
+https://www.ibm.com/docs/en/xl-c-aix/13.1.0?topic=functions-sync-fetch-add
+
+
 
 #### 	锁:
 
@@ -1175,6 +1204,37 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt);// 集中写：将io
 ```
 
 
+
+## execinfo.h
+
+### backtrace
+
+```c
+int backtrace(void **buffer, int size);	// 栈回溯，保存各个栈帧的地址
+```
+
+
+
+### backtrace_symbols
+
+```c
+char **backtrace_symbols(void *const *buffer, int size);	// 根据地址，转成相应的函数符号。
+void backtrace_symbols_fd(void *const *buffer, int size, int fd);
+```
+
+backtrace_symbols 内部会调用malloc, 返回的指针需要由调用者释放。
+
+![image-20221217105317559](image/image-20221217105317559.png)
+
+## #cxxabi.h
+
+### abi::__cxa_demangle
+
+```c
+char* abi::__cxa_demangle(const char* mangled_name, char* output_buffer, size_t* length, int* status);// 把函数符号转换成函数名
+```
+
+https://gcc.gnu.org/onlinedocs/libstdc++/libstdc++-html-USERS-4.3/a01696.html
 
 
 
