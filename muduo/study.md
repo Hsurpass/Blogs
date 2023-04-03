@@ -580,44 +580,6 @@ Buffer本身不是线程安全的，因为vector不是线程安全的。
 
 
 
-
-
-日志库
-
-同步日志
-
-设置日志输出到哪？Logger::setOutput
-
-异步日志
-
-多线程程序日志库要求
-
-1. 线程安全，即多个线程可以并发写日志，两个线程的日志消息不会出现**交织**。怎样避免出现 **“交织**”：
-   1. 用一个全局的mutex保护IO。缺点：**造成全部线程抢占一个锁**。
-   2. 每个线程单独写一个日志文件。缺点：**有可能让业务线程阻塞在写磁盘操作上**。
-
-muduo设计的方法：
-
-用一个背景线程(**后台线程/日志线程**)负责<u>收集日志消息</u>，并<u>写入日志文件</u>。其他业务线程只管往这个“日志线程”发送消息，这称为“异步日志”。虽然日志不是实时写入的，但是不影响前端线程并发的写日志(也就是说前端线程不会被写IO阻塞住，因为它并没有往文件写)。
-
-这种方法其实是生产者与消费者模式的应用。
-
-前端：业务线程(生产者) 多个
-
-后端：日志线程(消费者) 1个
-
-消息队列不为满时，生产者往消息队列(blockingQueue)中添加日志消息；消息队列不为空时，消费者从消息队列中取日志，写入到文件中。
-
-但是只要消息队列不为空，就会执行写文件，这样一来写文件的操作就太频繁了，为了避免这一情况可以采用**多缓冲机制(multiple buffering**)。
-
-
-
-消息堆积问题：
-
-
-
-
-
 reference:
 
 https://blog.csdn.net/qq_41868108/article/details/105905682
@@ -667,88 +629,105 @@ gettimeofday(2)入选原因（这也是muduo::Timestamp class的主要设计考�
 2． 在x86-64平台上， gettimeofday(2)不是系统调用， 而是在用户态实现的， 没有上下文切换和陷入内核的开销32。
 3． gettimeofday(2)的分辨率（resolution） 是1微秒， 现在的实现确实能达到这个计时精度， 足以满足日常计时的需要。 muduo::Timestamp用一个int64_t来表示从Unix Epoch到现在的微秒数， 其范围可达上下30万年。
 
-### static_assert
-
-### boost::less_than_comparable
-
-只要实现operator<() const 就可自动实现<=,>,>=
-
-less_than_comparable.cpp
-
-### boost::equality_comparable
-
-只要实现operator==() const ,就能自动实现operator !=()const
-
-less_than_comparable.cpp
-
-### gmtime_r
-
-
-
 ## Atomic.h
 
 C/C++ 中数值操作，如自加 (n++) 自减 (n- -) 及赋值 (n=2) 操作都不是原子操作。
 
-### gcc提供的常用原子性操作
-
-```c++
-// 原子自增操作，将value更新到*ptr，并返回操作之前*ptr的值
-type __sync_fetch_and_add(type* ptr, type value)
-    
-// 原子比较和交换(设置)操作
-// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值
-type __sync_val_compare_and_swap(type* ptr, type oldval, type newval)
-// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true
-bool __sync_bool_compare_and_swap(type* ptr, type oldval, type newval)
-    
-// 原子赋值操作，将*ptr设置为value,对*ptr加锁, 并返回*ptr操作之前的值.
-type __sync_lock_test_and_set(type* ptr, type value) 
-
-// 使用这些原子性操作，编译的时候需要加-march=cpu-type
-// cpu-type就是cpu体系结构:(如:native, i386, pentium等) 
-```
-
-references: [Gcc内置原子操作__sync_系列函数简述及例程](https://zhuanlan.zhihu.com/p/32303037)
-
-### volatile
-
-[volatile](../../../3github/ElegantTest/test_cpp/keyword/volatile/volatile.md)
 
 
 
-## Exception.h
 
-### backtrace
+# 日志库
 
-栈回溯，保存各个栈帧的地址
+muduo日志库总体可分为 **多线程同步日志** 和 **多线程异步日志**。
 
-### backtrace_symbols
-
-根据地址，转成相应的函数符号。
-
-backtrace_symbols 内部会调用malloc, 返回的指针需要由调用者释放。
-
-![image-20221217105317559](image/image-20221217105317559.png)
-
-### abi::__cxa_demangle
-
-把函数符号转换成函数名
-
-## Logging.h
+## 多线程同步日志
 
 ### Logger类
 
-Logger类时序图:
+#### Logger类图
+
+
+
+```mermaid
+classDiagram
+class Logger {
+	+Logger()
+	+~Logger()
+	+LogStream& stream()
+	+setLogLevel(LogLevel level)$ void
+	+setOutput(OutputFunc) static void
+	+setFlush(FlushFunc) static void
+	-Impl impl_
+}
+
+class Impl{
+	+Impl(LogLevel level, int old_errno, const SourceFile &file, int line)
+	+formatTime() void
+	+finish() void
+	
+	+Timestamp time_
+	+LogStream stream_
+	+SourceFile basename_
+}
+
+class SourceFile{
+	+explicitSourceFile(const char *filename)
+	
+	+constchar* data_
+	+int size_;
+}
+
+class LogStream{
+	+self &operator<<()
+	-detail::FixedBuffer<detail::kSmallBuffer> buffer_;
+}
+
+class FixedBuffer{
+	<< template<int SIZE> >>
+	+append(const char* buf, size_t len) void
+	-data[SIZE] : char;
+	-char *cur_;
+}
+
+Logger *-- Impl
+Impl *-- Timestamp
+Impl *-- LogStream
+Impl *-- SourceFile
+LogStream *-- FixedBuffer
+
+noncopyable <|-- FixedBuffer : public Inheritance
+```
+
+
+
+#### Logger类时序图
 
 ![image-20221218161609009](image/image-20221218161609009.png)
 
-首先创建一个Logger对象，然后调用stream()方法，返回一个LogStream的对象，再调用LogStream的重载运算符operator <<()输出日志，这是比较宏观的。
-		实际上的实现会更加细一点，在Logger类的内部有嵌套Impl类来负责实际的实现， Logger类就是负责一些日志的级别，是外层的一个日志类；而Impl类是借助LogStream类来输出日志的，LogStream对象重载<<运算符来输出日志。
-		事实上，日志类是先输出到缓冲区**FixedBuffer**，然后再输出到标准输出或文件， 通过g_output函数来指定输出到哪里，借助g_flush函数刷新。因为g_output也是只能输出到指定设备/文件 的缓冲区，g_flush函数刷新一下才能真正到指定位置。
+首先创建一个 **Logger** 对象，然后调用 **Logger::stream()** 方法，返回一个 **LogStream** 的对象，再调用LogStream的重载运算符 **operator<<()** 输出日志。
 
-下面是类的调用流程:
+#### Logger类调用流程
 
 ![image-20221218161734176](image/image-20221218161734176.png)
+
+实际上的实现会更加细一点，在Logger类的内部有嵌套**Impl类**来负责实际的实现， Logger类就是负责一些日志的级别，是外层的一个日志类；而Impl类借助LogStream类**重载 << 运算符**来输出日志到一个缓冲区**FixedBuffer**中，然后当Logger对象析构的时候通过 **刷新缓冲区** 再输出到标准输出或文件(==默认是输出到标准输出==)。
+
+```c++
+#define LOG_INFO                                          \
+    if (muduo::Logger::logLevel() <= muduo::Logger::INFO) \
+    muduo::Logger(__FILE__, __LINE__).stream()
+```
+
+
+
+
+
+1. 构造Logger**临时对象**，返回LogStream对象。
+2. 日志消息写入LogStream。
+3. Logger临时对象析构，刷新缓冲区，输出日志。
+
+
 
 以下是muduo日志库的默认消息格式:
 
@@ -756,28 +735,123 @@ Logger类时序图:
 
 
 
+#### 如何设置日志级别？
+
+1. 程序运行之前调用setLogLevel()。
+
+```c++
+muduo::Logger::setLogLevel(muduo::Logger::ERROR);
+```
+
+2. 或者根据initLogLevel() 设置muduo环境变量。
+
+```c++
+Logger::LogLevel initLogLevel()
+{
+	if (::getenv("MUDUO_LOG_TRACE"))
+    	return Logger::TRACE;
+    else if (::getenv("MUDUO_LOG_DEBUG"))
+        return Logger::DEBUG;
+    else
+        return Logger::INFO;
+}
+```
+
+```bash
+export MUDUO_LOG_TRACE=1
+```
 
 
 
+#### 如何设置输出到指定文件中？
+
+```c++
+typedef void (*OutputFunc)(const char *msg, int len);
+typedef void (*FlushFunc)();
+
+static void Logger::setOutput(OutputFunc out) { g_output = out; }
+static void Logger::setFlush(FlushFunc flush) { g_flush = flush; }
+```
+
+通过**setOutput**函数来指定输出到哪里，借助**setFlush**函数进行缓冲区刷新。因为**g_output**也是只能输出到指定 设备/文件 的缓冲区，**g_flush**函数刷新一下才能真正输出到指定位置。
+
+通常使用 **LogFile** 对象来托管一个文件指针，然后把 **LogFile::append** 和 **LogFile::flush** 通过 setOutput 和 setFlush设置到 Logger 对象中，这样就实现了一个输出到文件的多线程同步日志的功能。例：
+
+```c++
+std::unique_ptr<muduo::LogFile> g_logFile;
+void outputFunc(const char *msg, int len) { g_logFile->append(msg, len); }
+void flushFunc() { g_logFile->flush(); }
+
+int main()
+{
+    string filename = "文件名";
+	g_logFile.reset(new muduo::LogFile(::basename(name), 200 * 1000));
+  	muduo::Logger::setOutput(outputFunc);
+  	muduo::Logger::setFlush(flushFunc);
+    
+	std::string line = "1234567890 abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+	LOG_INFO << line;
+}
+```
 
 
 
-### Impl类
+#### Impl类
 
 类内私有类
 
-### SourceFile类
+#### SourceFile类
 
 类内共有类
 
 
 
-日志滚动条件
+#### LogStream类
+
+
+
+#### FixedBuffer类(固定缓冲区)
+
+
+
+![](image/20160910105002231.png)
+
+
+
+### LogFile类
+
+#### LogFile类图
+
+```mermaid
+classDiagram
+class LogFile {
+	+append(const char *logline, int len) void
+	+flush() void
+	+rollFile() bool
+
+	-std::unique_ptr<MutexLock> mutex_;
+	-time_t startOfPeriod_; 
+	-time_t lastRoll_;
+	-time_t lastFlush_;
+	-std::unique_ptr<FileUtil::AppendFile> file_;
+}
+
+class AppendFile{
+	-FILE *fp_; // 打开的文件指针
+	-buffer_[64 * 1024] : char; //文件缓冲区/用户态缓冲区 减少磁盘IO的次数
+	-off_t writtenBytes_; // 已写入字节数
+}
+
+LogFile o-- AppendFile
+LogFile o-- MutexLock
+```
+
+#### 日志滚动条件
 
 - **文件大小**（例如：每写满1G换下一个文件）
 - **时间**（每天零点新建一个日志文件，不论前一个文件是否写满）
 
-一个典型的日志文件名
+#### 日志文件名
 
 logfile_test.20130411-115604.popo.7743.log
 
@@ -785,9 +859,89 @@ logfile_test.20130411-115604.popo.7743.log
 
 
 
+#### AppendFile类
+
+
+
+
+
+
+
 多个线程对同一个文件写入 会比 单线程对文件写入效率高吗？
 
 不一定。IO总线可能不是并行的。
+
+同步写日志可能会阻塞在文件IO上，如何解决多线程同步写日志的效率问题？使用下面的异步日志。
+
+
+
+## 多线程异步日志
+
+#### AsyncLogging类图
+
+```mermaid
+classDiagram
+
+class AsyncLogging{
+	+append(const char *logline, int len) void
+	+start() void
+	+stop() void
+	-threadFunc() void
+	
+	-Thread thread_;
+	-MutexLock mutex_;
+	-Condition cond_;
+	-std::unique_ptr< FixedBuffer<kLargeBuffer> > currentBuffer_;	//当前缓冲区
+	-std::unique_ptr< FixedBuffer<kLargeBuffer> > nextBuffer_;	//预备缓冲区
+	-std::vector<std::unique_ptr<Buffer>> buffers_;	// 待写入文件的已填满的缓冲区，或没填满的缓冲区[超时的]
+}
+
+noncopyable <|-- AsyncLogging
+
+
+```
+
+
+
+
+
+设置日志输出到哪？Logger::setOutput
+
+
+
+多线程程序日志库要求
+
+1. 线程安全，即多个线程可以并发写日志，两个线程的日志消息不会出现**交织**。怎样避免出现 **“交织**”：
+   1. 用一个全局的mutex保护IO。缺点：**造成全部线程抢占一个锁**。
+   2. 每个线程单独写一个日志文件。缺点：**有可能让业务线程阻塞在写磁盘操作上**。
+
+muduo设计的方法：
+
+用一个背景线程(**后台线程/日志线程**)负责<u>收集日志消息</u>，并<u>写入日志文件</u>。其他业务线程只管往这个“日志线程”发送消息，这称为“异步日志”。虽然日志不是实时写入的，但是不影响前端线程并发的写日志(也就是说前端线程不会被写IO阻塞住，因为它并没有往文件写)。
+
+这种方法其实是生产者与消费者模式的应用。
+
+前端：业务线程(生产者) 多个
+
+后端：日志线程(消费者) 1个
+
+消息队列不为满时，生产者往消息队列(blockingQueue)中添加日志消息；消息队列不为空时，消费者从消息队列中取日志，写入到文件中。
+
+但是只要消息队列不为空，就会执行写文件，这样一来写文件的操作就太频繁了，为了避免这一情况可以采用**多缓冲机制(multiple buffering**)。
+
+
+
+
+
+
+
+消息堆积问题：
+
+
+
+
+
+
 
 # Reactor线程模型
 
