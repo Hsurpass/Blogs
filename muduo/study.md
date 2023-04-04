@@ -729,11 +729,17 @@ LOG_INFO << "Hello";
 
 通过宏定义可知，调用时要做下面几件事情：
 
-1. 构造Logger**临时对象**，返回LogStream对象。
-2. 日志消息写入LogStream。
-3. Logger临时对象析构，刷新缓冲区，输出日志。
+1. **构造Logger临时对象，返回LogStream对象**。
 
+   Logger类内部有一个Impl类型的属性，Impl类内部有LogStream类型和SourceFile类型的属性，所以在构造时先构造LogStream对象，构造SourceFile对象，再构造Impl对象，最后调用Logger构造函数。构造[SourceFile](#SourceFile)时在其构造函数中处理传入的路径得到文件名；构造 [Impl](#Impl)时在其构造函数中组装日志头部并写入缓冲区。所以说：当Logger对象构造完成时，[日志头部](#日志头部)就已经写入到[缓冲区](#FixedBuffer)了。
 
+2. **日志消息写入LogStream**。
+
+   通过调用 Logger::stream() 函数返回[LogStream](#LogStream)对象，通过operator<<把**日志正文**写入到[缓冲区](#FixedBuffer)中。
+
+3. **Logger临时对象析构，刷新缓冲区，输出日志**。
+
+   当临时对象析构时，调用Logger析构函数，在析构函数中会把 [日志尾部](#日志尾部) 添加到[缓冲区](#FixedBuffer)中组成一条完整的日志，然后调用g_output输出日志。
 
 以下是muduo日志库的默认消息格式:
 
@@ -800,27 +806,57 @@ int main()
 }
 ```
 
+### Impl类<a id="Impl"></a>
+
+Impl类的主要功能是**组装一条完整的日志**。日志头 + 正文 +日志尾 组成一条完整的日志。
+
+1. 在构造函数函数中将**日志头部信息**（日期、时间、线程tid、日志级别<a id="日志头部"></a>）通过LogStream对象写入到缓冲区中。
+
+2. 在 **Impl::finish()** 函数中间**日志尾部信息**（文件名、行号<a id="日志尾部"></a>）通过LogStream对象写入到缓冲区中。文件名通过 [SourceFile](#SourceFile)获得，行号通过`__LINE__`获得。
+
+```bash
+日期      时间     微秒     线程  级别  正文     源文件名:       行号
+20220306 09:15:44.681220Z  4013 WARN  Hello - Logging_test.cpp:75
+```
 
 
-### Impl类
 
-类内私有类
+### SourceFile类<a id="SourceFile"></a>
 
-### SourceFile类
-
-SourceFile类的主要作用就是处理 `__FILE__` 返回的路径，最终得到**文件名**。
+SourceFile类的主要作用就是**处理** `__FILE__` 返回的**路径**，最终得到**文件名**。
 
 主要算法：利用 **strrchr** 函数找到字符 **‘/’** 最后出现的位置，然后指针加1就得到了文件名。
 
-例：传进路径 /home/xxx/test.c ，经过处理最终得到文件名 test.c
+例如：传进路径 /home/xxx/test.c ，经过处理最终得到文件名 test.c
 
+### LogStream类<a id="LogStream"></a>
 
+LogStream类重载一系列 **operator<<** 运算符，用来将日志消息**格式化为字符串**，并将格式化后的字符串存入 4K(kSmallBuffer) 大小的固定缓冲区中。
 
-### LogStream类
+```c++
+typedef LogStream self;
+self& operator<<(bool v);
+self& operator<<(short);
+self& operator<<(unsigned short);
+self& operator<<(int);
+self& operator<<(unsigned int);
+self& operator<<(long);
+self& operator<<(unsigned long);
+self& operator<<(long long);
+self& operator<<(unsigned long long);
+self& operator<<(const void*);
+self& operator<<(float v);
+self& operator<<(double);
+self& operator<<(char v);
+self& operator<<(const char* str);
+self& operator<<(const unsigned char* str);
+self& operator<<(const string& v);
+self& operator<<(const StringPiece& v);
+self& operator<<(const Buffer& v);
+buffer_.append(...);
+```
 
-
-
-### FixedBuffer类(固定缓冲区)
+### FixedBuffer类(固定缓冲区)<a id="FixedBuffer"></a>
 
 FixedBuffer类主要由两个数据成员来构成：一个是char类型的数组，一个是指向数组中**可写区域起始位置**的指针，数组的长度由**非类型模板参数SIZE**来指定。固定缓冲区模型如下：
 
@@ -839,8 +875,6 @@ end()：末尾位置指针，data_ + sizeof data_;
 复位reset()：cur_ = data_，不必清空数据，因为下次从头写时数据就被覆盖了。
 
 写入数据append：memcpy(cur_, buf, len); cur += len;
-
-
 
 ### LogFile类
 
@@ -883,7 +917,7 @@ logfile_test.20130411-115604.popo.7743.log
 
 
 
-#### AppendFile类
+### AppendFile类
 
 
 
