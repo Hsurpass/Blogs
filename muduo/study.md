@@ -787,7 +787,7 @@ static void Logger::setFlush(FlushFunc flush) { g_flush = flush; }
 
 通过**setOutput**函数来指定输出到哪里，借助**setFlush**函数进行缓冲区刷新。因为**g_output**也是只能输出到指定 设备/文件 的缓冲区，**g_flush**函数刷新一下才能真正输出到指定位置。
 
-通常使用 **LogFile** 对象来托管一个文件指针，然后把 **LogFile::append** 和 **LogFile::flush** 通过 setOutput 和 setFlush设置到 Logger 对象中，这样就实现了一个输出到文件的多线程同步日志的功能。例：
+通常使用 **LogFile** 对象来托管一个文件指针，然后把 [LogFile::append](#LogFile::append) 和 [LogFile::flush](#LogFile::flush) 通过 setOutput 和 setFlush设置到 Logger 对象中，这样就实现了一个输出到文件的==多线程同步日志==的功能。例：
 
 ```c++
 std::unique_ptr<muduo::LogFile> g_logFile;
@@ -878,6 +878,8 @@ end()：末尾位置指针，data_ + sizeof data_;
 
 ### LogFile类
 
+LogFile类主要提供**滚动日志**的功能。
+
 #### LogFile类图
 
 ```mermaid
@@ -904,34 +906,94 @@ LogFile o-- AppendFile
 LogFile o-- MutexLock
 ```
 
-#### 日志滚动条件
+#### 日志滚动
+
+##### 日志滚动条件
 
 - **文件大小**（例如：每写满1G换下一个文件）
 - **时间**（每天零点新建一个日志文件，不论前一个文件是否写满）
 
-#### 日志文件名
+日志滚动时需要获取新的文件名。
 
-logfile_test.20130411-115604.popo.7743.log
+##### 获取新日志文件名
 
+默认文件名格式：
+
+```bash
+basename now     hostname pid  ".log"
 文件名.年月日-时分秒.主机名.进程PID.log
+logfile_test.20130411-115604.popo.7743.log
+```
+
+basename：基础名，由用户指定，通常可设为应用程序名。
+
+now：日志滚动时的时间，格式: "%Y%m%d-%H%M%S"。
+
+hostname：主机名，通过gethostname获取。
+
+pid：进程号, 通常由OS提供, 通过getpid获取。
+
+".log" 固定后缀名, 表明这是一个log文件。
+
+#### LogFile::append<a id="LogFile::append"></a>
+
+封装了AppendFile::append。
+
+```c++
+void LogFile::append(const char *logline, int len) {
+    if (mutex_) {
+        MutexLockGuard lock(*mutex_);
+        append_unlocked(logline, len);
+    }
+    else {
+        append_unlocked(logline, len);
+    }
+}
+```
+
+#### LogFile::flush<a id="LogFile::flush"></a>
+
+封装了AppendFile::flush。
+
+```c++
+void LogFile::flush() {
+    if (mutex_) {
+        MutexLockGuard lock(*mutex_);
+        file_->flush();
+    }
+    else {
+        file_->flush();
+    }
+}
+```
 
 
 
 ### AppendFile类
 
+AppendFile类主要包含三个属性：**文件指针**(FILE*) 、**文件缓冲区**buffer_ (64K)和记录**已写入字节数**的变量writtenBytes_(供LogFile类使用)。
 
+AppendFile类封装了打开文件(fopen)、关闭文件(fclose)、写入文件(fwrite_unlocked)、刷新文件(fllush)的底层接口。
 
+AppendFile类采用RAII的方式管理文件指针，即构造时打开(fopen)，析构时关闭(fclose)。AppendFile::append通过一个**循环**来确保所有数据都写到文件上。
 
+#### 为什么要设置文件缓冲区？
 
+```c++
+::setbuffer(fp_, buffer_, sizeof buffer_);  // 缓冲区超过 sizeof(buffer_) 大小也会自动刷新的
+```
 
+减少写IO次数，提高效率。
 
-多个线程对同一个文件写入 会比 单线程对文件写入效率高吗？
+#### 为什么要使用fwrite_unlocked？
 
-不一定。IO总线可能不是并行的。
+AppendFile类的线程安全性由上一层(LogFile)来保证，所以在append执行写入操作可以不必加锁，同时也提高了效率。
+
+------
+
+多个线程对同一个文件写入 会比 单线程对文件写入效率高吗？不一定。IO总线可能不是并行的。
 
 同步写日志可能会阻塞在文件IO上，如何解决多线程同步写日志的效率问题？使用下面的异步日志。
-
-
 
 ## 多线程异步日志
 
@@ -953,53 +1015,88 @@ class AsyncLogging{
 	-std::unique_ptr< FixedBuffer<kLargeBuffer> > nextBuffer_;	//预备缓冲区
 	-std::vector<std::unique_ptr<Buffer>> buffers_;	// 待写入文件的已填满的缓冲区，或没填满的缓冲区[超时的]
 }
-
+class Buffer{
+	<<typedef FixedBuffer<kLargeBuffer> Buffer>>
+}
 noncopyable <|-- AsyncLogging
-
-
+AsyncLogging *-- Thread
+AsyncLogging *-- MutexLock
+AsyncLogging *-- Condition
+AsyncLogging o-- Buffer
 ```
 
 
 
-
-
-设置日志输出到哪？Logger::setOutput
-
-
-
-多线程程序日志库要求
+#### 多线程程序日志库要求
 
 1. 线程安全，即多个线程可以并发写日志，两个线程的日志消息不会出现**交织**。怎样避免出现 **“交织**”：
    1. 用一个全局的mutex保护IO。缺点：**造成全部线程抢占一个锁**。
    2. 每个线程单独写一个日志文件。缺点：**有可能让业务线程阻塞在写磁盘操作上**。
 
-muduo设计的方法：
+#### muduo设计的方法
 
-用一个背景线程(**后台线程/日志线程**)负责<u>收集日志消息</u>，并<u>写入日志文件</u>。其他业务线程只管往这个“日志线程”发送消息，这称为“异步日志”。虽然日志不是实时写入的，但是不影响前端线程并发的写日志(也就是说前端线程不会被写IO阻塞住，因为它并没有往文件写)。
+用一个背景线程(**后台线程/日志线程**)负责<u>收集日志消息</u>，并<u>写入日志文件</u>。其他业务线程只管往这个“日志线程”发送消息，这称为“异步日志”。虽然日志不是实时写入的，但是不影响前端线程并发的写日志(也就是说**前端线程不会被写IO阻塞住**，因为它并没有往文件写)。
 
-这种方法其实是生产者与消费者模式的应用。
+这种方法其实是**生产者与消费者**模式的应用：
 
-前端：业务线程(生产者) 多个
+- 前端：业务线程(生产者) 多个
 
-后端：日志线程(消费者) 1个
+- 后端：日志线程(消费者) 1个
 
 消息队列不为满时，生产者往消息队列(blockingQueue)中添加日志消息；消息队列不为空时，消费者从消息队列中取日志，写入到文件中。
 
 但是只要消息队列不为空，就会执行写文件，这样一来写文件的操作就太频繁了，为了避免这一情况可以采用**多缓冲机制(multiple buffering**)。
 
+AsyncLogging使用双缓冲机制
+
+
+
+currentBuffer_：当前缓冲区
+
+nextBuffer_：预备缓冲区
+
+buffers_：存放 **写满的缓冲区** 或者 **因超时还未写满的缓冲区** 的缓冲区队列。
+
+
+
+newBuffer1：空闲缓冲区1
+
+newBuffer2：空闲缓冲区2
+
+buffersToWrite：用于和buffers_ 交换 的缓冲区队列。交换后buffers_就清空了。
+
+总体思想：我们让业务线程不去直接写文件，而是让它们把日志先写到缓冲区中，当**缓冲区被写满**或者**超过刷新时间**时，我们就把当前缓冲区放到缓冲区队列中；然后通知日志线程队列中有数据了，接下来日志线程就从缓冲区队列中依次取出buffer写入文件。
+
+<img src="image/image-20230404224000347.png" alt="image-20230404224000347" style="zoom:67%;" />
+
+<img src="image/image-20230404224210555.png" alt="image-20230404224210555" style="zoom:67%;" />
+
+<img src="image/image-20230404224327513.png" alt="image-20230404224327513" style="zoom:67%;" />
 
 
 
 
 
+1. 多个业务线程向**当前缓冲区**currentBuffer_ 写日志，当写满时，放入**缓冲区队列** buffers_ 中，并把**预备缓冲区** nextBuffer_设置为当前缓冲区，最后**通知**日志线程。见图1。
+2. 日志线程收到通知加锁，把当前缓冲区也放入buffers_ 中(即使它还没写满)，然后把**空闲缓冲区**(newBuffer1)设置为当前缓冲区，把**空闲缓冲区2**(newBuffer2)设置为预备缓冲区，**交换 buffers_ 和 buffersToWrite**。然后遍历buffersToWrite中的缓冲区，把缓冲区中的数据写入文件中，数据写完后，把buffersToWrite中最后两块缓冲区分别设置为newBuffer1和newBuffer2，最后清空buffersToWrite。
 
-消息堆积问题：
+业务线程是通过条件变量来通知日志线程的，当业务线程日志量比较大时总会抢到锁，导致**缓冲区不够用**(currentBuffer_ 和 nextBuffer_都写满了)，muduo中处理方法是：`currentBuffer_.reset(new Buffer);`分配新的缓冲区。这样就会导致**消息堆积**的问题，解决方法如下。
 
+<img src="image/image-20230404224637521.png" alt="image-20230404224637521" style="zoom:67%;" />
 
+#### 消息堆积
 
+消息堆积是指前端(业务线程)陷入死循环，拼命发送日志消息，超过后端(日志线程)的处理能力，这就是典型的**生产速度超过消费速度**的问题。这种情况会造成数据在内存中堆积，严重时引发性能问题：**可用内存不足**或**程序崩溃**(分配内存失败)。
 
+##### 处理消息堆积的方法
 
+当待写入缓冲区队列 buffersToWrite 中的缓冲区数量超过25块时，只保留前两块，其余的全部丢掉。
 
+##### 25的含义
+
+每块缓冲区4M，25块缓冲区，共100M。假设磁盘的写速度为100M/S。也就是说，在日志线程写文件时，业务线程**1秒产生了100M**的数据，填满了25块缓冲区。
+
+所以实际应用中，只有产生数据的速度不到磁盘写速度的 1/10 才不会收到明显影响。
 
 # Reactor线程模型
 
