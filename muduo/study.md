@@ -1,6 +1,10 @@
 
 
+面向对象：一个类继承自某个类。
 
+基于对象：一个类包含某个类。
+
+muduo就是使用基于对象的方式
 
 # net库
 
@@ -1106,6 +1110,8 @@ buffersToWrite：用于和buffers_ 交换 的缓冲区队列。交换后buffers_
 
 没有事件触发的时候，线程等待在select/poll/epoll等函数上，事件到达后进行读IO，解码，计算，编码，写IO等一系列操作。==这种模式适用于IO密集的应用，不太适合CPU密集的应用。==
 
+<img src="image/single_thread_reactor.png" style="zoom:50%;" />
+
 ![img](image/20210630194953729.png)
 
 实际项目应用中，这种模型应该并不常用。
@@ -1118,9 +1124,11 @@ Server_basic.cc是一个并发服务器，可以同时服务多个客户端连�
 
 ## 2.单Reactor+线程池
 
-**单线程reactor + threadpool ----> 事件的监听，IO的读写放在reactor线程处理，业务计算放到线程池。**
+**单线程reactor + threadpool ----> 事件的监听，IO的读写放在reactor线程处理，业务计算放到线程池。**(==能适应密集计算==)
 
 主线程负责监听事件，读写IO，线程池中的线程负责业务计算。这种模式适用于计算任务彼此独立，而且IO压力不大的场景，有乱序返回的可能，==客户端要根据id来匹配响应。==
+
+<img src="image/image-20230405121920239.png" alt="image-20230405121920239" style="zoom:67%;" />
 
 ![img](image/20210630195038604.png)
 
@@ -1130,9 +1138,11 @@ Server_basic.cc是一个并发服务器，可以同时服务多个客户端连�
 
 ## 3.多Reactor(主从Reactor)
 
-**主reactor线程(accept线程) + 子reactor线程：主reactor线程负责监听新连接的到来，然后把新连接分发给子reactor线程， 子reactor线程负责监听事件，读写IO以及业务计算。**
+**主reactor线程(accept线程) + 子reactor线程：主reactor线程负责监听新连接的到来，然后把新连接分发给子reactor线程， 子reactor线程负责监听事件，读写IO以及业务计算。**（==能适应更大的突发IO==）
 
-$\color{red} {muduo采用轮询方式选择sub Reactor}$），$\color{green} {该连接的所有操作都在那个sub Reactor所处的线程中完成。}$优点是能保证请求的顺序性，程序的总体处理能力不会随着连接增加而下降，适应性强，所以是muduo的默认多线程模型。
+$\color{red} {muduo采用轮询方式选择sub Reactor}$，$\color{green} {该连接的所有操作都在那个sub Reactor所处的线程中完成。}$优点是能保证请求的顺序性，程序的总体处理能力不会随着连接增加而下降，适应性强，所以是muduo的默认多线程模型。
+
+<img src="image/image-20230405122739870.png" alt="image-20230405122739870" style="zoom: 67%;" />
 
 ![img](image/20210630195106708.png)
 
@@ -1142,15 +1152,32 @@ $\color{red} {muduo采用轮询方式选择sub Reactor}$），$\color{green} {�
 
 ## 4.主从Reactor + 线程池
 
-主reactor线程(accept线程) + 子reactor线程 + threadPool:  **主reactor线程负责监听新连接的到来，然后把新连接分发给子reactor线程， 子reactor线程负责监听事件，读写IO, 业务计算在线程池中处理)**
+主reactor线程(accept线程) + 子reactor线程 + threadPool:  **主reactor线程负责监听新连接的到来，然后把新连接分发给子reactor线程， 子reactor线程负责监听事件，读写IO, 业务计算在线程池中处理)**（==适应突发IO和密集计算==）
 
-既有多个Reactor来处理IO，也使用线程池来处理计算，这种模式适合既有突发IO，又有突发计算的应用。
+既有多个Reactor来处理IO，也使用线程池来处理计算，这种模式适合既有突发IO，又有突发计算的应用。**相当于一个IO线程的线程池和一个业务线程池**。
+
+<img src="image/image-20230405150235336.png" alt="image-20230405150235336" style="zoom:67%;" />
 
 ![img](image/20210630195138947.png)
 
 如何确定使用多少个EventLoop呢？
 
 根据ZeroMQ手册的建议，按照每千兆比特每秒的吞吐量配一个event loop的比例来设置event loop的数目（即muduo::TcpServer::setThreadNum()的数量），所以在编写运行于千兆以太网上的网络程序时，用一个event loop就足以应付网络IO。==如果TCP连接有优先级之分，那使用一个event loop不太合适，最好是把高优先级的连接用单独的event loop来处理。==
+
+
+
+# Proactor模式(异步IO)
+
+- 理论上proactor 比 reactor 更高效一些。
+
+- 异步IO能够让IO操作与计算**重叠**。充分利用DMA(直接存储访问)特性。
+
+- linux异步IO
+  - glibc aio (aio_*)，有bug
+  - kernal native aio (io_*)，也不完美。目前仅支持O_DIRECT方式来对磁盘读写，跳过系统缓存。要自己实现缓存，难度不小。
+- boost asio 实现的proactor，实际上并不是真正意义上的异步IO，底层是用epoll来实现的，模拟异步IO的。
+
+<img src="image/image-20230405152038783.png" alt="image-20230405152038783" style="zoom: 80%;" />
 
 
 

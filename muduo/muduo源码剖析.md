@@ -14,7 +14,7 @@ muduo中类的职责和概念划分的非常清晰，在《Linux多线程服务�
 
 而 muduo 的整体风格受到 Netty 的影响，整个架构依照 Reactor 模式，基本与如下图所示相符：
 
-![单线程 Reactor 模式](image/single_thread_reactor.png)
+<img src="image/single_thread_reactor.png" alt="单线程 Reactor 模式" style="zoom: 50%;" />
 
 所谓 Reactor 模式，是指有一个循环的过程，不断监听对应事件是否触发，事件触发时调用对应的 **callback** 进行处理。
 
@@ -364,7 +364,7 @@ muduo 默认是单线程模型的，即只有一个线程，里面对应一个 E
 
 主从 reactor 是 Netty 的默认模型，一个 reactor 对应一个 EventLoop。主 Reactor 只有一个，只负责监听新的连接，accept 后将这个连接分配到子 Reactor 上。子 Reactor 可以有多个。这样可以分摊一个 Eventloop 的压力，性能方面可能会更好。如下图所示：
 
-![](image/main_sub_reactor.jpg)
+<img src="image/main_sub_reactor.jpg" style="zoom: 67%;" />
 
 在 muduo 中也可以支持主从 Reactor，**其中主 Reactor 的 EventLoop 就是 TcpServer 的构造函数中的 `EventLoop*` 参数**。Acceptor 会在此 EventLoop 中运行。
 
