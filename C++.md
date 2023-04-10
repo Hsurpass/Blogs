@@ -575,6 +575,85 @@ a1 = b;	 // 调用拷贝赋值
 
 ## 模板
 
+### 模板类型推导
+
+```c++
+template<typename T>
+void f(ParamType param);
+f(arg);	// 调用
+```
+
+#### 模板参数(ParamType)是指针或者引用
+
+```c++
+int x=2;
+const int cx = x;	
+const int& rx = x;
+const char name[] = "anna";	// type is const char[5]
+void func(int, double);	// 函数指针
+
+template<typename T>
+void f(T& param);
+f(x);	//T推导为int,		所以param的类型为int&
+f(cx);	//T推导为const int, 所以param的类型为const int&
+f(rx);	//T推导为const int, 所以param的类型为const int&
+f(name);//T推导为const char[5]
+f(func);//T推导为函数的引用，即：void(&)(int, double);
+
+template<typename T>
+void f(const T& param);
+f(x);	//T推导为int, 所以param的类型为const int&
+f(cx);	//T推导为int, 所以param的类型为const int&
+f(rx);	//T推导为int, 所以param的类型为const int&
+f(name);//T推导为char[5]
+
+template<typename T>
+void f(T* param);
+const int* px = &x;
+f(&x);	//T推导为int, 所以param的类型为int*
+f(px);	//T推导为const int, 所以param的类型为const int*
+f(name);//T推导为const char
+
+template<typename T, int N>
+int arraySize(T(&)[N]) { return N; }
+arraySize(name);//T推导为const char, N推导为5
+```
+
+#### ParamType是万能引用
+
+```c++
+int x=2;
+const int cx = x;	
+const int& rx = x;
+
+template<typename T>
+void f(T&& param);
+f(x);	//T推导为int&,		 经过引用折叠, param的类型为int&
+f(cx);	//T推导为const int&, 经过引用折叠, param的类型为const int&
+f(rx);	//T推导为const int&, 经过引用折叠, param的类型为const int&
+f(2);	//T推导为int,		 经过引用折叠, param的类型为int&&
+```
+
+#### ParamType既不是指针也不是引用(传值)
+
+```c++
+int x=2;
+const int cx = x;	
+const int& rx = x;
+const char* const ptr = "hello";
+const char name[] = "anna";	// type is const char[5]
+void func(int, double);	// 函数指针
+
+template<typename T>
+void f(T param);
+f(x);	//T推导为int, 所以param的类型为int
+f(cx);	//T推导为int, 所以param的类型为int
+f(rx);	//T推导为int, 所以param的类型为int
+f(ptr);	//T推导为const char*, 所以param的类型为const char*
+f(name);//数据退化为指针，所以T推导为const char*，param的类型为const char*。
+f(func);//T推导为函数的指针，即：void(*)(int, double);
+```
+
 ### 泛化
 
 泛化其实就是**泛型化（通用化）**的意思，其实就是定义类模板/函数模板时候的代码格式。
