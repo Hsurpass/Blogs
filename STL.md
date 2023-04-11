@@ -1,7 +1,85 @@
 # 目录
 
-[TOC]
-
+- [目录](#目录)
+- [STL](#stl)
+  - [分配器](#分配器)
+  - [容器](#容器)
+    - [序列式容器(Sequence Containers)](#序列式容器sequence-containers)
+      - [vector](#vector)
+        - [constructors](#constructors)
+        - [reserve：](#reserve)
+        - [resize：](#resize)
+        - [assign](#assign)
+        - [swap：](#swap)
+        - [insert:](#insert)
+        - [emplace/emplace\_back:](#emplaceemplace_back)
+        - [erase:](#erase)
+        - [erase+remove：](#eraseremove)
+        - [clear:](#clear)
+        - [shrink\_to\_fit:](#shrink_to_fit)
+        - [clear+shrink\_to\_fit:](#clearshrink_to_fit)
+      - [deque](#deque)
+      - [list](#list)
+        - [assign](#assign-1)
+        - [resize](#resize-1)
+        - [insert](#insert-1)
+        - [erase](#erase-1)
+        - [swap](#swap-1)
+        - [clear](#clear-1)
+        - [sort](#sort)
+        - [remove](#remove)
+        - [reverse](#reverse)
+        - [unique](#unique)
+        - [splice](#splice)
+        - [merge](#merge)
+    - [容器适配器(Adapter)](#容器适配器adapter)
+      - [stack](#stack)
+      - [queue](#queue)
+      - [priority\_queue:](#priority_queue)
+    - [关联式容器(Associative Containers)](#关联式容器associative-containers)
+      - [general](#general)
+        - [底层数据结构](#底层数据结构)
+        - [insert\_unique/insert\_equal](#insert_uniqueinsert_equal)
+        - [lower\_bound](#lower_bound)
+        - [upper\_bound](#upper_bound)
+        - [equal\_range](#equal_range)
+        - [insert](#insert-2)
+        - [erase](#erase-2)
+        - [clear](#clear-2)
+        - [count](#count)
+        - [find](#find)
+      - [set](#set)
+      - [map](#map)
+        - [insert](#insert-3)
+        - [operator\[\]](#operator)
+        - [at](#at)
+      - [multimap](#multimap)
+      - [multiset](#multiset)
+    - [无序容器(Unordered Containers)](#无序容器unordered-containers)
+      - [general](#general-1)
+      - [unordered\_map](#unordered_map)
+        - [operator\[\]](#operator-1)
+        - [at](#at-1)
+      - [unordered\_set](#unordered_set)
+      - [unordered\_multimap](#unordered_multimap)
+      - [unordered\_multiset](#unordered_multiset)
+  - [迭代器](#迭代器)
+  - [算法](#算法)
+    - [排序](#排序)
+      - [std::sort](#stdsort)
+      - [std::stable\_sort](#stdstable_sort)
+    - [查找](#查找)
+      - [std::find](#stdfind)
+      - [std::find\_if](#stdfind_if)
+      - [std::count](#stdcount)
+      - [count\_if](#count_if)
+      - [search](#search)
+      - [search\_n](#search_n)
+    - [删除](#删除)
+      - [std::remove/remove\_if](#stdremoveremove_if)
+    - [遍历](#遍历)
+      - [std::for\_each](#stdfor_each)
+- [references:](#references)
 
 
 # STL
@@ -10,13 +88,12 @@
 
 ![image-20230209162534893](image/image-20230209162534893.png)
 
-所有algorithms，其内最终涉及元素本身的操作，无非就是==比大小。==
+所有algorithms，其内最终涉及元素本身的操作，无非就是**比大小**。
 
 stl容器存在的效率问题：
 
-​	1.push要完成一次对象的拷贝
-
-​	2.内存不足的时候，自动开辟新空间，对原来的数据做一次深拷贝。
+1. push要完成一次对象的拷贝
+2. 内存不足的时候，自动开辟新空间，对原来的数据做一次深拷贝。
 
 解决：
 
@@ -63,7 +140,7 @@ v.assign(v1); // 将v1的内容赋值给v, size大小改为和v1一样。
 
 由于已经知道要拷贝多少元素，所以就提前开辟这么多内存的空间，直接调用拷贝构造就行了；就不用再频繁的扩容了。
 
-##### swap： 
+##### swap：
 
 ==swap调用之后size为0，capacity为0。==(底层是不是只改变了指针指向？从指向这个对象转到指向另一个对象？)(是不是也可以作为清空容器的一种方式？)
 
@@ -76,7 +153,7 @@ v.assign(v1); // 将v1的内容赋值给v, size大小改为和v1一样。
 1. insert(itr++, 10)：插入元素后，元素后移，itr实际指向的元素已经不是所期望的内容了。
 2. 另一种情况就是当插入元素时导致容器扩容，扩容就会发生元素拷贝，则原来的迭代器就会全都失效了。
 
-解决：用返回的迭代器进行下一轮循环。`itr = insert(itr, 10);`
+**解决**：用返回的迭代器进行下一轮循环。`itr = insert(itr, 10);`
 
 ##### emplace/emplace_back:
 
@@ -114,8 +191,6 @@ while(itr != v.end()) {
 }
 //综上，还是方法二比较保险。
 ```
-
-
 
 ##### erase+remove：
 
@@ -178,19 +253,17 @@ while(itr != v.end()) {
 //综上，还是方法二比较保险。
 ```
 
-
-
 ##### swap
 
-同vector,只不过list没有capacity。
+同vector，只不过list没有capacity。
 
 ##### clear
 
-同vector,只不过list没有capacity。
+同vector，只不过list没有capacity。
 
 ##### sort
 
-自带sort, 自定义类型重载operator<。
+自带sort，自定义类型重载operator<。
 
 为什么list不能使用std::sort？std::sort随机访问迭代器才能使用。
 
@@ -259,7 +332,7 @@ void sort_heap(first_pointer,end_pointer,compare_function);	// 堆排序。内�
 
 
 
-### 关联式容器(Associative Containers)<a id="AssociativeContainers"></a>
+### 关联式容器(Associative Containers)
 
 ![image-20230211085942404](image/image-20230211085942404.png)
 
@@ -267,11 +340,11 @@ void sort_heap(first_pointer,end_pointer,compare_function);	// 堆排序。内�
 
 ##### 底层数据结构
 
-1.关联式容器底层数据结构使用的是==红黑树==(特殊的二叉搜索树)，因此具有根据key自动排序的功能。对于自定义类型需要==重载operator<().==
+1. 关联式容器底层数据结构使用的是==红黑树==(特殊的二叉搜索树)，因此具有根据key自动排序的功能。对于自定义类型需要==重载operator<().==
 
-2.迭代器++遍历（中序遍历）得到有序的结果。
+2. 迭代器++遍历（中序遍历）得到有序的结果。
 
-3.红黑树查找复杂度O(logn)。
+3. 红黑树查找复杂度O(logn)。
 
 ##### insert_unique/insert_equal
 
@@ -348,8 +421,6 @@ while(itr != v.end()) {
 //综上，还是方法二比较保险。
 ```
 
-
-
 ##### clear
 
 `map.clear() == map.erase(map.beging(), mp.end());`
@@ -399,7 +470,7 @@ at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`
 
 #### multiset
 
-### 无序容器(Unordered Containers) <a id="unorderedContainers"></a>
+### 无序容器(Unordered Containers)
 
 [哈希表](#hashtable)
 
@@ -644,8 +715,6 @@ ForwardIterator1 search ( ForwardIterator1 first1, ForwardIterator1 last1, Forwa
 
 
 
-
-
 #### search_n
 
 
@@ -682,11 +751,7 @@ Function for_each (InputIterator first, InputIterator last, Function fn) {
 
 
 
-
-
-
-
-## references:
+# references:
 
 [-4- 用好STL才是王道](../wangguilin/-4- 用好STL才是王道/)
 
