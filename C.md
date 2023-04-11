@@ -1,6 +1,19 @@
 # 目录
 
 
+- [目录](#目录)
+- [C](#c)
+  - [补码运算](#补码运算)
+    - [负数求补码](#负数求补码)
+    - [负数的补码求原码](#负数的补码求原码)
+  - [编译过程](#编译过程)
+  - [指针](#指针)
+  - [stdarg.h](#stdargh)
+    - [可变参函数](#可变参函数)
+    - [可变参宏](#可变参宏)
+  - [string.h](#stringh)
+    - [memchr](#memchr)
+- [references:](#references)
 
 
 
@@ -12,7 +25,7 @@
 
 ### 负数求补码
 
-1.第一种方法：原码求反码，反码加1
+1. 第一种方法：原码求反码，反码加1
 
 ```bash
 # -5的原码：5的原码+最高位置1：			1000 0101
@@ -20,7 +33,7 @@
 # -5的补码：反码+1：				   1111	1011			
 ```
 
-2.负数的绝对值的原码，取反，加1
+2. 负数的绝对值的原码，取反，加1
 
 ```bash
 # 5的原码：	0000 0101
@@ -28,7 +41,7 @@
 # 加1：	  1111 1011
 ```
 
-3.模 -（负数）
+3. 模 -（负数）
 
 ```bash
 # 8为二进制的模是256(2^8)， 256-5 = 251 -->1111 1011
@@ -57,7 +70,7 @@ g++ -C hello.cpp -o hello.o
 g++ hello.o -o hello
 ```
 
-编译静态库，
+编译静态库：
 
 ```bash
 gcc -c xx.c -o xx.o	#将.c文件编译成.o
@@ -71,11 +84,11 @@ gcc -c xx.c -o xx.o  # 将.c文件编译成.o
 gcc -shared -fPIC -o libxx.so xx.o # 将.o打包成.so
 ```
 
-[gcc_g++.md](../ElegantTest/linux/gcc_g++.md)
+[gcc_g++.md](./linuxBasic/gcc_g++.md)
 
 ## 指针
 
-悬挂指针：当指针所指向的对象被释放，但是该指针没有任何改变，以至于其仍然指向已经被回收的内存地址，这种情况下该指针被称为悬挂指针；
+悬挂指针：当指针所指向的对象被释放，但是该指针没有任何改变，以至于其仍然指向已经被回收的内存地址，这种情况下该指针被称为悬挂指针。
 
 野指针：未初始化的指针被称为野指针。可能指向任意地址。
 
@@ -83,7 +96,7 @@ gcc -shared -fPIC -o libxx.so xx.o # 将.o打包成.so
 
 ### 可变参函数
 
-variable_parameter_function.c
+[variable_parameter_function.c](https://github.com/Hsurpass/ElegantTest/blob/main/test_cpp/1C_library/cstdarg/variable_parameter_function.c)
 
 ### 可变参宏
 
@@ -100,7 +113,7 @@ variable_parameter_function.c
 #define test4(fmt, args...) printf(fmt, args)
 ```
 
-variable_parameter_macro.c
+[variable_parameter_macro.c](https://github.com/Hsurpass/ElegantTest/blob/main/test_cpp/1C_library/cstdarg/variable_parameter_macro.c)
 
 ##__VA_ARGS__：宏前面加上##的作用在于，当可变参数的个数为 0 时，这里的##起到把前面多余的","去掉的作用,否则会编译出错,
 
@@ -116,15 +129,15 @@ C语言指针危险在哪？
 
 ```c
 // 在ptr所指向的内存块的前num个字节内，搜索value第一次出现的位置。成功返回第一次出现的位置，失败返回NULL。
-const void * memchr ( const void * ptr, int value, size_t num );
-      void * memchr (       void * ptr, int value, size_t num );
+const void* memchr (const void * ptr, int value, size_t num );
+      void* memchr (      void * ptr, int value, size_t num );
 ```
 
 
 
 
 
-## references:
+# references:
 
 [零基础入门C语言-王桂林.pdf](../wangguilin/-1- C 语言--从放弃到入门/零基础入门C语言-王桂林.pdf)
 
