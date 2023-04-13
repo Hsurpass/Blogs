@@ -135,7 +135,7 @@
 
 ###### 链式存储
 
-```
+```c++
 struct Tree {
 	int data;
 	struct Tree* left;
