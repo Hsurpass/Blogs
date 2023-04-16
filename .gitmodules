@@ -1,3 +1,0 @@
-[submodule "BlogSubmodule/Blog-Submodule"]
-	path = BlogSubmodule/Blog-Submodule
-	url = git@github.com:Hsurpass/Blog-Submodule.git
