@@ -198,7 +198,7 @@ while(itr != v.end()) {
 
 ##### clear:
 
-清除vector中的所有元素，但是capacity不变。
+清除vector中的所有元素，**但是capacity不变**。
 
 ##### shrink_to_fit:
 
