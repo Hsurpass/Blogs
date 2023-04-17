@@ -1573,11 +1573,6 @@ LT模式监听EPOLLOUT应用场景:
 1. select最多监听1024个文件描述符，而epoll没有限制。
 2. select调用之前需要把要监听的文件描述符集合拷贝给内核，select返回后需要遍历fd集合,以找到可读写的fd，而且下次再调用select还需要把文件描述符集合传进去。而epoll只需把fd添加到红黑树上去监听，把就绪的fd拷贝到就绪数组中返回给用户态。
 
-   
-
-## references:
-
-[linux网络基础.pdf](../wangguilin/-6- linux系统编程与网络编程/linux网络基础.pdf)
 
 # HTTP
 

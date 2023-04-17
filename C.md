@@ -134,11 +134,3 @@ const void* memchr (const void * ptr, int value, size_t num );
 ```
 
 
-
-
-
-# references:
-
-[零基础入门C语言-王桂林.pdf](../wangguilin/-1- C 语言--从放弃到入门/零基础入门C语言-王桂林.pdf)
-
-[-2- 你懂C语言，我不信--C提高篇](../wangguilin/-2- 你懂C语言，我不信--C提高篇)

@@ -751,14 +751,4 @@ Function for_each (InputIterator first, InputIterator last, Function fn) {
 
 
 
-# references:
-
-[-4- 用好STL才是王道](../wangguilin/-4- 用好STL才是王道/)
-
-[STL-王桂林-3nd.pdf](../wangguilin/-4- 用好STL才是王道/STL-王桂林-3nd.pdf)
-
-[C++-STL使用例子大全.pdf](../wangguilin/-4- 用好STL才是王道/C++-STL使用例子大全.pdf)
-
-[侯捷 - STL和泛型编程.pdf](../houjie/侯捷 - STL和泛型编程/侯捷 - STL和泛型编程.pdf)
-
 

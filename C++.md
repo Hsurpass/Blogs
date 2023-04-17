@@ -76,7 +76,7 @@
 
 # C++
 
-函数重载：函数同名不同参，不同参包括参数的类型，个数，顺序， ==const==
+函数重载：函数同名不同参，不同参包括参数的类型，个数，顺序， ==const==，**返回值不能作为重载条件**。
 
 虚函数覆写：同名同参同返回。
 
@@ -819,17 +819,5 @@ template<typename T, int N> func(T (&arr)[N])
 
 [目录](#目录)
 
-## references:
 
-[C++基础与提高-王桂林-4rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-4rd.pdf)
-
-[C++基础与提高-王桂林-3rd.pdf](../wangguilin/-3- 这可能是你见过的最NB的C++课程/C++基础与提高-王桂林-3rd.pdf)
-
-[1RecommendedBooks](../../1RecommendedBooks)
-
-[EffectiveC++第3版中文版.pdf](../../1RecommendedBooks/Effective C++/EffectiveC++第3版中文版.pdf)
-
-[C++ Primer（第5版）_带书签_高清完整版.pdf](../../1RecommendedBooks/C++Primer 第5版/C++ Primer（第5版）_带书签_高清完整版.pdf)
-
-[Microsoft C/C++ 文档 | Microsoft Learn](https://learn.microsoft.com/zh-cn/cpp/?view=msvc-170)
 

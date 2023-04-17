@@ -20,9 +20,7 @@
 
 ## 装饰模式 decorator pattern
 
-## references:
 
-[设计模式_王桂林_3rd .pdf](../wangguilin/-4.5- 设计模式/设计模式_王桂林_3rd .pdf)
 
 
 
