@@ -1,35 +1,3 @@
-#### references:
-
-[CMake使用教程和原理](https://cloud.tencent.com/developer/article/1561162)
-
-
-
-[使用ctest配置googletest](https://chunleili.github.io/cmake/ctest-googletest)
-
-[彻底弄懂cmake中的 INTEFACE 可见性/传递性 问题](https://chunleili.github.io/cmake/understanding-INTERFACE)
-
-[CMake菜谱（CMake Cookbook中文版）](https://www.bookstack.cn/books/CMake-Cookbook)
-
-
-
-[Cmake之深入理解find_package()的用法](https://zhuanlan.zhihu.com/p/97369704)
-
-[深入浅出CMake(三):find_package 添加依赖库](https://cloud.tencent.com/developer/article/1446788)
-
-[cmake find_package路径详解](https://zhuanlan.zhihu.com/p/50829542)
-
-
-
-[cmake入门](https://www.pudn.com/news/62ae93a7dfc5ee1968803a47.html)
-
-[全网最细的CMake教程！(强烈建议收藏)](https://zhuanlan.zhihu.com/p/534439206)
-
-[分享一篇很不错的CMake入门文章，值得收藏细读！](https://mp.weixin.qq.com/s?__biz=MzU5MzcyMjI4MA==&mid=2247494287&idx=1&sn=7f383549a1f2212b1cf33c192a4a1235&chksm=fe0e8448c9790d5ef72b36bb8d116730f29f86a9fe3c2a03ee5cbb0006b0a39e778ce7d81e47&scene=21#wechat_redirect)
-
-[CMake 入门实战](https://www.hahack.com/codes/cmake/)
-
-[cmake入门到精通资料大全](https://zhuanlan.zhihu.com/p/505300111)
-
 
 
 ## 构建
