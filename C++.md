@@ -438,6 +438,27 @@ void (*pbf)() = &A::dis_static;
 
 只要子类中有同名的，则父类中所有同名的函数都被隐藏(不管是不是虚函数)。如果一定要用父类的可以使用：1.using 父类::函数名 2.父类名+作用域运算符。
 
+#### 静态绑定
+
+```c++
+class A {
+public:
+	void func() { cout << "A::func()" << endl; }
+}
+class B : public A{
+ void func() { cout << "B::func()" << endl; }
+}
+
+B b;
+A* pa = &b;
+pa->func();	// A::func() 静态绑定和pa的静态类型有关
+
+B* pb = &b;
+pb->func();// B::func() 和静态类型有关
+```
+
+
+
 #### 多重继承
 
 多层次的继承，例：B继承自A，C继承自B。
