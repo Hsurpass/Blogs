@@ -142,7 +142,7 @@ https://stackoverflow.com/questions/62662905/inig-status-error-cannot-find-input
 
                 location / {
                         include fastcgi_params;
-                        proxy_pass 127.0.0.1:9090;
+                        fastcgi_pass 127.0.0.1:9090;
                 }
                 # location / {
                 #       include proxy_params;
