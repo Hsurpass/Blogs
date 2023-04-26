@@ -188,6 +188,10 @@ void *func(void *, int, size_t);
 1. 引用定义时必须初始化，指针在定义时可以为NULL；
 2. 引用初始化完成后不能改变其指向，指针可以改变。
 
+引用也不是完全不能改变指向的，**类内的引用可以改变指向**，类内的引用被c++编译器编译为指针。[reference.cpp]([ElegantTest/reference.cpp at main · Hsurpass/ElegantTest · GitHub](https://github.com/Hsurpass/ElegantTest/blob/main/test_cpp/reference/reference.cpp))
+
+https://www.zhihu.com/question/520365632/answer/2377774855?utm_id=0
+
 ### typeid
 
 返回包含操作数数据类型信息的 type_info 对象的一个引用，信息中包括数据类型的名称，要使用 typeid，程序中需要包含头文件<typeinfo>。==type_info 的拷贝和赋值均是私有的，故不可拷贝和赋值。==
