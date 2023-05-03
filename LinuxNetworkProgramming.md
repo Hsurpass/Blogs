@@ -499,6 +499,10 @@ int shutdown(int sock, int howto);
 cat /proc/sys/net/ipv4/tcp_orphan_retries
 ```
 
+###### close_wait出现在哪一方，大量出现是什么原因？
+
+出现在被动方，大量出现可能是没调用close或者程序逻辑由于异常没走到close。
+
 
 
 ##### TCP的有限状态机

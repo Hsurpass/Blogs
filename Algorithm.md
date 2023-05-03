@@ -316,7 +316,9 @@ int tree_depth(tree* root) {
 
 中序遍历得到一个递增的序列。
 
-根据二叉搜索树的性质：树的最小值结点是最左端结点，最大值结点是最右端结点。
+根据二叉搜索树的性质：**树的最小值结点是最左端结点，最大值结点是最右端结点**。
+
+查找时间复杂度是**O(logn)**。
 
 BST节点的删除有三种情况：
 
@@ -543,11 +545,47 @@ Hash(key)  = key % p(p为质数且p<=bucket_count).
 
 如果使用二叉树，插入的数据越多，则树的深度越深，严重影响读取/查找的效率。既然二叉搜索树有效率问题，那么就用多叉搜索树，所以**B树就是一颗有序的多路查询树**。
 
+#### B树的性质
+
+1.   
+
+#### B树的查找
+
+
+
+#### B树的插入
+
+#### B树的删除
+
+
+
+#### B树的遍历
+
 
 
 ### B+树
 
+#### B+树的引入
 
+
+
+#### B树和B+树的区别？
+
+
+
+
+
+https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=b%E6%A0%91%20b%2B%E6%A0%91%20b-%E6%A0%91&fenlei=256&oq=sqlite%25E6%25BA%2590%25E7%25A0%2581&rsv_pq=d299f1e7000df3f5&rsv_t=93eey%2Bt3rNjDw0Sq3t5d0zo4sVDfodp6cUqnqhtjOIQJaItsLq2hQnSRVZA&rqlang=cn&rsv_enter=1&rsv_dl=tb&rsv_btype=t&inputT=3996484&rsv_sug3=52&rsv_sug1=28&rsv_sug7=100&sug=b%25E6%25A0%2591%25E5%2592%258Cb%252B%25E6%25A0%2591%25E6%259C%2589%25E4%25BB%2580%25E4%25B9%2588%25E5%258C%25BA%25E5%2588%25AB&rsv_n=1&rsv_sug2=0&rsv_sug4=3996484
+
+https://www.bilibili.com/read/cv14452970/
+
+http://www.360doc.com/content/12/0121/07/10087950_1041783142.shtml
+
+https://www.jianshu.com/p/db226e0196b4
+
+https://www.404bugs.com/details/912005690218565632
+
+https://leetcode.cn/circle/discuss/F7bKlM/view/9EqQqw/
 
 
 
