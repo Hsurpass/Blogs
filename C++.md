@@ -206,6 +206,38 @@ https://www.zhihu.com/question/520365632/answer/2377774855?utm_id=0
 sizeof("hello") == char str[] = {'h', 'e', 'l', 'l', 'o', '\0'}	// 6
 ```
 
+### 三目运算符
+
+在c++中对三目运算符的的提升：如果返回的时变量名可以作为左值使用。c语言中返回的是变量值，不能被赋值。
+
+c++：
+
+```c++
+int a = 10;
+int b = 20;
+    
+a < b ? a : b = 100;
+std::cout << "ret=" << a << std::endl;  // 10
+
+(a < b ? a : b) = 100;
+cout << "ret=" << a << endl;    // 100  C++返回的是变量本身，可以作为左值使用。
+```
+
+c：
+
+```c
+int a = 10;
+int b = 20;
+    
+// a < b ? a : b = 100;    // error C语言返回的是变量值, 不能作为左值
+printf("ret=%d\n", a);  
+
+// (a < b ? a : b) = 100;
+// printf("ret=%d\n", a);  // error C语言返回的是变量值, 不能作为左值
+```
+
+
+
 ## 强制类型转换
 
 reinterpret_cast：强制转换。
