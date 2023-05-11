@@ -134,3 +134,21 @@ const void* memchr (const void * ptr, int value, size_t num );
 ```
 
 
+
+## stdlib.h
+
+### calloc
+
+```c
+void* calloc (size_t num, size_t size);	// 自动分配num*size大小的的内存，并自动将内存清0
+```
+
+### realloc
+
+```c
+void* realloc (void* ptr, size_t size);	// 重新分配内存，且新分配的内存不会清0
+```
+
+1.   如果指定的地址后面**有连续的空间**，那么就会在已有地址基础上增加内存。
+2.   指定的地址后面**没有空间**，那么realloc会重新分配**新的连续内存**，把旧内存的值**拷贝**到新内存，同时**释放**旧内存。
+
