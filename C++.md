@@ -236,6 +236,46 @@ printf("ret=%d\n", a);
 // printf("ret=%d\n", a);  // error C语言返回的是变量值, 不能作为左值
 ```
 
+### 位域
+
+位域定义与结构定义相仿，其形式为：
+
+```c
+struct 位域结构名 
+{
+ 位域列表
+};
+```
+
+其中位域列表的形式为：
+
+```c
+type [member_name] : width ;
+```
+
+type：只能为int/unsigned int，short/unsigned sort，char/unsigned char
+
+member_name：位域的名称。**可以为空，称为无名位域，只能用来作填充或者调整位置，不能被使用**。
+
+width：位宽。
+
+**对member_name赋值时变量的长度不能超过位宽，超出则会发生溢出**。例如：
+
+```c
+struct A{
+	int a:3;
+}
+A a1;
+a1.a = 8; // 8的二进制位是0x1000，超出3位，发生溢出, 所以是0。 位宽是3只能表示0~7
+cout << a1.a << endl;	// 0
+```
+
+**不能对位域进行取地址(&)操作**，地址是字节的编号，不是位的编号。
+
+
+
+[C语言位域（位段）详解](http://c.biancheng.net/view/2037.html)
+
 
 
 ## 强制类型转换
