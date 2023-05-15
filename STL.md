@@ -315,7 +315,15 @@ list.merge(list1, Comp()); //对于自定义类型需要定义排序准则(仿�
 
 #### priority_queue:
 
-底层可以使vector, 算法为[二叉堆](Algorithm.md)。
+底层可以使vector，deque；**STL中不支持底层使用链式结构**。理论上是可以使用链表等链式结构，但是效率较低因为查找某个节点的父节点或者左右孩子节点时要遍历链表，而使用数组的话可以直接根据公式（n-1/2、2n+1、2n+2）进行索引。算法为[二叉堆](Algorithm.md)。不指定比较函数默认为大顶堆。
+
+```c++
+std::priority_queue<A> pa;   // default:大顶堆
+std::priority_queue<A, vector<A>, std::less<A>> pa; // 大顶堆
+std::priority_queue<A, vector<A>, std::greater<A>> pa;  // 小顶堆
+```
+
+
 
 首先按优先级的大小入队，如果优先级相等，则按其它的优先级进行入队。可以==支持多级优先级。==
 
