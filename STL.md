@@ -505,7 +505,7 @@ at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`
 ```c++
 size: 
 	// 容器中元素的个数
-count:	// 需要调用operator==
+count:	// 需要调用hash函数和operator==
     size_type count(const key_type& k) const;//返回key在容器中的数量。
 	// 对于unordered_map/unordered_set来说非1即0。	**内部有调用operator==()的操作。**
 clear:
