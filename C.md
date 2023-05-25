@@ -92,6 +92,29 @@ gcc -shared -fPIC -o libxx.so xx.o # 将.o打包成.so
 
 野指针：未初始化的指针被称为野指针。可能指向任意地址。
 
+### 二级指针
+
+作用：改变一级指针的指向。
+
+```c
+int a;
+int *p = &a;
+int b;
+int **pp = &p;
+*pp = &b;
+
+void func(int **p)
+{
+    *p = new int(9);
+}
+```
+
+二级指针和指针数据等价。
+
+
+
+
+
 ## stdarg.h
 
 ### 可变参函数
