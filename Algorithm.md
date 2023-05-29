@@ -795,11 +795,8 @@ DFS和BFS都可以解决迷宫问题。
 
 
 
+### kdtree
 
+[数据结构和算法——kd树](https://cloud.tencent.com/developer/article/1060801?areaSource=106005.14)
 
-## references:
-
-[数据结构与算法(CC++实现)视频教程](../wangguilin/-3.5- 数据结构与算法(CC++实现)视频教程)
-
-[数据结构与算法-王桂林-2nd .pdf](../wangguilin/-3.5- 数据结构与算法(CC++实现)视频教程/数据结构与算法-王桂林-2nd .pdf)
-
+https://wenku.baidu.com/view/48448930ac1ffc4ffe4733687e21af45b307fe89.html?_wkts_=1685234910235&bdQuery=kdtree%E6%9C%80%E8%BF%91%E9%82%BB%E7%AE%97%E6%B3%95
