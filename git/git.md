@@ -65,9 +65,29 @@
 
 ## 查看修改的地方
 
-`git diff`
+`git diff filename`
 
  `git diff HEAD -- readme.txt` 
+
+### git中换行符的问题
+
+`cat -A filename` 查看是否有^M。
+
+[Git in Visual studio code says file is modified even when there is no change](https://stackoverflow.com/questions/62724723/git-in-visual-studio-code-says-file-is-modified-even-when-there-is-no-change)
+
+[Visual Studio代码显示未修改的文件](https://cloud.tencent.com/developer/ask/sof/789932)
+
+git config --help
+
+[Customizing Git - Git Configuration](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration#:%7E:text=with%20these%20issues.-,core.autocrlf,-If%20you%E2%80%99re%20programming)
+
+[git 乱改你的换行符？一句话设置让 git 不再碰你某个文件的换行符](https://blog.csdn.net/WPwalter/article/details/107033210)
+
+[Git问题汇总](https://cloud.tencent.com/developer/article/1932878?from=15425&areaSource=102001.1&traceId=v4HjkkDlwNl_X6BZFFTCJ)
+
+
+
+
 
 ## 查看日志
 
@@ -117,6 +137,36 @@ eaadf4e385e865d25c48e7ca9c8395c3f7dfaef0 wrote a readme file
 `git reset –-hard head^` or `git reset —-hard commit Id` 
 
 head^ 代表上一个版本，head^^代表上上个版本，网上100个版本head~100。
+
+`git reset —-soft commit Id` ：撤销commit(本地仓库)，不撤销git add(暂存区)，不删除工作区文件(工作区)。
+
+`git reset —-mixed commit Id`(默认)： 撤销commit(本地仓库)，撤销git add(暂存区)，不删除工作区文件(工作区)。
+
+`git reset —-hard commit Id` ：撤销commit(本地仓库)，撤销git add(暂存区)，删除工作区文件(工作区)。
+
+### 撤销远程仓库的commit：
+
+https://blog.csdn.net/CRJ453027119/article/details/124726266
+
+https://zhuanlan.zhihu.com/p/65491310
+
+
+
+
+
+https://www.likecs.com/show-308205056.html
+
+https://geek-docs.com/vscode/vscode-tutorials/vscode-single-file-search.html
+
+https://blog.csdn.net/Empkin/article/details/84369755
+
+https://blog.csdn.net/solan8/article/details/100144080
+
+https://blog.csdn.net/stallion5632/article/details/129401119
+
+http://hk.javashuo.com/article/p-txwndmrj-gh.html
+
+
 
 ## 查看执行的每一次命令
 
