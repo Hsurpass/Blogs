@@ -307,7 +307,7 @@ install(DIRECTORY icons scripts/ DESTINATION share/myproj
 
 这条指令的执行结果是：
 
-将icons目录安装到<prefix>/share/myproj,将scripts/中的内容安装到<prefix>/share/myproj
+将icons目录安装到 `<prefix>/share/myproj`，将scripts/中的内容安装到 `<prefix>/share/myproj`
 
 **不包含目录名为CVS的目录**，对于scripts/*文件指定权限为OWNER_EXECUTE OWNER_WRITE WONER_READ GROUP_EXECUTE GROUP_READ.
 
