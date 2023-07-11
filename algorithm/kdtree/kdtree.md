@@ -65,3 +65,7 @@ kd树的搜索步骤如下：
 # reference
 
 https://zhuanlan.zhihu.com/p/529487972
+
+https://zhuanlan.zhihu.com/p/402555908
+
+https://blog.csdn.net/weixin_43834466/article/details/127621740
