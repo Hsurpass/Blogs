@@ -138,7 +138,7 @@ g++ main.cpp -I. -L. -lhello -o staticMain ## 静态库和动态库都存在时�
 g++ -fPIC -shared hello.cpp -I. -o libhello.so
 # 等价于
 g++ hello.cpp -I. -c -fPIC hello.o
-g++ -shared -o libhello.so hello.o
+g++ -shared -o libhello.so hello.o	# 如果想调试动态库要加 -g
 # PIC: positon independent code,不加fPIC编译出来的so,要再加载时根据加载到的位置再次重定位，导致无法共享。
 
 g++ main.cpp -I. -L. -lhello -o sharedMain
