@@ -36,6 +36,33 @@ cp a.txt /tmp/b.txt
 c++filt _Z5printIiJiEEvRKT_DpRKT0_	# 根据函数符号反推回函数
 ```
 
+
+
+# echo
+
+- -e：如果字符串中有转义字符，则输出转义后的结果。
+
+  ```bash
+  ~$ echo -e "abc\nsd"
+  abc
+  sd
+  ~$ echo "abc\nsd"
+  abc\nsd
+  ```
+
+- -n：不换行输出，字符串输出后不自动换行.
+
+  ```bash
+  hchy@DESKTOP-EI7DNUT:~$ echo -n "abc\nsd"
+  abc\nsdhchy@DESKTOP-EI7DNUT:~$
+  ```
+
+  
+
+
+
+
+
 # grep
 
 ## 参数
@@ -287,6 +314,24 @@ https://www.runoob.com/linux/linux-comm-netstat.html
 gcc -c test.c -o test.o
 objdump -t test.o	#查看二进制码
 ```
+
+
+
+# passwd
+
+修改密码
+
+# chpasswd
+
+批量修改密码
+
+```bash
+/bin/echo 'root:123456' | chpasswd
+```
+
+例如，要一次性更改用户user1、user2和user3的密码，可以使用以下命令：chpasswd < user_passwords.txt。其中，user_passwords.txt文件的内容格式如下：user1:password1、user2:password2、user3:password3。
+
+
 
 # pstack
 
