@@ -62,6 +62,22 @@ wsl --unregister <DistributionName> : 注销并卸载 WSL 发行版, 例如: wsl
 
 
 
+# wsl2安装docker
+
+
+
+https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers
+
+https://code.visualstudio.com/blogs/2020/03/02/docker-in-wsl2
+
+https://www.hanselman.com/blog/how-to-set-up-docker-within-windows-system-for-linux-wsl2-on-windows-10
+
+https://docs.docker.com/desktop/wsl/
+
+
+
+
+
 
 
 wsl2 ping不通 宿主机：
