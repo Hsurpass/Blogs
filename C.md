@@ -45,7 +45,7 @@
 3. 模 -（负数）
 
 ```bash
-# 8为二进制的模是256(2^8)， 256-5 = 251 -->1111 1011
+# 8位二进制的模是256(2^8)， 256-5 = 251 -->1111 1011
 ```
 
 
@@ -67,7 +67,7 @@
 ```bash
 g++ -E hello.cpp -o hello.i
 g++ -S hello.cpp -o hello.s
-g++ -C hello.cpp -o hello.o
+g++ -c hello.cpp -o hello.o
 g++ hello.o -o hello
 ```
 
@@ -110,9 +110,7 @@ void func(int **p)
 }
 ```
 
-二级指针和指针数据等价。
-
-
+二级指针和指针数组等价。
 
 
 
