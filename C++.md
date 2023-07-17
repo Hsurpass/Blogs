@@ -138,7 +138,7 @@ int* p2 = new(buffer + 10*sizeof(double)) int[10];// 在p1后面又创建了10�
 
 如果一个子线程在初始化局部静态实例时被主线程detach了，可能会出现一些问题。
 
-首先，**当主线程退出时，所有未join或detach的子线程都将被强制终止。**这意味着，如果主线程在子线程完成局部静态实例初始化之前就退出了，那么该子线程可能会被强制终止，导致局部静态实例未能完成初始化。
+首先，**当主线程退出时，所有未join或detach的子线程都将被强制终止。** 这意味着，如果主线程在子线程完成局部静态实例初始化之前就退出了，那么该子线程可能会被强制终止，导致局部静态实例未能完成初始化。
 
 其次，如果主线程detach了子线程，那么主线程将无法再控制该子线程的运行。这意味着，子线程可能会在局部静态实例初始化完成之前就被主线程强制终止，导致该实例未能完成初始化。
 
@@ -218,7 +218,7 @@ void *func(void *, int, size_t);
 1. 引用定义时必须初始化，指针在定义时可以为NULL；
 2. 引用初始化完成后不能改变其指向，指针可以改变。
 
-引用也不是完全不能改变指向的，**类内的引用可以改变指向**，类内的引用被c++编译器编译为指针。[reference.cpp]([ElegantTest/reference.cpp at main · Hsurpass/ElegantTest · GitHub](https://github.com/Hsurpass/ElegantTest/blob/main/test_cpp/reference/reference.cpp))
+引用也不是完全不能改变指向的，**类内的引用可以改变指向**，类内的引用被c++编译器编译为指针。[reference.cpp](https://github.com/Hsurpass/ElegantTest/blob/main/test_cpp/reference/reference.cpp)
 
 https://www.zhihu.com/question/520365632/answer/2377774855?utm_id=0
 
@@ -226,7 +226,7 @@ https://www.zhihu.com/question/520365632/answer/2377774855?utm_id=0
 
 返回包含操作数数据类型信息的 type_info 对象的一个引用，信息中包括数据类型的名称，要使用 typeid，程序中需要包含头文件<typeinfo>。==type_info 的拷贝和赋值均是私有的，故不可拷贝和赋值。==
 
-==如果想通过基类的指针获得派生类的数据类型，==基类必须带有虚函数
+==如果想通过基类的指针获得派生类的数据类型==， **基类必须带有虚函数**。
 
 ### sizeof
 
@@ -238,7 +238,7 @@ sizeof("hello") == char str[] = {'h', 'e', 'l', 'l', 'o', '\0'}	// 6
 
 ### 三目运算符
 
-在c++中对三目运算符的的提升：如果返回的时变量名可以作为左值使用。c语言中返回的是变量值，不能被赋值。
+在c++中对三目运算符的的提升：如果返回的是变量名可以作为左值使用。c语言中返回的是变量值，不能被赋值。
 
 c++：
 
@@ -302,8 +302,6 @@ cout << a1.a << endl;	// 0
 
 **不能对位域进行取地址(&)操作**，地址是字节的编号，不是位的编号。
 
-
-
 [C语言位域（位段）详解](http://c.biancheng.net/view/2037.html)
 
 
@@ -316,7 +314,7 @@ const_cast：去除 const、volatile 等特性。
 
 static_cast：基础数据的转换，不执行运行时类型检查。
 
-dynamic_cast：下转。如果父类的指针确实指向子类则返回子类的指针，否则返回NULL；如果父类的引用确实指向子类则返回子类的引用否则抛出`std::bad_cast`异常。==使用dynamic_cast必须要有虚函数==。
+dynamic_cast：下转。如果父类的指针确实指向子类则返回子类的指针，否则返回NULL；如果父类的引用确实指向子类则返回子类的引用，否则抛出`std::bad_cast`异常。==使用dynamic_cast必须要有虚函数==。
 
 
 
@@ -427,7 +425,7 @@ A<6> a;  or  A<6>* pa = new A<6>(); delete pa;
 
 子类使用父类的友元函数：
 
-​	由于友元函数不能继承，但是子类又想使用父类的友元函数，==可以通过强制类型转换，将子类的指针或引用强转为父类的指针或引用（赋值兼容），==然后再去调用父类中的友元函数。
+​	由于友元函数不能继承，但是子类又想使用父类的友元函数，==可以通过强制类型转换，将子类的指针或引用强转为父类的指针或引用（**赋值兼容**），==然后再去调用父类中的友元函数。
 
 
 
@@ -557,7 +555,7 @@ public:
 	void func() { cout << "A::func()" << endl; }
 }
 class B : public A{
- void func() { cout << "B::func()" << endl; }
+	void func() { cout << "B::func()" << endl; }
 }
 
 B b;
@@ -633,7 +631,7 @@ Base和A，B，C可以有同名的变量和同名的普通成员函数。
 
 ### 多态
 
-**静态多态**：函数重载，在编译器就能确定。
+**静态多态**：函数重载，在编译期就能确定。
 
 **动态多态**：由虚函数和继承实现，在运行期执行动态绑定。
 
@@ -729,7 +727,7 @@ void func(int, double);	// 函数指针
 
 template<typename T>
 void f(T& param);
-f(x);	//T推导为int,		所以param的类型为int&
+f(x);	//T推导为int, 所以param的类型为int&
 f(cx);	//T推导为const int, 所以param的类型为const int&
 f(rx);	//T推导为const int, 所以param的类型为const int&
 f(name);//T推导为const char[5]
@@ -791,7 +789,7 @@ f(func);//T推导为函数的指针，即：void(*)(int, double);
 
 ### 泛化
 
-泛化其实就是**泛型化（通用化）**的意思，其实就是定义类模板/函数模板时候的代码格式。
+泛化其实就是 **泛型化（通用化）** 的意思，其实就是定义类模板/函数模板时候的代码格式。
 
 ```c++
 template<typename T>
@@ -832,7 +830,7 @@ public:
 template<>	// 全特化的类
 class Compare<const char*>{
 public:
-	Compare(const char* x, const char* y){}
+    Compare(const char* x, const char* y){}
     const char *max();
 };
 const char* Compare<const char *>::max() {}	//类外实现成员函数需要加Compare<const char *>::
@@ -928,7 +926,7 @@ sizeof...(U) //类型参数的个数
 sizeof...(args) //函数参数的个数
 func(std::forward<ARGS>(args)...) //既扩展了类型包U, 也扩展了参数包args, 形如:std::forward<Ti>(ti),Ti表示类型包中第i个参数的类型，ti表示参数包中第i个元素。
 //参数包args中的每个元素依次调用std::forward(), 则展开后就是：func(std:forward<int>(a), std::forward<double>(b), std::forward<string>(c))。std::forward保证参数原类型不变。    
-func_(args...) //这么调用表式传递的是参数包，则func_函数声明应为：
+func_(args...) //这么调用表示传递的是参数包，则func_函数声明应为：
     template<typename T> func_(const T&... args) 或者 func_(const T&&... args)
 ```
 
