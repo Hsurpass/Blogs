@@ -1,3 +1,4 @@
+```yaml
 ---
 # 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
 Language: Cpp
@@ -194,3 +195,4 @@ Standard: Cpp11
 TabWidth: 4
 # 使用tab字符: Never, ForIndentation, ForContinuationAndIndentation, Always
 UseTab: Never
+```
