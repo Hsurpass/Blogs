@@ -172,7 +172,7 @@ va.emplace_back(A(8));   // 因为传入的是A类型的右值参数，所以会
 
 删除元素会使元素前移，造成迭代器失效，**使用erase返回的迭代器进行下一轮的循环。**
 
-v.erase(iter++)，iter++操作会在删除前使iter指向下一个位置，删除完后面的数据会向前面移动一个位置，所以iter实际指向的已经不是所期望的内容了。
+**v.erase(iter++)**，iter++操作会在删除前使iter指向下一个位置，删除完后面的数据会向前面移动一个位置，所以iter实际指向的已经不是所期望的内容了。
 
 ==还要考虑erase的是最后一个元素的情况。erase完最后一个元素返回的itr指向end()，再++就变成野指针了。==
 
@@ -248,7 +248,7 @@ for (auto itr = v.begin(); itr != v.end(); ++itr) {
      }
 }
 // 方法二：++itr写在循环体中
- auto itr = v.begin();
+auto itr = v.begin();
 while(itr != v.end()) {
 	if (itr->print() == 5) { tr = v.erase(itr); }
     else { ++itr; }
@@ -270,11 +270,13 @@ forward_list同list。
 
 自带sort，自定义类型重载operator<。
 
-为什么list不能使用std::sort？std::sort随机访问迭代器才能使用。
+###### 为什么list不能使用std::sort？
+
+std::sort随机访问迭代器才能使用。
 
 ##### remove
 
-std:remove是覆盖值，list.remove是改变指针指向, 就直接删除了，不用erase+remove这个操作了。
+std:remove是覆盖值，list.remove是改变指针指向，就直接删除了，不用erase+remove这个操作了。
 
 ##### reverse
 
@@ -285,6 +287,14 @@ std:remove是覆盖值，list.remove是改变指针指向, 就直接删除了，
 删除==连续相等==的元素中，除第一个以外的其他元素。所以经常的使用方式是：先排序，再去重。
 
 ##### splice
+
+```c++
+entire list (1)	    void splice (iterator position, list& x);
+single element (2)	void splice (iterator position, list& x, iterator i);
+element range (3)	void splice (iterator position, list& x, iterator first, iterator last);
+```
+
+
 
 链表拼接，将一个链表拼接到另一个链表上。拼接完成后另一个链表被清空，如果是从中间截取的一段则保留剩余部分。
 
@@ -306,11 +316,11 @@ list.merge(list1, Comp()); //对于自定义类型需要定义排序准则(仿�
 
 #### stack
 
-容器适配器，底层结构可以选用vector,deque, list 
+容器适配器，底层结构可以选用vector，deque，list。
 
 #### queue
 
-容器适配器，底层结构可以选用deque, list. 不能选用vector，原因是==vector没有pop_back==
+容器适配器，底层结构可以选用deque，list。不能选用vector，原因是==vector没有pop_back==。
 
 #### priority_queue:
 
@@ -329,12 +339,14 @@ std::priority_queue<A, vector<A>, std::greater<A>> pa;  // 小顶堆
 ```c++
 class Cmp {
 public:
-	bool operator()(const Node &na, const Node &nb){
-		if (na.priority != nb.priority)		return na.priority > nb.priority;
-		else	return strcmp(na.szName, nb.szName) < 0;
+	bool operator()(const Node &na, const Node &nb) {
+		if (na.priority != nb.priority)    return na.priority > nb.priority;
+		else    return strcmp(na.szName, nb.szName) < 0;
 	}
 };
 ```
+
+
 
 ```c++
 void make_heap(first_pointer,end_pointer,compare_function);	// 建堆 默认是大根堆  包含节点下沉的过程。
@@ -365,7 +377,7 @@ void sort_heap(first_pointer,end_pointer,compare_function);	// 堆排序。内�
 
 ##### lower_bound
 
-lower_bound(x): 返回第一个大于等于x的位置。换句话说，lower_bound返回的是==不破坏排序得以安插x的第一个位置。==
+lower_bound(x)：返回第一个大于等于x的位置。换句话说，lower_bound返回的是==不破坏排序得以安插x的第一个位置。==
 
 ##### upper_bound
 
@@ -373,7 +385,7 @@ upper_bound(x)：返回第一个大于x的位置。
 
 ##### equal_range
 
-equal_range(x)：查找x的lower_bound到upper_bound的范围。 ==如果lower_bound和upper_bound相等说明容器中没有这个key。==
+equal_range(x)：查找x的 lower_bound 到 upper_bound 的范围。 ==如果lower_bound和upper_bound相等说明容器中没有这个key。==
 
 ##### insert
 
@@ -381,7 +393,7 @@ equal_range(x)：查找x的lower_bound到upper_bound的范围。 ==如果lower_b
 for (set<A>::iterator itr = sa.begin(); itr != sa.end(); ++itr)
 { // pair<iterator,bool> insert(value_type& val); 如果插入成功，第一个值返回插入新元素的迭代器，第二个值返回true。							// 如果插入失败，第一个值返回已插入元素(val)的迭代器，第二个值返回false。
 #if 0 							
-	// auto r = sa.emplace(3);
+    // auto r = sa.emplace(3);
     // auto r = sa.insert(3);
     auto r = sa.insert(4);  //推荐使用
     cout << r.first->geta() << ", " << r.second << endl; 
@@ -417,7 +429,7 @@ itr = v.erase(itr); //correct	C++11
 v.erase(itr++); // correct ++指向了下一节点
 ```
 
-如果插入和删除操作导致了树不平衡，则会进行自平衡操作。
+**如果插入和删除操作导致了树不平衡，则会进行自平衡操作。**
 
 ==在循环中， 还要考虑删除最后一个元素返回值是end, 再++变成野指针的问题：==
 
@@ -455,7 +467,7 @@ while(itr != v.end()) {
 #### set
 
 
-set/multiset: key就是value, value就是key.
+set/multiset：key就是value, value就是key。
 
 #### map
 
