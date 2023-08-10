@@ -158,6 +158,8 @@ deque，string，array迭代器失效情况同vector。
 
 ##### emplace/emplace_back:
 
+`push_back`用于将元素的副本添加到`vector`末尾，而`emplace_back`用于在`vector`末尾**直接构造元素**。
+
 ```c++
 emplace_back(5);  //直接调用构造, 省去了一次拷贝, 传入的参数必须和构造函数的类型相匹配。 
 				//当容器超过容量capacity后，vector重新分配内存，还是会发生拷贝。
@@ -515,7 +517,7 @@ at: 返回key所对应value值的引用，如果没找到则抛出`out_of_range`
 
 ```c++
 size: 
-	// 容器中元素的个数
+	// 容器中元素的个数.	unordered_map/unordered_multimap中的size和元素的插入次数相等，即使插入multimap中元素的k/v都相同。
 count:	// 需要调用hash函数和operator==
     size_type count(const key_type& k) const;//返回key在容器中的数量。
 	// 对于unordered_map/unordered_set来说非1即0。	**内部有调用operator==()的操作。**
