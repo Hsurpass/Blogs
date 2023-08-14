@@ -13,7 +13,7 @@ make
 
 linux:
 
-```cmake
+```bash
 mkdir build && cd build && cmake .. && make (同cmake --build . )
 
 or
@@ -35,7 +35,9 @@ cmake --build build --config Release  #生成可执行文件
 
 ### 构建时传递参数
 
-```cmake
+#### -DCMAKE_BUILD_TYPE
+
+```bash
 cmake -DCMAKE_BUILD_TYPE=Debug
 ```
 
@@ -43,7 +45,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug
 
 ## 设置编译选项
 
-```cmake
+```bash
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
@@ -79,17 +81,15 @@ add_library(<name> [STATIC | SHARED | MODULE]
 
 类型有三种：
 
-SHARED,动态库
+-   SHARED：动态库
+-   STATIC：静态库
+-   MODULE：在使用dyld的系统有效，如果不支持dyld，则被当做SHARED对待。
 
-STATIC,静态库
-
-MODULE，在使用dyld的系统有效，如果不支持dyld，则被当做SHARED对待。
-
-EXCLUDE_FROM_ALL参数的意思是这个不会被默认构建，除非有其他的组件依赖或者手工构建。
+EXCLUDE_FROM_ALL：这个参数的意思是这个不会被默认构建，除非有其他的组件依赖或者手工构建。
 
 ##### BUILD_SHARED_LIBS
 
-这个开关用来控制默认的库编译方式，如果不进行设置，使用ADD_LIBRARY并没有指定库类型的情况下，默认编译生成的库都是静态库。
+这个开关用来控制默认的库编译方式，如果不进行设置，使用`ADD_LIBRARY`并没有指定库类型的情况下，默认编译生成的库都是静态库。
 
 ```cmake
 SET(BUILD_SHARED_LIBS ON)	# 默认生成的为动态库。
@@ -137,12 +137,12 @@ add_library(hello SHARED hello.c)
 ### 同时构建动态库和静态库
 
 ```cmake
-// 如果⽤这种⽅式，只会构建⼀个动态库，不会构建出静态库，虽然静态库的后缀是.a
-// 因为使用了这个语句，hello作为target是不能重名的。所以会造成静态库的构建指令无效。
+# 如果⽤这种⽅式，只会构建⼀个动态库，不会构建出静态库，虽然静态库的后缀是.a
+# 因为使用了这个语句，hello作为target是不能重名的。所以会造成静态库的构建指令无效。
 ADD_LIBRARY(hello SHARED ${LIBHELLO_SRC})
 ADD_LIBRARY(hello STATIC ${LIBHELLO_SRC})
 
-// 修改静态库的名字，这样是可以的，但是我们往往希望他们的名字是相同的，只是后缀不同⽽已
+# 修改静态库的名字，这样是可以的，但是我们往往希望他们的名字是相同的，只是后缀不同⽽已
 ADD_LIBRARY(hello SHARED ${LIBHELLO_SRC})
 ADD_LIBRARY(hello_static STATIC ${LIBHELLO_SRC})
 ```
@@ -150,7 +150,7 @@ ADD_LIBRARY(hello_static STATIC ${LIBHELLO_SRC})
 所以使用SET_TARGET_PROPERTIES添加一条：
 
 ```cmake
-//对hello_static的重名为hello
+# 对hello_static的重名为hello
 SET_TARGET_PROPERTIES(hello_static PROPERTIES OUTPUT_NAME "hello")
 ```
 
@@ -161,7 +161,9 @@ GET_TARGET_PROPERTY(OUTPUT_VALUE hello_static OUTPUT_NAME)
 MESSAGE(STATUS "This is the hello_static OUTPUT_NAME:"${OUTPUT_VALUE})
 ```
 
-如果没有这个属性则会返回**NOTFOUND**.而使用以上的例子会出现一个问题，那就是会发现libhello.a存在，但是libhello.so会消失，因为cmake在构建一个新的target时，会尝试清理掉其他使用这个名字的库。解决方案如下：
+如果没有这个属性则会返回**NOTFOUND**。
+
+而使用以上的例子会出现一个问题，那就是会发现libhello.a存在，但是libhello.so会消失，因为cmake在构建一个新的target时，会尝试清理掉其他使用这个名字的库。解决方案如下：
 
 向CMakeLists.txt中添加：
 
@@ -175,11 +177,11 @@ SET_TARGET_PROPERTIES(hello_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 ```cmake
 SET(LIBHELLO_SRC hello.cpp)
 ADD_LIBRARY(hello_static STATIC ${LIBHELLO_SRC})
-//对hello_static的重名为hello
+# 对hello_static的重名为hello
 SET_TARGET_PROPERTIES(hello_static PROPERTIES OUTPUT_NAME "hello")
 
-//cmake 在构建⼀个新的target 时，会尝试清理掉其他使⽤这个名字的库，因为，在构建 libhello.so 时， 就
-会清理掉 libhello.a
+# cmake 在构建⼀个新的target 时，会尝试清理掉其他使⽤这个名字的库，所以，在构建 libhello.so 时， 就
+# 会清理掉 libhello.a
 SET_TARGET_PROPERTIES(hello_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
 ADD_LIBRARY(hello SHARED ${LIBHELLO_SRC})
@@ -603,6 +605,18 @@ Now we use our own Math library.
 
 
 
+## 自定义cmake module
+
+
+
+
+
+[【cmake篇】自定义cmake模块（自定义Findxxx.cmake并搭配 find_package 调用）_仲夏夜之梦~的博客-CSDN博客](https://blog.csdn.net/challenglistic/article/details/130172854)
+
+
+
+
+
 ## CMAKE基础
 
 ### 1. 语法特性介绍
@@ -794,15 +808,118 @@ aux_source_directory(<dir> <variable>)
 
 ##### find_package()
 
+尖括号代表必填内容，中括号里的内容代表选择性填写内容。
+
+```cmake
+find_package(<PackageName> [version]     # 指定要查找的库或者模块（版本号可选）
+             [EXACT]     # 要求version完全匹配
+             [QUIET]     # 无论找到与否，都不产生任何提示性消息
+             [REQUIRED]  # 要求必须找到 xxx.cmake，找不到就提示报错
+             [[COMPONENTS] [components...]]  
+             [OPTIONAL_COMPONENTS [components...]] 
+             [MODULE]           # 仅使用模块模式
+             [CONFIG|NO_MODULE] # 仅使用配置模式（两种写法是等效的）
+             [GLOBAL]
+             [NO_POLICY_SCOPE]
+             [BYPASS_PROVIDER]
+)
+```
+
+-   [[COMPONENTS] [components...]]：查找 Package 中的指定模块，COMPONENTS 跟的是一个列表，只要列表中任意一个模块没有被找到，则认为整个 Package 没有被找到，即 **<PackageName>_FOUND** 为 false。（如果存在REQUIRED选项，则可以省略COMPONENTS关键字）
+
+    ```cmake
+    # 如果opencv_core、opencv_highgui任意一者没有被找到
+    # 则认为 OpenCV 库没有找到
+    # 即 OpenCV_FOUND 为false
+    find_package(OpenCV COMPONENTS opencv_core opencv_highgui)
+    ```
+
+-   [OPTIONAL_COMPONENTS [components...]]：OPTIONAL_COMPONENTS 跟的也是一个列表，只要列表中的某一项被找到了，就认为是找到了，即 **<PackageName>_FOUND** 为 true。
+
+    ```cmake
+    # 即便是没找到 opencv_xxx，但是找到了opencv_core 
+    # 则认为 OpenCV 库已被找到
+    # 即 OpenCV_FOUND 为true
+    find_package(OpenCV COMPONENTS opencv_core opencv_highgui opencv_xxx)
+    ```
+
+-   
+
+
+
 
 
 ##### find_library()
+
+find_library 一般直接去查找依赖库文件，和find_package 不一样，find_package 找的是 .cmake 文件，而find_library 直接找 .so 或者 .a 文件。
+
+和 find_path 一样，命令的执行结果会默认缓存到 CMakeCache.txt 中。
+
+```cmake
+find_library (
+          <LIBRARY_NAME>
+          NAMES name1 [name2 ...] 
+          [NAMES_PER_DIR]
+          [HINTS [path | ENV var]... ]
+          [PATHS [path | ENV var]... ]
+          [NO_CACHE]
+          [REQUIRED]
+)
+```
+
+-   NAMES：库名。允许**两种**形式：前缀+库名+后缀、只有库名。
+-   NAMES_PER_DIR：表示一个名称遍历查找一次。而不是在某个路径下，查看是否存在多个库
+
+**执行结果：**
+
+​    查找成功时，会向变量<LIBRARY_NAME>中添加成功找到头文件的库文件（包含完整路径），如果在某个路径下查找多个头文件，只要查找到多个头文件中的某一个，也算执行成功。
+
+**注意**：
+
+​     虽然HINTS / PATHS后面可以跟多条路径，但是每次只会向变量中<VAR>添加一个目录，那就是成功找到头文件的目录。
+
+
+
+
 
 ###### CMAKE_LIBRARY_PATH
 
 
 
 ##### find_path()
+
+find_path 一般用于在某个目录下查找一个或者多个头文件，命令的执行结果会保存到 <VAR> 中。同时命令的执行结果也会默认缓存到 CMakeCache.txt 中。
+
+```cmake
+find_path (
+          <VAR>
+          NAMES name1 [name2 ...] 
+          [HINTS [path | ENV var]... ]
+          [PATHS [path | ENV var]... ]
+          [NO_CACHE]
+          [REQUIRED]
+)
+```
+
+-   <VAR>：用于保存命令的执行结果
+-   NAMES：要查找的头文件
+-   HINTS | PATHS
+
+    -   HINTS：先搜索指定路径，后搜索系统路径
+    -   PATHS：先搜索系统路径，后搜索
+
+-   NO_CACHE：搜索结果将存储在普通变量中而不是缓存条目（即CMakeCache.txt）中
+-   REQUIRED：如果没有找到指定头文件，就出发错误提示，变量会设为 <VAR>-NOTFOUND
+
+**执行结果**：
+
+查找成功时，会向变量<VAR>中添加成功找到头文件的目录，如果在某个路径下查找多个头文件，只要查找到多个头文件中的**某一个**，也算执行成功。
+
+**注意**：
+
+虽然HINTS / PATHS后面可以跟多条路径，但是每次只会向变量中<VAR>添加**一个**目录，那就是成功找到头文件的目录。
+
+
 
 ###### CMAKE_INCLUDE_PATH
 
@@ -813,6 +930,20 @@ aux_source_directory(<dir> <variable>)
 
 
 ##### FIND_PROGRAM
+
+find_program 一般用于查找指定名称的可执行文件。类似于find_path、find_library.
+
+```cmake
+find_program (
+          <VAR>
+          name | NAMES name1 [name2 ...] 
+          [NAMES_PER_DIR]
+          [HINTS [path | ENV var]... ]
+          [PATHS [path | ENV var]... ]
+          [NO_CACHE]
+          [REQUIRED]
+)
+```
 
 
 
