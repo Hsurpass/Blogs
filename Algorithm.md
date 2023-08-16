@@ -80,9 +80,6 @@
       - [Astar](#astar)
     - [HMM](#hmm)
     - [DBSCAN](#dbscan)
-  - [references:](#references)
-
-
 
 
 # Algorithm
