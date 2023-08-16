@@ -96,8 +96,10 @@ kd树的搜索步骤如下：
 
 # reference
 
-https://zhuanlan.zhihu.com/p/529487972
+[数据结构专题(一) | kd-tree 原理深入理解【看这一篇就够了】](https://zhuanlan.zhihu.com/p/529487972)
 
-https://zhuanlan.zhihu.com/p/402555908
+[欧式聚类（KD-Tree）详解，保姆级教程](https://zhuanlan.zhihu.com/p/402555908)
 
-https://blog.csdn.net/weixin_43834466/article/details/127621740
+[KD-Tree算法]([KD-Tree算法_kd tree_夕阳下江堤上的男孩的(https://blog.csdn.net/YE1215172385/article/details/80214776))
+
+[数据结构和算法——kd树-腾讯云开发者社区-腾讯云 (tencent.com)](https://cloud.tencent.com/developer/article/1060801?areaSource=106005.14)
