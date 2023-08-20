@@ -2,7 +2,7 @@
 
 查看长期支持版：
 
-
+https://wiki.qt.io/Main
 
 download:
 
