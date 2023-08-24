@@ -388,6 +388,10 @@ struct test
 
 5. 抛异常，栈解旋。
 
+#### 检测内存泄漏
+
+https://www.zhihu.com/question/29859828/answer/46024313
+
 
 
 ### 内存碎片
