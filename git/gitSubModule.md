@@ -52,6 +52,16 @@ git submodule update --init #将上面两部合成一步
 git submodule update --init --recursive	# 如果子模块还有嵌套子模块，加上--recursive
 ```
 
+如果想只更新某个子模块，可以这样写：
+
+```bash
+git submodule update --progress --init -- "third_party/benchmark"		# "third_party/benchmark" 指的是子模块名，子模块名在.gitmodules 文件中可以查到
+```
+
+
+
+
+
 ## 方法二
 
 ```bash
