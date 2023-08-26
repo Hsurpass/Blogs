@@ -25,6 +25,7 @@
       - [.本地库的内容推送到远程库](#本地库的内容推送到远程库)
     - [.删除远程仓库](#删除远程仓库)
 
+取消ssl验证：git config --global http.sslVerify false
 
 ## 设置name和email
 
