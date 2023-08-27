@@ -1,12 +1,21 @@
 # 安装grpc
 
+
+
+## linux 安装 grpc
+
 1. clone grpc 仓库
 
    ```bash
    git clone git@github.com:grpc/grpc.git
    cd grpc
-git submodule update --init or git submodule update --init --recursive
+   ./set_url.sh
+   git submodule update --init or git submodule update --init --recursive
+   
+   
    ```
+
+   [set_url.sh](./set_url.sh)
 
 2. 安装依赖
 
@@ -26,7 +35,7 @@ git submodule update --init or git submodule update --init --recursive
      mkdir build && cd build
      cmake ..
      make -j4
-     make install
+     sudo make install
      ```
 
      
@@ -34,7 +43,7 @@ git submodule update --init or git submodule update --init --recursive
 3. 编译
 
    ```bash
-   cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=../_install ..
+   cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=../_install ..	# 默认生成是静态库，如果想要生成动态库：-DBUILD_SHARED_LIBS=ON
    make -j 4
    make install
    ```
@@ -61,22 +70,34 @@ cmake 编译错误：
      CMakeLists.txt:332 (include)
    ```
 
-   解决：可能之前装的pb版本不对，要以来thirty_party中的pb。
+   解决：可能之前装的pb版本不对，要依赖thirty_party中的pb。
 
    
    
 3. ```cmake
-   CMake Warning at cmake/ssl.cmake:55 (message):
-     gRPC_SSL_PROVIDER is "module" but BORINGSSL_ROOT_DIR is wrong
-   Call Stack (most recent call first):
-     CMakeLists.txt:334 (include)
+   CMake Warning at third_party/abseil-cpp/CMakeLists.txt:72 (message):
+     A future Abseil release will default ABSL_PROPAGATE_CXX_STD to ON for CMake
+     3.8 and up.  We recommend enabling this option to ensure your project still
+     builds correctly.
    ```
 
+   解决：cmakeLists.txt中添加
+
+   ```cmake
+set(ABSL_PROPAGATE_CXX_STD ON)
+   ```
+   
+   这个警告可以忽略。
+   
+   
    
 
-   
+## windows 安装 grpc
 
-   
+1. clone grpc
+2. 
+
+
 
 https://grpc.io/docs/languages/cpp/quickstart/
 
