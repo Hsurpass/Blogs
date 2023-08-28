@@ -1,7 +1,5 @@
 # 安装grpc
 
-
-
 ## linux 安装 grpc
 
 1. clone grpc 仓库
@@ -94,8 +92,46 @@ set(ABSL_PROPAGATE_CXX_STD ON)
 
 ## windows 安装 grpc
 
+安装git、cmake、go。
+
 1. clone grpc
-2. 
+
+2. ```bash
+   打开cmd
+   cd grpc
+   md _build_vs2019\Release or md _build_vs2019\Debug
+   cd _build_vs2019\Release 	
+   cmake ../../ -G "Visual Studio 16 2019" -DCMAKE_INSTALL_PREFIX=../../_install_vs2019/Release
+   cmake --build . --config Release
+   cmake --install .
+   ```
+
+3. compile problem
+
+   1. 
+
+   ```bash
+   fatal error C1083: 无法打开包括文件: “stdalign.h”: No such file or directory
+   ```
+   解决：【项目】->【属性】->选择widnows sdk 版本到最新安装的版本。 还是报错？？？
+
+   <img src="image/image-20230827232515131.png" alt="image-20230827232515131" style="zoom: 80%;" />
+
+   
+   
+   2. 
+
+
+
+## 跨平台编译
+
+https://github.com/grpc/grpc/blob/master/BUILDING.md#cross-compiling
+
+
+
+
+
+
 
 
 
@@ -109,18 +145,15 @@ https://blog.csdn.net/Aidam_Bo/article/details/114845688?utm_medium=distribute.p
 
 https://blog.csdn.net/cucgyfjklx/article/details/122618536
 
-https://www.baidu.com/s?wd=CMake%20Warning%20at%20cmake%2Fssl.cmake%3A55%20(message)%3A%20%20%20gRPC_SSL_PROVIDER%20is%20%22module%22%20but%20BORINGSSL_ROOT_DI&rsv_spt=1&rsv_iqid=0xaeedac450006f0f7&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=cn&tn=baiduhome_pg&rsv_dl=tb&rsv_enter=1&oq=--%2520%2526lt%253Bhecking%2520for%2520module%2520%2526%252339%253Blibsystemd%2526gt%253B%253D2%2526lt%253B%2526lt%253B%2526%252339%253B%2520--%2520No%2520package%2520%2526%252339%253Blibsystemd%2526%252339%253B%2520found&rsv_btype=t&inputT=561&rsv_t=871d78CPcNGcCL51Nda1SAGtXYlF6bJGJpVC7%2BIocNYQbiE5cUeD17JJwCDqMTWCQAyt&rsv_pq=bdec3c6500078605&rsv_sug3=5&rsv_n=2&rsv_sug2=0&rsv_sug4=561
-
 https://blog.csdn.net/manageruser/article/details/126736076
 
 https://www.likecs.com/show-305683643.html
 
-https://zhuanlan.zhihu.com/p/113291650
 
-https://blog.csdn.net/manageruser/article/details/126736076
 
 # reference
 
 https://grpc.io/
 
 https://github.com/grpc/grpc
+
