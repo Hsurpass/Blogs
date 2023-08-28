@@ -34,6 +34,7 @@
 `git config --global user.email "your email"`
 
 ## 查看name 和 email
+
 `git config --global --list (-l)`
 
 `git config --local -l`
@@ -283,7 +284,7 @@ git remote add origin git@github.com:XXXX/XXX.git
 
 ![delete remote repository](image/delete remote repository.png)
 
-
+# problem
 
 ## windows下git换行符LF与CRLF
 
@@ -316,3 +317,19 @@ git config --global core.autocrlf false
 git config --global core.safecrlf true
 ```
 
+## send disconnect: Connection reset by peer send-pack
+
+```
+client_loop: send disconnect: Connection reset by peer
+send-pack: unexpected disconnect while reading sideband packet
+fatal: sha1 file '<stdout>' write error: Broken pipe
+fatal: the remote end hung up unexpectedly
+```
+
+解决：
+
+```bash
+git config --global http.postBuffer 524288000
+```
+
+如果不行就是服务那边做了大小限制。
