@@ -1,5 +1,11 @@
 
 
+
+
+qtquickexamples
+
+
+
 查看长期支持版：
 
 https://wiki.qt.io/Main
@@ -23,3 +29,11 @@ docs:
 https://doc.qt.io/
 
 http://c.biancheng.net/view/3851.html
+
+
+
+
+
+https://github.com/masterchen/Qt-Open-Source-Project
+
+https://www.qgis.org/en/site/about/index.html
