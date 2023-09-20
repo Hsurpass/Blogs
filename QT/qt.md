@@ -37,3 +37,13 @@ http://c.biancheng.net/view/3851.html
 https://github.com/masterchen/Qt-Open-Source-Project
 
 https://www.qgis.org/en/site/about/index.html
+
+
+
+
+
+cmake 构建 ：
+
+https://blog.csdn.net/CUBE_lotus/article/details/128507180
+
+https://blog.csdn.net/pointerz_zyz/article/details/129781963
