@@ -46,6 +46,10 @@ cmake -DCMAKE_BUILD_TYPE=Debug
 
 
 
+#### -D ALL_BUILD=OFF -DZERO_CHECK=OFF
+
+windows下禁止生成ALL_BUILD和ZERO_CHECK，没作用。
+
 
 
 ## 设置编译选项
@@ -54,6 +58,8 @@ cmake -DCMAKE_BUILD_TYPE=Debug
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")	# visual studio 设置链接动态库还是静态库/MT /MD /MTD /MDD
 ```
 
 
@@ -1076,7 +1082,7 @@ set(CMAKE_CXX_EXTENSIONS OFF
 
 ##### CMAKE_MODULE_PATH
 
-这个变量用来定义自己的cmake模块所在的路径。如果你的工程比较复杂，有可能会自己编写一些cmake模块，这些cmake模块是随你的工程发布的，为了让cmake在处理CMakeLists.txt时找到这些模块，你需要通过SET指令，将自己的cmake模块路径设置一下。
+这个变量用来定义**自己的cmake模块**所在的路径。如果你的工程比较复杂，有可能会自己编写一些cmake模块，这些cmake模块是随你的工程发布的，为了让cmake在处理CMakeLists.txt时找到这些模块，你需要通过SET指令，将自己的cmake模块路径设置一下。
 
 ```cmake
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -1084,7 +1090,15 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 这个时候你就可以通过INCLUDE指令来调用自己的模块。
 
-##### CMAKE_INCLUDE_CURRENT_DIR 
+##### CMAKE_PREFIX_PATH
+
+```
+SET( CMAKE_PREFIX_PATH ${QTDIR})
+```
+
+CMAKE_PREFIX_PATH是存放CMake的搜索路径列表，供find_package(), find_program(), find_library(), find_file(),和find_path()等函数使用；
+
+##### CMAKE_INCLUDE_CURRENT_DIR
 
 自动将当前源代码和构建目录添加到include路径。默认是OFF
 
