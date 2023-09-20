@@ -10,3 +10,12 @@ https://github.com/open-source-parsers/jsoncpp/releases
 python amalgamate.py
 ```
 
+https://github.com/open-source-parsers/jsoncpp/wiki/Amalgamated-(Possibly-outdated)
+
+
+
+
+
+https://blog.csdn.net/qq_39466755/article/details/131146065
+
+https://blog.csdn.net/qq_43441284/article/details/130983076
