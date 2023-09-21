@@ -85,7 +85,9 @@ sudo docker commit -m="666" -a="hcy" 9b4e778b2924 hchy/hello-new:v1
 - e218edb10161：**容器ID**
 - hchy/hello-new:v1 ：指定新的镜像名。
 
+**docker commit命令不会直接将镜像上传到远程仓库**，而是将镜像保存在本地。
 
+使用docker commit命令后，需要使用docker push命令将本地镜像推送到远程仓库。推送镜像时需要先使用docker login命令登录到远程仓库，然后使用格式为`docker push [registry-url]/[image-name]:[tag]`的命令将镜像推送到远程仓库中指定位置。
 
 ## docker build
 
@@ -177,7 +179,7 @@ docker run -t -i ubuntu:15.10 /bin/bash
   sudo docker exec -it -u root 容器名称 /bin/bash		#指定用户进入容器 -u root
   ```
 
-
+- --name string：为容器添加一个名字。
 
 - -P: Publish all exposed ports to random ports. 将所有公开的端口发布到随机端口。将容器内部使用的网络端口随机映射到我们使用的主机上。
 
@@ -395,7 +397,51 @@ apt install iputils-ping
 
 
 
+# 制作自己的ubuntu镜像
 
+1. 拉取官方Ubuntu镜像。
+
+```bash
+docker pull ubuntu
+```
+
+2. 创建一个新的Docker容器并在其中安装软件。
+
+```bash
+docker run -d --name my-ubuntu-container ubuntuapt-get updateapt-get install -y <package-name>
+```
+
+3. 将Docker容器导出为镜像。
+
+```bash
+docker commit my-ubuntu-container my-ubuntu-image
+```
+
+4. 删除Docker容器。
+
+```bash
+docker rm my-ubuntu-container
+```
+
+5. 上传镜像到自己的仓库。 首先，需要使用`docker login`命令登录到自己的仓库。
+
+```bash
+docker login -u <username> -p <password> <registry-url>
+```
+
+然后，使用`docker push`命令将镜像上传到仓库。
+
+```bash
+docker push <registry-url>/<image-name>:<tag>
+```
+
+其中，`<username>`是登录仓库的用户名，`<password>`是登录仓库的密码，`<registry-url>`是仓库的URL，`<image-name>`是镜像名称，`<tag>`是标签。
+
+例如，如果要将镜像上传到名为`myrepo`的仓库，并使用标签`14.04`，则可以使用以下命令：
+
+```bash
+docker login -u myusername -p mypassword myrepo.comdocker push myrepo.com/my-ubuntu:14.04
+```
 
 
 
