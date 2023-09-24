@@ -88,6 +88,12 @@ NONE： 不做任何的转换，直接以该数据所属的数据类型进行存
 
 # 数据库
 
+## 查看当前使用的数据库
+
+```sqlite
+.databases
+```
+
 ## 创建数据库
 
 方法1：
@@ -118,15 +124,11 @@ sqlite3 test.db .dump > testdb.sql
 sqlite3 testdb.db < testdb.sql
 ```
 
-### 查看当前在哪个数据库中
+## 切换数据库
 
-```bash
-sqlite>.databases
+```sqlite
+>sqlite .open otherr.db  --直接使用.open切换
 ```
-
-
-
-
 
 
 
@@ -140,28 +142,23 @@ ALTER 数据库对象：修改一个数据库对象
 
 ## 表
 
-### 查看创建表的命令
+### 查看创建表的命令 .schema
 
 ```sqlite
 .schema table
-CREATE TABLE sqlite_master (
-  type text,
-  name text,
-  tbl_name text,
-  rootpage integer,
-  sql text
-);
+or 
+select sql from sqlite_master where type='table' and tbl_name='COMPANY';
 ```
 
-### 查看都有哪些表
+### 查看都有哪些表 .tables
 
 ```sqlite
 .tables
+or
+select tbl_name from sqlite_master where type='table';
 ```
 
-### 创建一个表
-
-CREATE TABLE
+### 创建一个表 CREATE TABLE
 
 ```sqlite
 sqlite> CREATE TABLE COMPANY(
@@ -173,23 +170,181 @@ sqlite> CREATE TABLE COMPANY(
 );
 ```
 
-### 删除一个表
-
-DROP TABLE
+### 删除一个表 DROP TABLE
 
 ```sqlite
 DROP TABLE COMPANY
 ```
 
+### 新增数据 INSERT INTO
+
+```sqlite
+insert into table_name (column1, column2, ... columnN) (value1, value2, ... valueN) --语法1
+insert into table_name values(v1, v2, ... vN) --语法2
+```
+
+### 删除数据 DELETE
+
+删除一行
+
+```sqlite
+delete from company where id = '1';
+```
+
+删除整个表
+
+```sqlite
+delete from company
+```
 
 
-### 新增数据
 
-### 删除数据
+### 修改数据 UPDATE
 
-### 修改数据
+```sqlite
+update company set address='Texas' where id = 6;
+```
 
-### 查找数据
+
+
+
+
+
+
+### 查找数据 SELECT
+
+格式化输出：（所有的 .命令只在sqlite的命令提示符中可用。）
+
+```sqlite
+sqlite> .header on
+sqlite> .mode column 
+sqlite> .width 10,20,30 --显示列宽度, 第一列宽度为10，第二列宽度为20，第三列宽度为30
+```
+
+全表查询：查询company表中所有记录中的全部字段。
+
+```sqlite
+select * from company;
+```
+
+部分查询：查询company表中所有记录中的部分字段。
+
+```sqlite
+select id, name, salary from company; 
+```
+
+条件查询：
+
+```sqlite
+select * from company where salary > 50000; --查询salary>50000的所有记录
+```
+
+### where子句
+
+##### 比较运算符
+
+- 相等：== or =
+- 不相等：!= or <>
+- 大于：>
+- 小于：<
+- 大于等于：>=
+- 小于等于：<=
+- 不大于：!>
+- 不小于：!<
+
+##### 逻辑运算符
+
+###### AND 和 OR
+
+```sqlite
+select * from company where age>=25 and salary >= 65000; --查找年龄>=25 并且 工资>=65000的所有记录的所有字段。
+```
+
+```sqlite
+select * from company where age>=25 or salary >= 65000; --查找年龄>=25 或者 工资>=65000的所有记录的所有字段。
+```
+
+###### IS 和 IS NOT
+
+```sqlite
+select * from company where salary is 65000;  --查找工资等于65000的记录
+select * from company where salary is not 65000; --查找工资等于65000的记录
+
+select * from company where age is NULL; --查找年龄为NULL的记录
+select * from company where age is not NULL; --查找age不为NULL的记录
+```
+
+###### IN 和 NOT IN
+
+```sqlite
+select * from company where age in (25,27); --查找年龄是25或者是27的记录
+select * from company where age not in (25,27); --查找年龄不是25也不是27的记录
+```
+
+###### LIKE 和 GLOB
+
+模糊匹配
+
+有两个通配符和like一起使用：
+
+- 百分号（%）：*百分号（%）代表零个、一个或多个数字或字符*。
+- 下划线（ _ ）：下划线（_）代表一个单一的数字或字符。
+
+```sqlite
+select * from company where name like "Ki%"; --查找名字中以Ki开始的记录
+```
+
+有两个通配符和glob一起使用：
+
+- 星号（ * ）：星号（*）代表零个、一个或多个数字或字符。
+- 问号（?）：问号（?）代表一个单一的数字或字符。
+
+这些符号可以被组合使用。
+
+glob与like不同的是，glob是大小写敏感的。
+
+```sqlite
+select * from company where name glob "Ki*"; --查找名字中以Ki开始的记录
+```
+
+
+
+###### BETWEEN
+
+```sqlite
+select * from company where age between 25 and 27;    --查找年龄在25到27之间的所有记录
+```
+
+###### EXISTS
+
+```sqlite
+select * from company where exists (
+    select age from company where salary > 90000); -- 子查询语句结果为真，外查询返回全部结果
+select * from company where not exists (
+    select age from company where salary > 90000); -- 子查询语句结果为真，not exists(子查询)为假，则外查询不会返回结果
+select * from company where age > (select age from company where salary > 65000) --子查询结果为salary>65000的年龄的记录，外查询返回所有年龄大于子查询字段值的记录。
+```
+
+###### UNIQUE
+
+
+
+##### 位运算符
+
+https://www.runoob.com/sqlite/sqlite-operators.html
+
+### limit 和 offset子句
+
+```sqlite
+select * from company limit 4;    --从第一条记录开始只输出4条记录
+select * from company limit 3 offset 2; --从第3条记录(偏移2条)开始输出3条记录
+```
+
+### order by子句
+
+
+
+
 
 
 
