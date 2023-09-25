@@ -239,6 +239,17 @@ select id, name, salary from company;
 select * from company where salary > 50000; --查询salary>50000的所有记录
 ```
 
+子查询：
+
+```sqlite
+select * from company where salary > (select AVG(salary) from company); --查找大于平均工资的记录
+select ROUND(AVG(salary)) as avg_slary from company; -- ROUND函数的作用是四舍五入
+```
+
+
+
+
+
 ### where子句
 
 ##### 比较运算符
@@ -317,12 +328,17 @@ select * from company where age between 25 and 27;    --查找年龄在25到27�
 
 ###### EXISTS
 
+exists用来判断一个查询是否有结果，返回值只有1和0两种。
+
 ```sqlite
 select * from company where exists (
     select age from company where salary > 90000); -- 子查询语句结果为真，外查询返回全部结果
 select * from company where not exists (
     select age from company where salary > 90000); -- 子查询语句结果为真，not exists(子查询)为假，则外查询不会返回结果
 select * from company where age > (select age from company where salary > 65000) --子查询结果为salary>65000的年龄的记录，外查询返回所有年龄大于子查询字段值的记录。
+
+select exists(select *from company where age=40); --age=40的记录不存在，输出0
+select exists(select *from company where age=25); --age=25的记录不存在，输出1
 ```
 
 ###### UNIQUE
@@ -335,18 +351,127 @@ https://www.runoob.com/sqlite/sqlite-operators.html
 
 ### limit 和 offset子句
 
+limit作用：限制返回记录的条数。例如：只返回前三条。
+
+offset作用：从第一条记录开始作偏移，然后输出记录。例如：只返回中间3~5条的记录。
+
 ```sqlite
 select * from company limit 4;    --从第一条记录开始只输出4条记录
 select * from company limit 3 offset 2; --从第3条记录(偏移2条)开始输出3条记录
+select * from company limit 2, 3; --从第3条记录(偏移2条)开始输出3条记录； 第一个数字是偏移量(offset)，第二个数字是限制输出条数。
 ```
 
-### order by子句
+### order by子句 排序
+
+基于某一个字段或多个字段进行升序或者降序。
+
+- ASC：升序(默认值)
+- DESC：降序
+
+```sqlite
+select * from company order by salary;    --基于salary字段的值进行升序排序
+select * from company order by salary DESC; --基于salary字段的值进行降序排序
+select * from company order by age;    --基于age字段的值进行升序排序
+select * from company order by age, salary desc; --基于age字段的值进行升序排序, 然后基于salary进行降序排序
+```
+
+### group by子句 分组
+
+基于某一个字段对**相同的数据**进行分组。
+
+在select语句中，group by子句应该放在**where子句之后**，**order by子句之前**。
+
+```sqlite
+select * from company group by name;    --根据名字进行分组
+select NAME, SUM(SALARY) from company group by address; --根据地址进行分组, 然后对同组的salary进行求和
+select NAME, SUM(SALARY) from company group by address order by SUM(salary); --根据地址进行分组, 然后对同组的salary进行求和， 然后按照SUM(salary)排序
+select NAME, SUM(SALARY) AS sum_salary from company group by address order by sum_salary DESC, name; --根据地址进行分组, 然后对同组的salary进行求和， 然后按照SUM(salary)降序,name升序排序。
+```
+
+### having子句 筛选
+
+为分组结果(group by)指定过滤条件。
+
+在select语句中，having子句必须放在group by子句之后，order by子句之前。
+
+```sqlite
+SELECT column1, column2
+FROM table1, table2
+WHERE [ conditions ]
+GROUP BY column1, column2
+HAVING [ conditions ]
+ORDER BY column1, column2
+```
+
+```sqlite
+select * from company group by name having count(name) < 2; --先根据name进行分组，计算每组的数量，然后输出数量小于2的记录。
+select * from company group by address having count(address) >= 2;--先根据address进行分组，计算每组的数量，然后输出数量大于2的记录。
+```
 
 
 
+### 关键字
 
+#### DISTINCT 去重
 
+去除重复的记录：
 
+```sqlite
+select distinct address from company;
+select distinct salary from company;
+```
+
+#### UNION 并集
+
+将两个select语句的查询结果合并到一个结果集中。和OR有些类似，只不过OR是来合并两个查询条件的，UNION是来合并两个查询结果的。
+
+union：不包含重复的记录。
+
+union all：包含重复的记录。
+
+```sqlite
+select * from company where age>=25 
+union
+select * from company where salary>30000; -- 将年龄>=25的结果 或者salary>30000的结果合并到一个结果集中。
+
+-- 等同于：
+select * from company where age>=25 or salary>30000;
+```
+
+#### INTERSECT 交集
+
+对两个select语句的结果求交集
+
+```sqlite
+select * from company where age>=25 
+intersect
+select * from company where salary>30000;--查找年龄>=25 并且salary>30000的结果
+
+--等同于：
+select *from company where age>=25 and salary>30000;
+```
+
+#### EXPECT 差集
+
+差集是一种集合运算，用于求两个集合的差。给定两个集合A和B，差集运算A-B返回所有**属于A但不属于B**的元素构成的集合；差集运算B-A返回所有**属于B但不属于A**的元素构成的集合。
+
+以下是一个差集的例子：
+
+假设有两个集合A和B：A = {1, 2, 3, 4, 5}。B = {4, 5, 6, 7, 8}
+
+则A-B的结果将是：A-B = {1, 2, 3}。因为这些元素仅属于A，而不属于B。
+
+B-A的结果将是：B-A=(6,7,8)。因为这些元素仅属于B，而不属于A。
+
+```sqlite
+select * from company where age>=25 
+except
+select * from company where salary>30000; --查找属于age>=25结果集，但不属于salary>30000结果集的记录。
+
+select * from company where salary>30000
+except
+select * from company where age>=25; --查找属于salary>30000结果集，但不属于age>=25结果集的记录。
+```
 
 
 
