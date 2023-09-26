@@ -622,7 +622,57 @@ SELECT EMP_ID, NAME, DEPT FROM COMPANY CROSS JOIN DEPARTMENT; --把第一个表�
 
 索引的主要作用是提高查询效率。
 
+### 创建索引 CREATE INDEX ... on
 
+#### 普通索引
+
+```sqlite
+create index salary_index on company (salary); --在salary这一列上创建索引
+```
+
+#### 唯一索引
+
+```sqlite
+create unique index unique_name_index on company (name); --在name这一列上创建唯一索引，列中有相同的值不能创建唯一索引
+```
+
+
+
+### 查看索引
+
+```sqlite
+sqlite> .indices 或 .indexes
+or
+select * from sqlite_master where type='index'
+```
+
+
+
+### 删除索引 DROP INDEX index_name
+
+```sqlite
+drop index salary_index; --删除索引。
+```
+
+
+
+### 主键索引和唯一索引的区别
+
+主键索引是一种特殊的唯一索引。如果指定了主键，数据库会默认创建一个主键索引。
+
+1. 主键索引要求主键中的每一个值都是唯一的，唯一索引要求列中的值是唯一的。
+2. 主键不能是NULL，所以主键索引的列中不能有NULL值；唯一索引允许有一个NULL值。
+3. 一个表只能有一个主键索引；可以有多个唯一索引。
+
+### 唯一索引与唯一约束
+
+1. 唯一索引指的是不能有**索引值**(0,1,2,3,...)相同的行。
+2. 唯一约束指的是**某一列**不能有相同的值。可以有一行为NULL值。
+
+### 什么情况下要避免使用索引？
+
+1. 在频繁插入、更新、或删除数据的表上。
+2. 有大量NULL值的列。
 
 ## 视图
 
