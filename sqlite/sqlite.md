@@ -60,7 +60,17 @@ CPU Time: user 0.000000 sys 0.000000
 
 # 数据类型
 
+## 基本类型
+
 NULL：空值
+
+SQLite 的 **NULL** 是用来表示一个缺失值的项。表中的一个 NULL 值是在字段中显示为空白的一个值。
+
+带有 NULL 值的字段是一个不带有值的字段。**NULL 值与零值或包含空格的字段是不同的**，理解这点是非常重要的。
+
+```sqlite
+SELECT * FROM COMPANY WHERE SALARY IS NOT NULL;
+```
 
 INT：4字节有符号整型 
 
@@ -473,17 +483,162 @@ except
 select * from company where age>=25; --查找属于salary>30000结果集，但不属于age>=25结果集的记录。
 ```
 
+### 约束
+
+#### 非空约束 NOT NULL
+
+确保某列不能有NULL值。默认情况下是可以为NULL值的。
+
+```sqlite
+CREATE TABLE COMPANY(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL
+);-- ID NAME AGE 三个字段不接受默认值
+```
+
+#### 默认值约束 DEFAULT
+
+当INSERT INTO 语句没提供默认值时，提供一个默认值。
+
+```sqlite
+CREATE TABLE COMPANY(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL    DEFAULT 50000.00
+);
+-- 为salary字段提供一个默认值
+```
+
+
+
+#### 唯一约束 UNIQUE
+
+确保某一列中不能有相同的值。一个表中可以有多个UNIQUE列。
+
+```sqlite
+CREATE TABLE COMPANY(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL UNIQUE,
+   ADDRESS        CHAR(50),
+   SALARY         REAL    DEFAULT 50000.00
+);
+-- 保证不能有相同年龄的记录
+```
+
+#### 主键约束 PRIMARY KEY
+
+主键必须包含唯一值， 主键列不能有NULL值。一个表中只能有一个主键，它可以由一个或多个字段组成。当多个字段作为主键，它们被称为**复合键**。
+
+```sqlite
+CREATE TABLE COMPANY(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL
+);
+-- ID字段设置为非空约束
+```
+
+
+
+#### 检查约束 CHECK
+
+确保某一列中的值满足某一条件，如果不能满足该条件，则不能插入该条数据。
+
+```sqlite
+CREATE TABLE COMPANY3(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL    CHECK(SALARY > 0)
+);
+-- salary字段的值不能为0。
+```
+
+#### 删除约束
+
+约束不能删除。
+
+
+
+### 表关联
+
+表关联用来查询多个表中的数据，关联的表必须有相同的字段。
+
+#### 内连接
+
+只返回两个表中都有的数据
+
+#### 外连接
+
+##### 左外连接
+
+返回左表中所有数据 和 右表中匹配的数据，右表中没有的数据填NULL。
+
+```sqlite
+--左外连接 返回左表中全部的数据和右表中匹配的数据， 右表中没有匹配的数据填NULL
+select id, name, age, salary, dept from company left outer join department on company.ID == department.EMP_ID;
+select * from company left outer join department on company.ID == department.EMP_ID;
+```
+
+##### 右外连接
+
+返回右表中所有数据 和 左表中匹配的数据，左表中没有的数据填NULL。
+
+```sqlite
+--右外连接 返回右表中全部的数据和左表中匹配的数据， 左表中没有匹配的数据填NULL
+select id, name, age, salary, dept from company right outer join department on company.ID == department.EMP_ID;
+select * from company right outer join department on company.ID == department.EMP_ID;
+```
+
+右外连接还可以使用where子句来表示。
+
+```sql
+select * from company,department where company.ID == department.EMP_ID;
+```
+
+
+
+#### 交叉连接
+
+把第一个表的每一行和第二个表的每一行进行匹配。
+
+```sqlite
+-- 交叉连接
+SELECT EMP_ID, NAME, DEPT FROM COMPANY CROSS JOIN DEPARTMENT; --把第一个表的每一行和第二个表的每一行进行匹配。
+```
+
+![image-20230926165837359](image/image-20230926165837359.png)
+
+## 索引
+
+索引的主要作用是提高查询效率。
+
 
 
 ## 视图
 
 
 
-## 索引
+
 
 
 
 ## 触发器
+
+
+
+## PRAGMA
+
+https://www.runoob.com/sqlite/sqlite-pragma.html
 
 
 
