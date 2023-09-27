@@ -172,7 +172,52 @@ show databases
 
 # 数据库对象
 
+## 表
 
+### 约束
+
+#### 自增约束
+
+##### 当删除一行时，mysql的自动递增列会自动减一吗？
+
+当在MySQL中删除一行时，具有自动递增（AUTO_INCREMENT）属性的列的值**不会自动减少**。**自动递增列的目的是为了确保每行都有一个唯一的序号，而不是根据删除的行来递减。** 也就是说自增列可能出现序号不连续的情况。
+
+每次插入新行时，MySQL会根据自动递增列的当前值来递增该值，而不是根据已删除的行。已删除的行的值对于自动递增列没有影响。
+
+例如，假设有一个名为`table_name`的表，其中包含一个名为`id`的自动递增列。如果删除表中的一行，则`id`列的值不会减少。下一次插入新行时，MySQL将为新行分配一个新的`id`值，该值等于当前自动递增列的最大值加一。
+
+以下是一个示例，说明在删除行后插入新行时自动递增列的行为：
+
+```mysql
+-- 创建一个具有自动递增列的表
+CREATE TABLE table_name (
+    id INT AUTO_INCREMENT PRIMARY KEY,  
+    name VARCHAR(50)
+);
+-- 插入一些数据
+INSERT INTO table_name (name) VALUES ('Row 1');
+INSERT INTO table_name (name) VALUES ('Row 2');
+INSERT INTO table_name (name) VALUES ('Row 3');
+-- 删除一行
+DELETE FROM table_name WHERE id = 2;
+-- 插入新行
+INSERT INTO table_name (name) VALUES ('Row 4');
+-- 查看自动递增列的值
+SELECT * FROM table_name;
+```
+
+以上示例中的输出将如下：
+
+```diff
++----+------+
+| id | name |
++----+------+
+|  1 | Row 1 |
+|  3 | Row 4 |
++----+------+
+```
+
+可以看到，删除行后插入新行时，自动递增列的值为3，而不是2。它没有受到之前删除的行的影响。
 
 # 问题
 
