@@ -186,6 +186,22 @@ sqlite> CREATE TABLE COMPANY(
 DROP TABLE COMPANY
 ```
 
+### 重命名表 ALTER TABLE ... RENAME TO
+
+```sqlite
+alter table company_log rename to new_company_log; -- 重名名表名
+```
+
+
+
+### 修改表结构 ALTER TABLE ... ADD
+
+```sqlite
+alter table new_company_log add column sex char(1); -- 修改表结构，新增一列
+```
+
+
+
 ### 新增数据 INSERT INTO
 
 ```sqlite
@@ -193,15 +209,15 @@ insert into table_name (column1, column2, ... columnN) (value1, value2, ... valu
 insert into table_name values(v1, v2, ... vN) --语法2
 ```
 
-### 删除数据 DELETE
+### 删除数据 DELETE FROM
 
-删除一行
+删除一行。
 
 ```sqlite
 delete from company where id = '1';
 ```
 
-删除整个表
+删除表中的所有数据，但这张表还是存在的。
 
 ```sqlite
 delete from company
@@ -209,7 +225,7 @@ delete from company
 
 
 
-### 修改数据 UPDATE
+### 修改数据 UPDATE ... SET
 
 ```sqlite
 update company set address='Texas' where id = 6;
@@ -217,11 +233,7 @@ update company set address='Texas' where id = 6;
 
 
 
-
-
-
-
-### 查找数据 SELECT
+### 查找数据 SELECT ... FROM
 
 格式化输出：（所有的 .命令只在sqlite的命令提示符中可用。）
 
@@ -546,6 +558,45 @@ CREATE TABLE COMPANY(
 -- ID字段设置为非空约束
 ```
 
+#### 自增约束 AUTOCREMENT
+
+**自动递增列的目的是为了确保每行都有一个唯一的序号，而不是根据删除的行来递减。**也就是说自增列可能出现序号不连续的情况。
+
+- 主键约束不一定是自增的（没指定AUTOINCREMENT），但自增的一定是主键约束。
+- 自增列必须是 **INTEGER** 类型或其兼容类型（**NUMERIC** 或 **REAL**）。
+- 只能将主键列（PRIMARY KEY）指定为自增列。
+- 不能将包含NULL值的列指定为自增列。
+- 如果删除了表中的所有记录，则下一次插入新记录时，自增列的值将从**最小可能的整数**开始递增。
+
+```sqlite
+-- autoincrement 自增约束
+drop table company;
+CREATE TABLE COMPANY(
+   ID INTEGER PRIMARY KEY     AUTOINCREMENT NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL
+);
+select * from sqlite_master where type='table';
+select * from sqlite_sequence;
+
+INSERT INto COMPANY (ID,NAME,AGE,ADDRESS,SALARY) values (1, 'Paul', 32, 'California', 20000.00);
+insert into company values(2, 'Allen', 25, 'Texas', 15000.00 );
+insert into company (NAME,AGE,ADDRESS,SALARY) values('Teddy', 23, 'Norway', 20000.00 );
+
+select * from sqlite_master where type='table';
+select * from sqlite_sequence;
+delete from company; --删除了company表中的所有数据，但是sqlite_sequence表中的自增序号还没清零。
+
+-- 可以通过删除sqlite_sequence表中的seq字段将计数清零。
+delete from sqlite_sequence where name='company';    --不管用？？ 内部表不能修改
+-- 或者使用update命令将seq字段置0
+update sqlite_sequence set seq=0 where name='company';    -- 不管用？？ 内部表不能修改
+
+DElete from sqlite_sequence;    --删了,让数据库重新创建
+```
+
 
 
 #### 检查约束 CHECK
@@ -632,6 +683,8 @@ create index salary_index on company (salary); --在salary这一列上创建索�
 
 #### 唯一索引
 
+唯一索引不允许任何重复的值插入到表中。
+
 ```sqlite
 create unique index unique_name_index on company (name); --在name这一列上创建唯一索引，列中有相同的值不能创建唯一索引
 ```
@@ -654,17 +707,29 @@ select * from sqlite_master where type='index'
 drop index salary_index; --删除索引。
 ```
 
+### INDEXED BY子句
+
+指定使用哪个索引来进行查询
+
+```sqlite
+select * from company indexed by salary_index where salary > 50000; --指定使用salary_index索引来进行查询。
+```
+
+
+
 
 
 ### 主键索引和唯一索引的区别
 
-主键索引是一种特殊的唯一索引。如果指定了主键，数据库会默认创建一个主键索引。
+主键索引是一种特殊的唯一索引。**==如果指定了主键，数据库会默认创建一个主键索引。== **
 
 1. 主键索引要求主键中的每一个值都是唯一的，唯一索引要求列中的值是唯一的。
 2. 主键不能是NULL，所以主键索引的列中不能有NULL值；唯一索引允许有一个NULL值。
 3. 一个表只能有一个主键索引；可以有多个唯一索引。
 
 ### 唯一索引与唯一约束
+
+**添加了unique约束，数据库会自动创建unique索引**。
 
 1. 唯一索引指的是不能有**索引值**(0,1,2,3,...)相同的行。
 2. 唯一约束指的是**某一列**不能有相同的值。可以有一行为NULL值。
@@ -676,13 +741,142 @@ drop index salary_index; --删除索引。
 
 ## 视图
 
+视图是一个虚拟的表，里面并没有数据，保存的只是一个 sql  语句。
+
+视图是只读的，所以无法在视图上执行DELETE、insert、update操作。但是可以在视图上创建一个触发器。
+
+### 创建视图 CREATE VIEW
+
+语法
+
+```sqlite
+CREATE [TEMP | TEMPORARY] VIEW view_name AS
+SELECT column1, column2.....
+FROM table_name
+WHERE [condition];
+```
+
+```sqlite
+create view company_view as select id, name, age from company; --创建一个视图。
+select * from company_view; --查看一个视图。
+update company set age=44 where id=7; -- 原表数据变化，视图也会跟着变化，因为视图保存的只是一条sql语句。
+```
 
 
 
+### 查询视图
+
+查询视图和查询表的方式类似：
+
+```sqlite
+select * from company_view; --查看一个视图。
+```
+
+
+
+### 修改视图 ALTER VIEW
+
+sqlite不支持修改视图？
+
+### 删除视图 DROP VIEW
+
+```sqlite
+drop view company_view; --删除视图
+```
 
 
 
 ## 触发器
+
+当一个表发生insert、update、delete操作时，触发另一个操作。
+
+### 创建触发器 CREATE TRIGGER
+
+基本语法：
+
+```sqlite
+CREATE TRIGGER trigger_name [BEFORE|AFTER] event_name 
+ON table_name
+BEGIN
+ -- 触发器逻辑....
+END; 
+-- event_name可以是 insert、delete、update操作。
+```
+
+```sqlite
+--创建一个触发器，当company表执行插入操作时，触发表company_log的插入操作
+create trigger company_log after insert on company
+begin
+    insert into company_log VALUES (new.ID, datetime('now'));
+end;
+```
+
+
+
+在表的一个列或多个列上创建触发器的语法：
+
+```sqlite
+CREATE TRIGGER trigger_name [BEFORE|AFTER] event_name OF column_name 
+ON table_name
+BEGIN
+ -- 触发器逻辑....
+END;
+```
+
+```sqlite
+
+```
+
+
+
+### 查看触发器
+
+- 查看所有触发器
+
+```sqlite
+select * from sqlite_master where type='trigger';    --查看所有触发器
+```
+
+- 查看某个表上的触发器
+
+```sqlite
+select * from sqlite_master where type='trigger' and tbl_name='company'; --查看某个表上的触发器
+```
+
+### 删除触发器
+
+```sqlite
+drop trigger trigger_name;
+```
+
+
+
+## 事务
+
+### 事务的属性
+
+- 原子性(Atomicity)：确保工作单位内的所有操作都成功完成，否则，事务会在出现故障时终止，之前的操作也会回滚到以前的状态。
+- 一致性(Consistency)：确保数据库在成功提交的事务上正确地改变状态。
+- 隔离性(Isolation)：使事务操作相互独立和透明。
+- 持久性(Durability)：确保已提交事务的结果或效果在系统发生故障的情况下仍然存在。
+
+### 事务控制
+
+- begin 或 begin transaction：开始事务处理。
+- commit 或 end transaction：保存更改。
+- rollback：回滚所做的更改。
+
+事务控制命令只与 DML 命令 INSERT、UPDATE 和 DELETE 一起使用。**他们不能在创建表或删除表时使用，因为这些操作在数据库中是自动提交的**。
+
+```sqlite
+begin;
+delete from company where id=7;
+rollback;
+
+begin;
+delete from company where id=7;
+commit;
+```
 
 
 
