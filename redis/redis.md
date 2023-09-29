@@ -1,7 +1,9 @@
 # redis安装
 
 ```bash
-make PREFIX=/usr/local/redis install
+sudo apt-get install libjemalloc-dev # ubuntu试了还是没编过
+
+sudo make PREFIX=/usr/local/redis install MALLOC=libc
 ```
 
 这里多了一个关键字 'PREFIX=' 这个关键字的作用是编译的时候用于指定程序存放的路径。比如我们现在就是指定了 redis 必须存放在 '/usr/local/redis' 目录。假设不添加该关键字 linux 会将可执行文件存放在 '/usr/local/bin' 目录，库文件会存放在 '/usr/local/lib' 目录。配置文件会存放在 '/usr/local/etc 目录。其他的资源文件会存放在 'usr/local/share' 目录。这里指定好目录也方便后续的卸载，后续直接 `rm -rf /usr/local/redis` 即可删除 Redis。
