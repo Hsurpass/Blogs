@@ -73,7 +73,9 @@ CONFIG SET key value #设置某个字段的值
 
 
 
-# string 字符串
+# 数据类型
+
+## string 字符串
 
 - SET <key> <value>：设置key的值
 - SETEX <key> <seconds> <value>：设置key所对应的value和过期时间，单位：秒
@@ -104,17 +106,37 @@ http://www.redis.cn/commands.html
 
 
 
+## 哈希(hash)
+
+
+
+## 列表（list）
+
+
+
+## 集合（set）
+
+
+
+## 有序集合（sorted set）
 
 
 
 
 
+# 发布订阅
 
 
 
+# HyperLog
 
 
 
+# 备份与恢复
+
+
+
+持久化
 
 
 
