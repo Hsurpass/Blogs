@@ -170,7 +170,7 @@ db.collection_name.find({"key":{$eq: 20}})
 db.collection_name.find({"key":{$ne: 20}})
 ```
 
-逻辑运算组合：
+比较运算组合：
 
 例：查询一个集合col中age在30到50之间的文档数据
 
@@ -462,6 +462,21 @@ address这个文档以嵌套的形式保存在集合中。
 
 
 
+# 聚合(aggregation)
+
+```sql
+db.collection_name.aggregate([
+	{
+    	$group:{
+			_id:'$xxx',
+			document:{$sum:1}	# {$sum:1}：计算分组后文档的条数
+    	}
+	}
+])
+```
+
+
+
 
 # 索引
 
@@ -510,12 +525,13 @@ db.col.dropIndex("索引名") #删除指定索引
 
 
 
-
-# 副本集
+# 高可用性(high availability)
+## 副本集
 
 避免单点故障，相当于redis的主从结构。写操作都是在主节点完成的，然后同步到从节点。
 
-# 分片
+# 高扩展性(high scalability)
+## 分片
 
 
 
@@ -528,4 +544,32 @@ db.col.dropIndex("索引名") #删除指定索引
 
 
 # 备份和恢复
+
+
+
+# 存储引擎
+
+
+
+# mongodb驱动
+
+https://www.mongodb.com/docs/drivers/
+
+
+
+# mongoDB tools
+
+## mongoimport
+
+https://www.mongodb.com/docs/database-tools/mongoimport/#mongodb-binary-bin.mongoimport
+
+导入json文件：
+
+```sql
+mongoimport  --host=mongodb1.example.net --port=37017 --username=user --db=db_name --collection=coll_name --file=contacts.json
+```
+
+
+
+
 
