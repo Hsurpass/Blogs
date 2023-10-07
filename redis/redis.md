@@ -90,11 +90,22 @@ CONFIG SET key value #设置某个字段的值
 - MGET <key1> <key2> ... ：获取所有指定key的值
 - STRLEN <key>：获取value值的长度。
 - INCR <key>：如果value是数字，则将value加1，**value必须为整数。**
-- INCRBY <key> <increment>：给value加上给定的增量（increment），**increment必须为整数**。
+- INCRBY <key> <increment>：给value加上给定的增量（increment），**increment必须为整数**（正数加1，负数减一）。
 - INCRBYFLOAT <key> <increment>：给value加上给定的浮点值增量
 - DECR <key>：value减1，value必须为整数。
 - DECRBY <key> <decrement>：value减decrement，value和decrement必须为整数。
 - APPEND <key> <value>：如果key对应的v值的类型是string，则把value追加到原来值的后面
+
+string作为计数器
+
+```sql
+> set total_crashes 0
+OK
+> incr total_crashes
+(integer) 1
+> incrby total_crashes 10
+(integer) 11
+```
 
 
 
@@ -105,12 +116,65 @@ https://redis.com.cn/commands.html
 http://www.redis.cn/commands.html
 
 
+## 列表（list）
+
+-   LPUSH <key> <val1 ... valN>：将一个值或多个值插入到链表头部。
+
+-   LPUSHX <key> <val1 ... valN>：将一个值或多个值插入到一个已存在的链表的头部，如果列表不存在则插入失败。
+
+-   RPUSH <key> <val1 ... valN>：将一个值或多个值插入到列表尾部。
+
+-   LPUSHX <key> <val1 ... valN>：将一个值或多个值插入到一个已存在的链表的尾部，如果列表不存在则插入失败。
+
+-   LPOP <key>：移除并返回列表的第一个元素，当key不存在时，返回nil。
+
+-   RPOP <key>：移除并返回列表的最后一个元素，当key不存在时，返回nil。
+
+-   BLPOP <key1 ... keyN> <timeout>：移除并返回列表的第一个元素(有元素立刻返回)，如果列表中没有元素会阻塞列表直到超时或者有可弹出元素。**timeout为0表示一直等待。可以同时阻塞多个列表**
+
+-   BRPOP <key1 ... keyN> <timeout>：移除并返回列表的最后一个元素(有元素立刻返回)，如果列表中没有元素会阻塞列表直到超时或者有可弹出元素。**timeout为0表示一直等待。可以同时阻塞多个列表**
+
+    -   
+
+-   RPOPLPUSH <key1> <key2>：移除key1列表的最后一个元素，插入到另一个列表的头部。
+
+-   BRPOPLPUSH <key1> <key2> <timeout>：移除key1列表的最后一个元素，插入到另一个列表的头部；如果key1中没有元素则阻塞等待直到超时或者有元素可被移出。timeout为0表示一直等待。
+
+-   LLEN <KEY>：返回列表长度。
+
+-   LRANGE <key> <start> <end>：返回列表中指定区间的元素。0表示列表第一个元素，-1表示列表最后一个元素。
+
+    ```sql
+    lrange key 0 -1 #返回全部元素
+    lrange key 0 3 #返回第一个元素到第4个元素
+    lrange key -3 -1 #返回倒数第3个元素到倒数第一个元素。
+    ```
+
+-   LINDEX <key> <INDEX>：通过索引获取列表中的值
+
+    ```sql
+    lindex key 0 #获取第一个元素
+    lindex key -1 #获取最后一个元素
+    ```
+
+-   LINSERT <key> <BEFORE|AFTER> <pivot> <value>：在列表<key>的某个元素<pivot>之前或者之后插入元素<value>。
+
+-   LSET <key> <index> <value>：在列表key的索引位置index设置值为value。
+
+-   LREM <key> <count> <value>：移除列表key中与value相等的值。
+
+    -   count > 0：从表头向表尾搜索，移除与value相等的元素，数量为count。
+    -   count < 0：从表尾向表头搜索，移除与value相等的元素，数量为count。
+    -   count = 0：移除列表中所有与value相等的元素。
+
+-   LTRIM <key> <start> <end>：裁剪列表，保留[start, end]范围内的元素，其他元素全部删除。
+
+
 
 ## 哈希(hash)
 
 
 
-## 列表（list）
 
 
 
