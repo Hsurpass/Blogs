@@ -75,7 +75,7 @@ CONFIG SET key value #设置某个字段的值
 
 # 数据类型
 
-## string 字符串
+## 字符串(string)
 
 - SET <key> <value>：设置key的值
 - SETEX <key> <seconds> <value>：设置key所对应的value和过期时间，单位：秒
@@ -116,7 +116,7 @@ https://redis.com.cn/commands.html
 http://www.redis.cn/commands.html
 
 
-## 列表（list）
+## 列表(list)
 
 -   LPUSH <key> <val1 ... valN>：将一个值或多个值插入到链表头部。
 
@@ -173,16 +173,31 @@ http://www.redis.cn/commands.html
 
 ## 哈希(hash)
 
+-   HSET <key> <field val>：将对组<field val>设置到hash表<key>中，如果field字段存在则进行覆盖。
+-   HSETEX <key> <field val>：只有在字段<field>不存在时才会设置<val>。
+-   HGET <key> <field>：获取字段<field>对应的值。
+-   
+-   HMSET <key> <field1 val1> ... <fieldN valN>：在hash表<key>设置多个对组。
+-   HMGET <key> <field1> ... <fieldN>：获取多个指定字段的值。
+-   HGETALL <key> ：获取hash表<key>中所有的键值对<field val>。
+-   
+-   HLEN <key>：获取hash表中字段<field>的数量。
+-   HKEYS <key>：获取hash表<key>中所有的字段<field>。
+-   HVALS <key>：获取hash表<key>中所有的val。
+-   HEXISTS <key> <field>：判断字段<field>是否在hash表<key>中存在。
+-   
+-   HINCRBY <key> <field> <increment>：对<field>对应的整数值(必须是整数)+increment。
+-   HINCRBYFLOAT <key> <field> <increment>：对<field>对应的浮点数值+increment。
+-   HDEL <key> <field1> ... <fieldN>：删除一个或多个字段<field>。
 
 
 
 
-
-## 集合（set）
-
+## 集合(set)
 
 
-## 有序集合（sorted set）
+
+## 有序集合(sorted set)
 
 
 
