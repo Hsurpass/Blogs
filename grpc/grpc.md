@@ -46,6 +46,20 @@
    make install
    ```
 
+4. 设置环境变量
+
+   ```bash
+   grpc_root=/mnt/d/WorkSpace/4openSourceCode/grpc/_install
+   grpc_bin=${grpc_root}/bin
+   grpc_include=${grpc_root}/include
+   grpc_lib=${grpc_root}/lib
+   
+   export CPLUS_INCLUDE_PATH=${grpc_include}:$CPLUS_INCLUDE_PATH
+   export LIBRARY_PATH=${grpc_lib}:$LIBRARY_PATH
+   export LD_LIBRARY_PATH=${grpc_lib}:$LD_LIBRARY_PATH
+   export PATH=${grpc_include}:${grpc_root}:${cgdb_bin}:$PATH
+   ```
+
    
 
 cmake 编译错误：
@@ -82,12 +96,32 @@ cmake 编译错误：
    解决：cmakeLists.txt中添加
 
    ```cmake
-set(ABSL_PROPAGATE_CXX_STD ON)
+   set(ABSL_PROPAGATE_CXX_STD ON)
    ```
    
    这个警告可以忽略。
+
+4.   ```bash
+     grpc/examples/cpp/helloworld/greeter_async_client.cc:23:10: fatal error: absl/flags/flag.h: No such file or directory
+        23 | #include "absl/flags/flag.h"
+     ```
+
+     解决：
+
+     ```bash
+     cd grpc/third_party/abseil-cpp/
+     mkdir build
+     cmake -B build
+     cmake --build build or cd build && sudo make
+     cmake --install build or cd build && sudo make install
+     ```
+
+     
+
+5.   
+
    
-   
+
    
 
 ## windows 安装 grpc
