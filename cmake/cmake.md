@@ -20,7 +20,7 @@ or
 
 cmake -B build
 cmake --build build --config Release  #生成可执行文件 == make release
-    cmake --install build --prefix /my/install/prefix #安装在/my/install/prefix这个目录下，同时改变CMAKE_INSTALL_PREFIX这个变量的值，如果不指定--prefix, unix默认安装到/usr/local, windows默认安装到c:/Program Files/${PROJECT_NAME} == make install
+   cmake --install build --prefix /my/install/prefix #安装在/my/install/prefix这个目录下，同时改变CMAKE_INSTALL_PREFIX这个变量的值，如果不指定--prefix, unix默认安装到/usr/local, windows默认安装到c:/Program Files/${PROJECT_NAME} == make install
 ```
 
 windows:
