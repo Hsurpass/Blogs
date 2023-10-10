@@ -886,6 +886,10 @@ https://www.runoob.com/sqlite/sqlite-pragma.html
 
 
 
+# 导出数据库文档
+
+https://gitee.com/dotnetchina/SmartSQL
+
 # reference
 
 [sqlite官网 英文](https://www.sqlite.org/index.html)
