@@ -388,6 +388,19 @@ db.updateMany({key:val}, {$set:{key:new_val}})
 
 
 
+## 替换文档
+
+```sql
+db.inventory.replaceOne(
+   { item: "paper" },
+   { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
+)
+```
+
+
+
+
+
 # mongodb之间的引用关系
 
 ## 嵌入式关系
@@ -572,4 +585,10 @@ mongoimport  --host=mongodb1.example.net --port=37017 --username=user --db=db_na
 
 
 
+
+# reference
+
+[practical-mongodb-aggregations](https://www.practical-mongodb-aggregations.com/)
+
+[MongoDB中文手册|官方文档中文版](https://docs.mongoing.com/)
 
