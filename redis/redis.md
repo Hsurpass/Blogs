@@ -195,11 +195,29 @@ http://www.redis.cn/commands.html
 
 ## 集合(set)
 
+-   SADD <key> <val1> ... <valN>：向集合<key>中添加一个或者多个value。
+-   
+-   SMEMBERS <key>：返回集合<key>中所有的元素。
+-   SISMEMBER <key> <value>：判断<value>是否是集合<set>中的元素。
+-   SRANDMEMBER <key> <count>：随机返回集合<key>中1个或多个元素，count>0表示返回多个元素。
+-   SCARD <key>：获取集合<key>中有几个元素。
+-   
+-   SREM <key> <val1> ... <valN>：移除集合<key>中指定的一个或多个元素。
+-   SPOP <key> <count>：移除并返回集合<key>中一个或多个随机元素。
+-   SMOVE <src_key> <dest_key> <val>：将集合<src_key>中的元素<val>移动到集合<dest_key>中。
+-   
+-   SUNION <key1> <key2> ... <keyN>：并集：返回指定两个或多个集合的并集。
+-   SINTER <key1> <key2> ... <keyN>：交集：返回指定两个或多个集合的交集。
+-   SDIFF <key1> <key2> ... <keyN>：差集：返回集合<key1>相对于其他集合的差异元素。
+-   SUNIONSTORE <dest_key> <key1> ... <keyN>：将并集存储到指定集合<dest_key>中。
+-   SINTERSTORE <dest_key> <key1> ... <keyN>：将交集存储到指定集合<dest_key>中。
+-   SDIFFSTORE <dest_key> <key1> ... <keyN>：将差集存储到指定集合<dest_key>中。
+
 
 
 ## 有序集合(sorted set)
 
-
+-   
 
 
 
