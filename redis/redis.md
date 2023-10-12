@@ -217,7 +217,9 @@ http://www.redis.cn/commands.html
 
 ## 有序集合(sorted set)
 
--   
+-   ZADD <key> <score1 val1> ... <scoreN valN>：向有序集合<key>中添加一个或多个元素，或更新已存在元素的分数值。
+-   ZCARD <key>：获取有序集合<key>中元素的个数。
+-   ZRANGE <key> <>：
 
 
 
