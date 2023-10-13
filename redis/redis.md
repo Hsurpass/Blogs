@@ -10,8 +10,10 @@ sudo make PREFIX=/usr/local/redis install MALLOC=libc
 
 ## 服务器启动
 
-    服务启动要加上配置文件，否则还是启动的本地回环(127.0.0.1)，并且密码也不会生效
-    ./redis-server ../redis.conf
+```bash
+服务启动要加上配置文件，否则还是启动的本地回环(127.0.0.1)，并且密码也不会生效
+./redis-server ../redis.conf
+```
 
 ## 客户端连接
 
@@ -24,6 +26,37 @@ sudo make PREFIX=/usr/local/redis install MALLOC=libc
 -a：密码
 
 --raw：避免中文乱码
+
+登录后认证密码：
+
+```bash
+auth <password> # redis6.0之前只有一个参数
+auth <username> <passwd> #redis6.0
+```
+
+
+
+# 数据库
+
+## 查看数据库信息
+
+```bash
+info
+```
+
+## 查看有几个数据库
+
+```bash
+config get databases
+```
+
+## 切换数据库
+
+```bash
+SELECT dbindex #切换数据库，默认为db0。例：切换到db1：**SELECT 1**
+```
+
+
 
 # CONFIG 配置
 
@@ -53,27 +86,54 @@ CONFIG SET key value #设置某个字段的值
 
 # key 键
 
-- SELECT dbindex：切换数据库，默认为db0。例：切换到db1：**SELECT 1**
-- KEYS <key>：查找指定的key，KEYS *：查找所有key
-- EXISTS <key>：检查给定key是否存在
-- TYPE <key>：返回key所对应的**value值的类型**。
-- DEL <key>：删除key及其所对应的值。
-- DUMP <key>：序列化key
+### 查找指定的key
+
+语法：KEYS <pattern>
+
+```bash
+KEYS *：查找所有key
+keys k*: 查找以k开头的key
+```
+
+### 检查给定key是否存在
+
+EXISTS <key>
+
+### 返回key对应的类型
+
+TYPE <key>
+
+### 删除key
+
+DEL <key>
+
+### 设置过期时间
+
 - EXPIRE <key> seconds：为key设置过期时间，单位：秒
 - EXPIREAT <key> timestamp：和EXPIRE功能一样，为key设置过期时间，只是后面是timestamp(以秒为单位)时间戳
 - PEXPIRE <key> milliseconds：为key设置过期时间，单位：毫秒
 - PEXPIREAT <key> milliseconds-timestamp：和PEXPIRE功能一样，为key设置过期时间，只是后面是以毫秒为单位时间戳。
+
+### 获得剩余生存时间
+
 - TTL <key>：返回key的剩余生存时间(time to live)，单位：秒
 - PTTL <key>：返回key的剩余生存时间(time to live)，单位：毫秒
+
+
+
 - MOVE <key> dbindex：将key移动到指定的数据库db中。redis默认有16个数据库，0~15。例：**MOVE key 1**
 - PERSIST <key>：移除key的过期时间，将key持久化，也就是保存到文件
 - RANDOMKEY：随机返回一个key
-- RENAME key newkey：修改key的名称，如果数据库中有重名的 ‘newkey’，则会覆盖。
-- RENAMENX key newkey：修改key的名称，如果数据库中有重名的 ‘newkey’，则不会修改key。
+- RENAME <key> <newkey>：修改key的名称，如果数据库中有重名的 ‘newkey’，则会覆盖。
+- RENAMENX <key> <newkey>：修改key的名称，如果数据库中有重名的 ‘newkey’，则不会修改key。
+- flushall ：删除数据库中所有的key
+- DUMP <key>：序列化key
 
 
 
 # 数据类型
+
+https://www.tkcnn.com/redis/Data-types.html
 
 ## 字符串(string)
 
@@ -82,16 +142,20 @@ CONFIG SET key value #设置某个字段的值
 - PSETEX <key> <milliseconds> <value>：设置key所对应的value和过期时间，单位：毫秒。
 - SETNX <key> <value>：只有在key不存在时才会设置key的值。
 - SETRANGE <key> <offset> <value>：用value覆盖从偏移量offset开始的值。
+- 
 - GET <key>：获取key的值
 - GETRANGE <key> start end：获取key对应value的子字符串
 - GETSET <key> <newvalue>：为key设置新值，返回旧值。
+- 
 - MSET <key1> <value1> <key2> <value2>：同时设置多个key-value键值对
 - MSETNX <key1> <value1> <key2> <value2>：同时设置多个key-value键值对，**只有当所有key值都不存在时，才会set成功**。
 - MGET <key1> <key2> ... ：获取所有指定key的值
+- 
 - STRLEN <key>：获取value值的长度。
 - INCR <key>：如果value是数字，则将value加1，**value必须为整数。**
 - INCRBY <key> <increment>：给value加上给定的增量（increment），**increment必须为整数**（正数加1，负数减一）。
 - INCRBYFLOAT <key> <increment>：给value加上给定的浮点值增量
+- 
 - DECR <key>：value减1，value必须为整数。
 - DECRBY <key> <decrement>：value减decrement，value和decrement必须为整数。
 - APPEND <key> <value>：如果key对应的v值的类型是string，则把value追加到原来值的后面
@@ -106,8 +170,6 @@ OK
 > incrby total_crashes 10
 (integer) 11
 ```
-
-
 
 Redis 命令参考：http://doc.redisfans.com/
 
@@ -126,19 +188,23 @@ http://www.redis.cn/commands.html
 
 -   LPUSHX <key> <val1 ... valN>：将一个值或多个值插入到一个已存在的链表的尾部，如果列表不存在则插入失败。
 
+-   
+
 -   LPOP <key>：移除并返回列表的第一个元素，当key不存在时，返回nil。
 
 -   RPOP <key>：移除并返回列表的最后一个元素，当key不存在时，返回nil。
 
 -   BLPOP <key1 ... keyN> <timeout>：移除并返回列表的第一个元素(有元素立刻返回)，如果列表中没有元素会阻塞列表直到超时或者有可弹出元素。**timeout为0表示一直等待。可以同时阻塞多个列表**
 
--   BRPOP <key1 ... keyN> <timeout>：移除并返回列表的最后一个元素(有元素立刻返回)，如果列表中没有元素会阻塞列表直到超时或者有可弹出元素。**timeout为0表示一直等待。可以同时阻塞多个列表**
+-   BRPOP <key1 ... keyN> <timeout>：移除并返回列表的最后一个元素(有元素立刻返回)，如果列表中没有元素会阻塞列表直到超时或者有可弹出元素。**timeout为0表示一直等待。可以同时阻塞多个列表**。
 
-    -   
+-   
 
 -   RPOPLPUSH <key1> <key2>：移除key1列表的最后一个元素，插入到另一个列表的头部。
 
 -   BRPOPLPUSH <key1> <key2> <timeout>：移除key1列表的最后一个元素，插入到另一个列表的头部；如果key1中没有元素则阻塞等待直到超时或者有元素可被移出。timeout为0表示一直等待。
+
+-   
 
 -   LLEN <KEY>：返回列表长度。
 
@@ -195,7 +261,7 @@ http://www.redis.cn/commands.html
 
 ## 集合(set)
 
--   SADD <key> <val1> ... <valN>：向集合<key>中添加一个或者多个value。
+-   SADD <key> <val1> ... <valN>：向集合<key>中添加一个或者多个value。添加重复元素会失败。
 -   
 -   SMEMBERS <key>：返回集合<key>中所有的元素。
 -   SISMEMBER <key> <value>：判断<value>是否是集合<set>中的元素。
@@ -218,14 +284,122 @@ http://www.redis.cn/commands.html
 ## 有序集合(sorted set)
 
 -   ZADD <key> <score1 val1> ... <scoreN valN>：向有序集合<key>中添加一个或多个元素，或更新已存在元素的分数值。
+
 -   ZCARD <key>：获取有序集合<key>中元素的个数。
--   ZRANGE <key> <>：
+
+-   ZCOUNT <key> <min> <max>：返回指定分数区间[min, max]内的元素的个数。
+
+-   ZLEXCOUNT <key> <min> <max>：返回指定字典区间[min, max]内的元素的个数。
+
+    -   [ 符号
+
+        [min 表示返回的结果中包含 min 值
+        [max 表示返回的结果中包含 max 值
+
+    -   ( 符号
+            (min 表示返回的结果中不包含 min 值
+            (max 表示返回的结果中不包含 max 值
+
+    -   [MIN, [MAX 可以用-,+ 代替
+        
+        -   表示得分最小值的成员
+        + 表示得分最大值的成员
+
+    ```bash
+    127.0.0.1:6379> zadd chars 2 a 2 b 2 c 3 d 3 e
+    (integer) 5
+    
+    127.0.0.1:6379> zadd chars 4 f 4 g 5 h 5 i
+    (integer) 4
+    
+    127.0.0.1:6379> zlexcount chars - + 
+    (integer) 9
+    
+    127.0.0.1:6379> zlexcount chars [b [f
+    (integer) 5
+    ```
+
+-   
+
+-   ZRANK <key> <val>：返回有序集合<key>中元素<val>的索引值。分数值从低到高排序，排第几名。
+
+-   ZREVRANK <key> <val>：返回有序集合<key>中元素<val>的索引值。分数值从高到低排序，排第几名。
+
+-   
+
+-   ZRANGE <key> <start> <stop> [withscores]：返回有序集合<key>中指定索引区间[start,stop]内的元素。分数值从低到高。
+
+-   ZRANGEBYSCORE <key> <min> <max>  [withscores]：返回有序集合<key>中指定分数区间[min,max]内的元素。分数从低到高。
+
+-   ZRANGEBYLEX <key> <min> <max>：返回有序集合<key>中指定字典区间[min,max]内的元素。
+
+-   
+
+-   ZREVRANGE <key> <start> <stop> [withscores]：返回有序集合<key>中指定索引区间[start,stop]内的元素，分数从高到低。
+
+-   ZREVRANGEBYSCORE <key> <max> <min>  [withscores]：返回有序集合<key>中指定分数[min,max]内的元素。分数从高到低。
+
+-   ZREVRANGEBYLEX <key> <>：
+
+-   
+
+-   ZREM <key> <val1> ... <valN>：删除有序集合<key>中一个或多个成员。
+
+-   ZREMRANGEBYSCORE <key> <min> <max>：删除有序集合<key>中在分数区间[min,max]内的元素。
+
+-   ZREMRANGEBYBANK <key> <start> <stop>：删除有序集合<key>中在排名区间[min,max]内的元素。
+
+-   ZREMRANGEBYLEX <key> <min> <max>：删除有序集合<key>中在字典区间[min,max]内的元素。
+
+-   
+
+-   ZSCORE <key> <val>：返回有序集合<key>中指定元素<val>的分数值。
+
+-   ZINCRBY <key> <score_increment> <val>：对有序集合<key>中的元素<cal>加上分数增量<score_increment>。
+
+-   
+
+-   ZUNIONSTORE <key>
+
+-   ZINTERSTORE <key>
+
+-   
 
 
 
 # 发布订阅
 
+可以用pub/sub来实现一个消息队列。
 
+局限性：消息无法持久化，无法记录历史消息。
+
+## 发布
+
+publish channel
+
+## 订阅
+
+subscribe channel
+
+psubscribe channel_pattern:订阅一个或多个通道 。例：psubscribe chan*
+
+## 退订
+
+unsubscribe channel1 ... channelN：退定一个或多个通道。
+
+punsubscribe channel1_pattern ... channelN_pattern：退定所有模式匹配的通道。
+
+## 查看订阅与发布系统状态
+
+语法：PUBSUB <subcommand> [argument [argument ...]]
+
+```bash
+PUBSUB CHANNELS
+```
+
+# stream
+
+轻量级的消息队列，提供了消息持久化和主从复制的功能。
 
 # HyperLog
 
