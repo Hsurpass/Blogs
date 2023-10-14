@@ -56,7 +56,13 @@ config get databases
 SELECT dbindex #切换数据库，默认为db0。例：切换到db1：**SELECT 1**
 ```
 
+## 删除所有数据库中的所有key
 
+flushall
+
+## 删除当前数据库中的所有key
+
+flushdb
 
 # CONFIG 配置
 
@@ -126,7 +132,7 @@ DEL <key>
 - RANDOMKEY：随机返回一个key
 - RENAME <key> <newkey>：修改key的名称，如果数据库中有重名的 ‘newkey’，则会覆盖。
 - RENAMENX <key> <newkey>：修改key的名称，如果数据库中有重名的 ‘newkey’，则不会修改key。
-- flushall ：删除数据库中所有的key
+- 
 - DUMP <key>：序列化key
 
 
