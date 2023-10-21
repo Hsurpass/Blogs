@@ -30,7 +30,30 @@ less_than_comparable.cpp
 
 
 
+# boost/asio.hpp
+
+
+
+## strand
+
+https://zhuanlan.zhihu.com/p/155792445?utm_medium=social&utm_oi=29671328579584&utm_source=zhihu
+
+
+
+boost::post和boost::dispatch的区别
+
+不同之处在于 `dispatch` 可能会在其中运行 `handler`(传递给它的 `CompletionHandler`)，这意味着您将等待它完成，如果是，则在函数返回之前。另一方面，`post` 本身不会运行 `handler` 并立即返回调用站点。
+
+因此，`dispatch` 是一个**潜在的阻塞调用**，而 `post` 是一个非阻塞调用。
+
+https://www.coder.work/article/1215186
+
+
+
 # reference:
+
+[BOOST.ASIO源码剖析(二) ---- 架构浅析](https://www.cnblogs.com/yyzybb/p/3795428.html)
+
 
 boost源码目录下的index.html就是全部文档，`boost_1_76_0\index.html`
 
