@@ -1171,7 +1171,7 @@ https://www.ibm.com/docs/en/xl-c-aix/13.1.0?topic=functions-sync-fetch-add
 
 二值信号量可以模拟互斥锁 (生产者消费者模型)
 
-### 线程的局部存储 
+### 线程的局部存储
 
 #### __thread
 
