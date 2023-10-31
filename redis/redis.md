@@ -4,6 +4,7 @@
 sudo apt-get install libjemalloc-dev # ubuntu试了还是没编过
 
 sudo make PREFIX=/usr/local/redis install MALLOC=libc
+sudo make noopt #编译debug版本
 ```
 
 这里多了一个关键字 'PREFIX=' 这个关键字的作用是编译的时候用于指定程序存放的路径。比如我们现在就是指定了 redis 必须存放在 '/usr/local/redis' 目录。假设不添加该关键字 linux 会将可执行文件存放在 '/usr/local/bin' 目录，库文件会存放在 '/usr/local/lib' 目录。配置文件会存放在 '/usr/local/etc 目录。其他的资源文件会存放在 'usr/local/share' 目录。这里指定好目录也方便后续的卸载，后续直接 `rm -rf /usr/local/redis` 即可删除 Redis。
@@ -373,6 +374,12 @@ http://www.redis.cn/commands.html
 
 
 
+## HyperLog
+
+## stream
+
+轻量级的消息队列，提供了消息持久化和主从复制的功能。
+
 # 发布订阅
 
 可以用pub/sub来实现一个消息队列。
@@ -403,23 +410,387 @@ punsubscribe channel1_pattern ... channelN_pattern：退定所有模式匹配的
 PUBSUB CHANNELS
 ```
 
-# stream
 
-轻量级的消息队列，提供了消息持久化和主从复制的功能。
-
-# HyperLog
 
 
 
 # 备份与恢复
 
+# 内存管理
+
+## 过期数据删除策略
+
+- 惰性删除：在查询key时进行过期检查，如果过期则删除。对cpu友好，但是会存在大量未被删除的key，占用内存（如果过期key的访问频率很低，则会一直占用内存）。
+- 定期删除：每隔一段时间来删除**过期的key**。默认每隔100ms（执行的频率由hz决定，默认为10）检查一次，并删除部分过期的key。
+
+redis3.2之后访问从库的过期key，只是返回NULL，不会执行删除操作；3.2之前访问从库的过期key，返回value。
+
+定期删除对内存更加友好，惰性删除对 CPU 更加友好。两者各有千秋，所以 Redis 采用的是 **定期删除+惰性删除**。
+
+但是，仅仅通过给 key 设置过期时间还是有问题的。因为还是可能存在定期删除和惰性删除漏掉了很多过期 key 的情况。这样就导致大量过期 key 堆积在内存里，然后就 Out of memory 了。
+
+怎么解决这个问题呢？答案就是：**Redis 内存淘汰机制。**
+
+## Redis 内存淘汰机制
+
+### LRU
+
+### LFU
 
 
-持久化
+
+# 持久化
+
+## rdb
+
+## aof
 
 
 
-# 跳表
+## rdb和aof混合持久化
+
+# 高可用
+
+## 主从
+
+### 配置主从
+
+```
+cp redis.config redis-6380.config
+port 6380
+pidfile /var/run/redis_6380.pid
+dbfilename dump-6380.rdb
+replicaof 127.0.0.1 6379
+```
+
+```
+# WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+13883:M 25 Oct 2023 15:55:57.903 
+# WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
+```
+
+
+
+https://www.cnblogs.com/emmith/p/16466809.html
+
+
+
+### 主从复制的作用
+
+- 数据备份
+- 读写分离
+
+### 主从复制的原理
+
+![image-20231024084041110](image/image-20231024084041110.png)
+
+#### 全量复制
+
+![image-20231024085633551](image/image-20231024085633551.png)
+
+![image-20231024093327604](image/image-20231024093327604.png)
+
+![image-20231024084058380](image/image-20231024084058380.png)
+
+![image-20231024083757384](image/image-20231024083757384.png)
+
+#### 增量复制
+
+![image-20231024084347157](image/image-20231024084347157.png)
+
+![image-20231024084259263](image/image-20231024084259263.png)
+
+
+
+## 哨兵
+
+
+
+## 集群
+
+### 部署集群
+
+```bash
+mkdir cluster && cd cluster
+cp ../redis.conf redis_6390.conf
+vi redis_6390.conf
+
+port 6390
+bind 0.0.0.0
+daemonize yes
+pidfile /var/run/redis_6390.pid
+logfile "redis6390.log"
+dbfilename dump6390.rdb
+dir "/home/xxx/cluster"
+appendonly yes
+appendfilename "appendonly6390.aof"
+cluster-enabled yes
+cluster-config-file nodes-6390.conf
+cluster-node-timeout 15000
+
+sed 's/6390/6391/g' redis_6390.conf > redis_6391.conf 
+sed 's/6390/6392/g' redis_6390.conf > redis_6392.conf
+sed 's/6390/6393/g' redis_6390.conf > redis_6393.conf
+sed 's/6390/6394/g' redis_6390.conf > redis_6394.conf
+sed 's/6390/6395/g' redis_6390.conf > redis_6395.conf
+
+# 启动集群
+./redis-server ../cluster/redis_6390.conf
+./redis-server ../cluster/redis_6391.conf
+./redis-server ../cluster/redis_6392.conf
+./redis-server ../cluster/redis_6393.conf
+./redis-server ../cluster/redis_6394.conf
+./redis-server ../cluster/redis_6395.conf
+
+# 启动集群后还要配置slot
+## 手动配置
+	## 1.meet
+	cluster meet 
+	## 2.分配槽位
+	- 通过命令计算key的槽位：cluster keyslot key
+		- 3主：16384/3，每个主机分配的槽位范围0~5461, 5462~10923, 10924~16383
+		- 4主：16384/4，每个主机分配的槽位范围4096
+	- cluster addslots slot(槽位下标)
+	## 3.分配主从
+	cluster replicate node-id
+## 自动配置
+	redis-cli --cluster help
+	redis-cli --cluster create --cluster-replicas 1 127.0.0.1:6390 127.0.0.1:6391 127.0.0.1:6392 127.0.0.1:6393 127.0.0.1:6394 127.0.0.1:6395  #3个主节点，每个结点有一个从节点
+	# --cluster-replicas <arg>
+		# arg(数字)是分配主从结点的比例
+		1: 1主1从
+		2: 1主2从
+#连接集群
+redis-cli -c -p 6390
+
+#扩容
+sed 's/6390/6396/g' redis_6390.conf > redis_6396.conf
+sed 's/6390/6397/g' redis_6390.conf > redis_6397.conf
+	redis-cli --cluster add-node new_host:new_port #将要加入集群的新的ip 
+				existing_host:existing_port #任意已存在在集群中的ip
+                 --cluster-slave #以从节点的身份加入集群
+                 --cluster-master-id <arg> #跟随的主节点是谁 <node-id>
+	## 集群加入主节点（默认为主节点）
+	redis-cli --cluster add-node 127.0.0.1:6396 127.0.0.1:6390
+	## 集群加入从节点（以从节点身份加入）
+	redis-cli --cluster add-node 127.0.0.1:6397 127.0.0.1:6390 --cluster-slave --cluster-master-id dc20baeda141772bf7bf29a31c8a29fc06578dde
+	## 为新加入的主节点分配slot
+	redis-cli --cluster reshard 127.0.0.1:6390
+	
+	How many slots do you want to move (from 1 to 16384)? 1000
+	What is the receiving node ID? dc20baeda141772bf7bf29a31c8a29fc06578dde
+	Please enter all the source node IDs.
+	Type 'all' to use all the nodes as source nodes for the hash slots.
+	Type 'done' once you entered all the source nodes IDs.
+	Source node #1: all
+    
+#缩容
+	## 移动槽位
+	redis-cli --cluster reshard 127.0.0.1:6390 --cluster-from 6396的nodeid --cluster-to 6390的nodeid --cluster-slots <槽位数>
+	## 移除节点
+	redis-cli --cluster del-node host:port node_id #host:port: 集群地址 node_id: 结点id
+	redis-cli --cluster del-node 127.0.0.1:6396 6396的nodeid
+	redis-cli --cluster del-node 127.0.0.1:6390 6397的nodeid
+```
+
+
+
+
+
+
+
+
+
+### 分片算法
+
+#### 基于范围分片
+
+0 ~100 101 ~ 200
+
+#### 基于hash分片
+
+hash(key) % size
+
+redis默认使用的是hash分片
+
+#### 缺点
+
+1. 多个key的操作不被支持。例：sadd：当两个set存储到不同的节点上时，就不能对这两个key进行交、并、差集的操作。
+
+   解决：
+
+   使用 **hash tag** 把key存储到指定的节点上。
+
+   ```c
+   例：mset {user}:1:name “xxx” {user}:1:age #对user进行hash,只要{}中的值相同就会得到相同的hash值，也就会落到同一个slot上。
+   ```
+
+   
+
+2. 涉及多个key的redis事务不能使用。
+
+#### 优点
+
+水平扩展，利用更多的内存存储更多的数据。
+
+# 分布式锁
+
+线程之间可以加互斥锁避免资源竞争，不同机器之间的进程加分布式锁避免竞争。
+
+## setnx+setex
+
+先设置key，再设置过期时间，两步不是原子的。
+
+## set nx ex
+
+set <key> <val> [nx] [EX seconds | PX milliseconds]
+
+变成原子操作
+
+问题：
+
+1. 任务计算时间 > 过期时间，锁被释放，产生并发问题。
+
+   解决：使用redisson解决，内部有看门狗(定时器)，对key自动续期。
+
+2. 不可重入
+
+   解决：使用redisson，有计数器，可重入。
+
+## redisson
+
+异步复制可能造成锁丢失(主从模式，主节点挂了，key丢失，从节点就可以加锁了[set nx ex])
+
+解决：redlock。
+
+### redlock
+
+# 生产问题
+
+## 缓存穿透
+
+一个key既不在缓存中也不在数据库中，当大量访问该key时，所有请求压力打到数据库，导致宕机。
+
+解决：
+
+1. 在缓存中设置一个空值key，过期时间设置短一点（1~2分钟）。
+
+   ```c++
+   result get(string& key) {
+   	if(value = redis.find(key)) {
+   		return value;
+   	}
+   	if(value=db.find(key)) {
+   		redis.set(key,value, expire_time);
+   		return value;
+   	}
+   	else {
+   		redis.set(key, "");
+   		return "";
+   	}
+   }
+   ```
+
+   
+
+## 缓存击穿（缓存失效）
+
+热点key（被大量访问的数据）过期了，导致大量请求访问数据库，导致宕机。
+
+解决：
+
+1. 设置一个比较长的过期时间，或者设置永不过期
+
+2. 每访问一次，就延长一下过期时间。
+
+   ```c++
+   result get(string& key) {
+   	if(value = redis.find(key)) {
+           redis.set_expire(key, expire_time);
+   		return value;
+   	}
+   }
+   ```
+
+   
+
+## 缓存雪崩
+
+大面积key过期，导致大量请求访问数据库，导致数据库宕机。
+
+解决：
+
+1. 不设置相同的过期时间，进行随机设置
+
+   ```c++
+   result get(string& key) {
+   	if(value = redis.find(key)) {
+           expire_time = 
+           redis.set_expire(key, expire_time);
+   		return value;
+   	}
+   }
+   ```
+
+2. 
+
+
+
+
+
+## 如何保证缓存与数据库的数据一致性
+
+### 强一致性
+
+加锁：保证数据库同步缓存这个动作是原子的。但是在同步过程中缓存是不可用的，这样就不能满足CAP理论中的A(可用性)。
+
+要同时满足C和A就只能用最终一致性。
+
+### 最终一致性
+
+为了报正最终一致性无非就是 先操作缓存还是先操作数据库，是删除缓存还是更新缓存 的问题。
+
+先看以更新缓存的方式能否保证最终一致性：
+
+1. 先更新缓存再更新数据库
+
+   如果缓存更新成功了，数据库更新失败了，此时缓存中存的是新值，数据库中存的是旧值。一旦缓存失效，则会从数据库中读取旧值重建缓存。
+
+   
+
+2. 先更新数据库再更新缓存
+
+再看以删除缓存的方式能否保证最终一致性：
+
+1. 先删除缓存再更新数据库
+
+   这就引出了两次删除缓存
+
+   两次删除缓存还是会导致不一致的情况，所以要在更新完数据库延迟一段时间(几百ms)再去删除缓存，这样就尽可能的保证的数据的一致性：
+
+   
+
+   这就是**延迟双删**。
+
+2. 先更新数据库再删除缓存
+
+   一般数据库写操作的时间比读操作的时间长，所以这种情况几乎不可能。但是有可能出现删除缓存失败的情况，如果删除缓存失败则可以进行删除重试，把删除任务放到任务队列中，但是如果一直删除不成功就会一直占用这个线程，导致业务服务的吞吐量降低。
+
+   
+
+   所以我们进行异步删除，用一个客户端(canal)监控mysql的binlog，如果binlog发生变化监控客户端会向消息队列发送一个删除任务，这样就解放了业务线程。
+
+
+
+
+
+## 什么情况会导致redis阻塞
+
+
+
+# redis事务
+
+
 
 # 布隆过滤器
 
@@ -455,7 +826,7 @@ redis中文网：http://www.redis.cn/
 
 ​						https://my.oschina.net/u/4880637/blog/5324340
 
-
+redis book:http://redisbook.com/
 
 https://www.zhihu.com/question/28677076
 
