@@ -185,6 +185,32 @@ https://www.likecs.com/show-305683643.html
 
 
 
+
+
+
+
+https://zhuanlan.zhihu.com/p/589436751?utm_id=0
+
+https://zhuanlan.zhihu.com/p/520814232
+
+https://codeantenna.com/a/D9tTUSvrUK
+
+http://www.guoxiaolong.cn/blog/?id=12257
+
+https://blog.csdn.net/yuanshenqiang/article/details/119604765
+
+https://www.gresearch.com/blog/article/lessons-learnt-from-writing-asynchronous-streaming-grpc-services-in-c/
+
+https://github.com/G-Research/grpc_async_examples/blob/master/async_streaming_server_queue_to_front.cc
+
+https://github.com/apache/brpc/blob/master/README_cn.md
+
+https://zhuanlan.zhihu.com/p/389328756
+
+https://learn.microsoft.com/zh-cn/aspnet/core/grpc/loadbalancing?view=aspnetcore-7.0
+
+
+
 # reference
 
 https://grpc.io/

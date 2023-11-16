@@ -50,7 +50,26 @@ https://www.coder.work/article/1215186
 
 
 
+一个io_service对象可以通过多个线程调用io_service.run进行事件处理器的并发。分发到不同的线程上执行的策略可以认为是随机的。
+
+strand是线程安全的任务队列的封装，具体执行还是会调用io_service的接口进行处理。**一个io_service可以被多个strand绑定**。
+
+因此strand的特性是保证同一个strand里面的任务是按序执行，任务执行的线程是根据io_server.run线程分配的，所以一个strand里面的任务执行的线程并不一定是同一个。
+
+https://www.cnblogs.com/my_life/articles/8524407.html
+
+https://www.cnblogs.com/chobits/p/5632225.html
+
+https://cloud.tencent.com/developer/article/2290343?areaSource=102001.14&traceId=WI2n-20ESPP494XRA_kLW
+
+https://zhuanlan.zhihu.com/p/49497613
+
+
+
+
 # reference:
+
+https://think-async.com/Asio/
 
 [BOOST.ASIO源码剖析(二) ---- 架构浅析](https://www.cnblogs.com/yyzybb/p/3795428.html)
 

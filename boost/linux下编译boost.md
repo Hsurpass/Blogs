@@ -15,7 +15,7 @@
 
 
 1. ```
-   ./bootstrapsh
+   ./bootstrap.sh
    ```
 
 2. ``` 
@@ -36,6 +36,7 @@
 
    ```bash
    ./b2 install --prefix=../installLinuxBoost176 --build-dir=../buildLinuxBoost176 --without-python
+   ./b2 install --prefix=../installLinuxBoost176 --build-dir=../buildLinuxBoost176 --with-log
    ```
 
    + stage: 只会编译库（只会生成lib目录）

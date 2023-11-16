@@ -985,24 +985,33 @@ endmacro(<name>)
 
 **gcc编译选项**, 也可以通过指令ADD_DEFINITIONS()添加。
 
-##### CMAKE_CXX_FLAGS  
+##### CMAKE_CXX_FLAGS
 
 **g++编译选项**,也可以通过指令ADD_DEFINITIONS()添加。
 
 ```cmake
 # 在CMAKE_CXX_FLAGS编译选项后追加-std=c++11
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-elide-constructors")
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-elide-constructors -g -O0 -fPIC")
 ```
 
 ##### CMAKE_C_COMPILER
 
 ```cmake
 -DCMAKE_C_COMPILER #指定C语言编译器如交叉编译器未加入到环境变量，需要使用绝对路径
+set(CMAKE_C_COMPILER gcc)
 ```
 
 ##### CMAKE_CXX_COMPILER
 
-指定C++编译器
+
+
+```cmake
+-DCMAKE_CXX_COMPILER #指定C++编译器
+set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_COMPILER clang)
+```
+
+
 
 
 

@@ -35,7 +35,9 @@ auth <password> # redis6.0之前只有一个参数
 auth <username> <passwd> #redis6.0
 ```
 
+关闭Redis服务
 
+./redis-cli -p 6379 shutdown
 
 # 数据库
 
@@ -443,6 +445,16 @@ redis3.2之后访问从库的过期key，只是返回NULL，不会执行删除�
 
 ## rdb
 
+```bash
+# 指定在多长时间内，有多少次更新操作，就将数据同步到数据文件，可以多个条件配合
+save 900 1
+save 300 10 
+save 60 10000
+（分别表示 900 秒（15 分钟）内有 1 个更改，300 秒（5 分钟）内有 10 个更改以及 60 秒内有 10000 个更改。）
+```
+
+
+
 ## aof
 
 
@@ -455,7 +467,7 @@ redis3.2之后访问从库的过期key，只是返回NULL，不会执行删除�
 
 ### 配置主从
 
-```
+```bash
 cp redis.config redis-6380.config
 port 6380
 pidfile /var/run/redis_6380.pid
@@ -503,6 +515,65 @@ https://www.cnblogs.com/emmith/p/16466809.html
 
 
 ## 哨兵
+
+### 单节点哨兵
+
+修改配置文件：
+
+```bash
+# port xxx
+daemonize yes
+pidfile /var/run/redis-sentinel-26379.pid
+logfile "redis-sentinel-26379.log"
+# sentinel announce-ip <ip>
+# sentinel announce-port <port>
+
+## 当在Redis实例中开启了requirepass，所有连接Redis实例的客户端都要提供密码
+# 当在Redis实例中开启了requirepass，所有连接Redis实例的客户端都要提供密码
+#sentinel auth-pass mymaster password
+
+#<master-name>:主节点名称， ip <redis-port>:主节点ip和端口 quorum 2：当有2台哨兵认为主节点挂了，则进行容灾切换，当两台哨兵结点都挂了的时候，主节点挂了从节点不会切换，因为投票人数小于2
+sentinel monitor <master-name> <ip> <redis-port> <quorum> 
+sentinel monitor mymaster 
+
+# 主节点多少秒无响应，则认为挂了
+sentinel down-after-milliseconds mymaster 3000
+
+#主备切换时，最多有多少个slave同时对新的master进行同步，这里设置为默认的1
+sentinel parallel-syncs mymaster 1
+
+#故障转移的超时时间，这里设置为三分钟
+sentinel failover-timeout mymaster 180000
+
+#sentinel工作目录（默认/tmp）
+#dir ./sentinel-work-26379
+
+#守护进程pid存储文件（默认位置 /var/run/redis-sentinel.pid）
+pidfile /var/run/redis-sentinel_26379.pid
+
+
+```
+
+
+
+### 哨兵集群
+
+```bash
+sed 's/26379/26380/g' sentinel-26379.conf > sentinel-26380.conf 
+sed 's/26379/26381/g' sentinel-26379.conf > sentinel-26381.conf
+vi sentinel-26380.conf
+port 26380
+vi sentinel-26381.conf
+port 26381
+
+./redis-sentinel ../master_slave/sentinel-26379.conf
+./redis-sentinel ../master_slave/sentinel-26380.conf
+./redis-sentinel ../master_slave/sentinel-26381.conf
+```
+
+https://blog.csdn.net/qq_60271706/article/details/132697203
+
+https://cloud.tencent.com/developer/article/2124382
 
 
 
@@ -636,6 +707,8 @@ redis默认使用的是hash分片
 # 分布式锁
 
 线程之间可以加互斥锁避免资源竞争，不同机器之间的进程加分布式锁避免竞争。
+
+https://new.qq.com/rain/a/20230921A07FKU00
 
 ## setnx+setex
 

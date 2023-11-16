@@ -997,13 +997,19 @@ mount -t mqueue none /dev/mqueue
 
 #### 共享内存 posix mmap
 
-两个或多个进程读写同一块内存
+两个或多个进程共享（读写）同一块内存，以便高效的交换数据。
 
 共享内存是最快的IPC
 
 #### socket
 
 #### eventfd
+
+
+
+### 进程间互斥
+
+**同一台机器**不同进程之间，同时操作一个共享资源，可以用 **文件锁** 或 **信号量** 来做互斥。
 
 
 
@@ -1175,7 +1181,7 @@ https://www.ibm.com/docs/en/xl-c-aix/13.1.0?topic=functions-sync-fetch-add
 
 #### __thread
 
-只能使用POD类型
+只能使用POD类型（POD代表纯数据，这意味着构造器和析构器不做任何操作）
 
 #### pthread_key_t
 
