@@ -20,7 +20,7 @@ or
 
 cmake -B build
 cmake --build build --config Release  #生成可执行文件 == make release
-   cmake --install build --prefix /my/install/prefix #安装在/my/install/prefix这个目录下，同时改变CMAKE_INSTALL_PREFIX这个变量的值，如果不指定--prefix, unix默认安装到/usr/local, windows默认安装到c:/Program Files/${PROJECT_NAME} == make install
+cmake --install build --prefix /my/install/prefix #安装在/my/install/prefix这个目录下，同时改变CMAKE_INSTALL_PREFIX这个变量的值，如果不指定--prefix, unix默认安装到/usr/local, windows默认安装到c:/Program Files/${PROJECT_NAME} == make install
 ```
 
 windows:
@@ -966,6 +966,73 @@ macro(<name> [arg1 [arg2 [arg3 ...]]])
 		COMMAND2(ARGS ...)
 endmacro(<name>)
 ```
+
+
+
+##### add_custom_command
+
+```cmake
+add_custom_command(
+  OUTPUT output.out
+  COMMAND ${CMAKE_COMMAND} -E touch output.out
+  COMMENT "Creating an empty output.out"
+  DEPENDS input.in
+  VERBATIM
+)
+```
+
+- OUTPUT：设置输出文件。
+- COMMAND [ARGS] [args1...]：设置命令。
+- BYPRODUCTS：设置副产品。
+- COMMENT：设置注释。
+- VERBATIM：将字符串视为纯文本。
+- DEPENDS：设置依赖文件。
+
+只有当构建的目标以`add_custome_command`生成的OUTPUT文件为源代码的情况下，`add_custome_command`中指定的命令才会才会执行。(只有用到OUPUT的文件add_custom_command才会执行，没用到不会执行)
+
+https://codeleading.com/article/50575190278/
+
+
+
+##### EXEC_PROGRAM
+
+```cmake
+exec_program(Executable [directory in which to run]
+             [ARGS <arguments to executable>]
+             [OUTPUT_VARIABLE <var>]
+             [RETURN_VALUE <var>])
+```
+
+自从3.0之后被废弃了，建议使用execute_process。
+
+CMake 中的 EXEC_PROGRAM 函数可以运行外部程序，并设置输出到变量中。以下是它的参数介绍：
+
+- PROGRAM：程序名。
+- ARGS: 传递给程序的参数。
+- OUTPUT_VARIABLE: 输出变量。
+- RETURN_VALUE: 返回值变量。
+
+以下是使用 EXEC_PROGRAM 的示例：
+
+```cmake
+EXEC_PROGRAM("/bin/bash" ARGS "-c" "echo Hello" OUTPUT_VARIABLE OUT)
+message("Output of command is:\n${OUT}")
+```
+
+#####  EXECUTE_PROCESS
+
+```cmake
+EXECUTE_PROCESS(
+    # COMMAND "/bin/bash" "-c" "echo Hello" 
+    COMMAND /bin/bash -c "echo Hello"
+    WORKING_DIRECTORY .
+    OUTPUT_VARIABLE OUT
+    RESULT_VARIABLE RET
+)
+message("EXECUTE_PROCESS Output val is: ${OUT}, return val: ${RET} ")
+```
+
+
 
 
 

@@ -8,6 +8,7 @@
 4. `./nginx -s quit        安全退出`
 5. `./nginx -s reload    重新加载配置文件`
 6. `ps aux|grep nginx    查看nginx进程`
+7. nginx -t nginx.conf 检查nginx配置文件语法
 
 
 
@@ -126,6 +127,8 @@ http {
       server 192.168.10.121:3333 backup;  #热备
     }
     error_page 404 https://www.baidu.com; #错误页
+    
+    ################server块#################
     server {
         keepalive_requests 120; #单连接请求上限次数。
         listen       4545 default_server backlog=512;   #监听端口 配置全连接队列大小512
@@ -139,6 +142,38 @@ http {
            allow 172.18.5.54; #允许的ip           
         } 
     }
+    
+    #############TLS server块#####################
+	server {
+		listen 443 ssl http2 default_server;
+    	listen [::]:443 ssl http2 default_server;
+    	server_name _;
+   		root /usr/share/nginx/html;
+   		
+   		ssl_certificate "/etc/pki/nginx/server.crt";	# 签名证书
+   		ssl_certificate_key "/etc/pki/nginx/private/server.key";	#秘钥
+   		
+   		ssl_session_cache shared:SSL:1m;
+   		ssl_session_timeout 10m;
+   		ssl_ciphers PROFILE=SYSTEM;
+   		ssl_prefer_server_ciphers on;
+   		
+   		#load configuration files for the default server block.
+   		include /etc/nginx/default.d/*.conf;
+   		
+   		location / {
+   		}
+   		
+   		error_page 404 404.html;
+   		location = /40x.html {
+   		}
+   		
+   		error_page 500 502 503 504 /50x.html;
+   		location = /50x.html {
+   		}
+	}
+
+    
 }
 ```
 
