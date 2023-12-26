@@ -48,3 +48,32 @@
 
 ```
 
+
+
+# 开启显示空格
+
+打开设置`ctrl + ,`
+
+![image-20231124174740426](image/image-20231124174740426.png)
+
+```json
+// 1、none 默认值。不显示任何空格。
+"editor.renderWhitespace": "none"
+// 2、boundary 仅在单词之间显示空格。
+"editor.renderWhitespace": "boundary"
+// 3、selection 仅在选中文本时显示空格。
+"editor.renderWhitespace": "selection"
+// 4、all 在全文中显示所有空格。
+"editor.renderWhitespace": "all"
+```
+
+
+
+
+
+
+
+
+
+
+

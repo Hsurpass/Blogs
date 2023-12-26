@@ -681,33 +681,59 @@ project(HELLOWORLD)
 
 ##### set
 
-set可以设置普通变量、缓存变量和环境变量
+set可以设置普通变量、缓存变量和环境变量。
 
-设置普通变量：
+- 设置普通变量：
 
-```cmake
-set(<variable> <value>... [PARENT_SCOPE])
-```
+  ```cmake
+  set(<variable> <value>... [PARENT_SCOPE])
+  ```
 
-如果PARENT_SCOPE被设置，他的父级目录将可以访问子级目录的变量
+  如果PARENT_SCOPE被设置，他的父级目录将可以访问子级目录的变量
 
-设置缓存变量:
+- 设置缓存变量:
 
-```cmake
-set(<variable> <value>... CACHE <type> <docstring> [FORCE])
-```
+  ```cmake
+  set(<variable> <value>... CACHE <type> <docstring> [FORCE])	#<docstring> 是对这个变量<variable>的描述
+  ```
 
-使用CACHE 将会把变量保存到CMakeCache.txt文件中，这样同级目录就能访问另一个目录中的变量
+  使用CACHE 将会把变量保存到CMakeCache.txt文件中，这样同级目录就能访问另一个目录中的变量。
 
-设置环境变量:
+  在CMake中，变量的作用域是局部的，即在定义变量的代码块内部有效。如果您在内层定义了一个变量，那么它默认只在内层有效，外层无法访问。但是，您可以使用`CACHE`选项将变量定义为`CACHE`变量，从而使其在不同的代码块之间共享。
 
-```cmake
-set(ENV{<variable>} [<value>])
-```
+  当您将变量定义为`CACHE`变量时，它会被存储在**CMake缓存**中，并且可以在不同的CMakeLists.txt文件中共享。这意味着您可以将一个变量定义在一个CMakeLists.txt文件中，然后在另一个CMakeLists.txt文件中使用它。
 
-调用 `$ENV{<variable>}`返回设置的值
+  以下是一个示例，演示如何定义一个`CACHE`变量，并在不同的CMakeLists.txt文件中使用它：
 
-如果在ENV{<variable>}之后没写任何值，或者<value>是一个空字符串，那么这条命令将会清空这个环境变量所对应的值
+  CMakeLists.txt文件：
+
+  ```cmake
+  set(MY_VARIABLE "Hello" CACHE STRING "My variable")
+  
+  add_subdirectory(subdir)
+  ```
+
+  subdir/CMakeLists.txt文件：
+
+  ```cmake
+  message(STATUS "My variable is: ${MY_VARIABLE}")
+  ```
+
+  在这个示例中，我们定义了一个名为`MY_VARIABLE`的`CACHE`变量，并将其设置为`"Hello"`。然后，我们使用`add_subdirectory`添加一个名为`subdir`的子目录。在`subdir/CMakeLists.txt`文件中，我们使用`message`命令输出`MY_VARIABLE`的值。由于`MY_VARIABLE`是一个`CACHE`变量，所以它可以在不同的CMakeLists.txt文件中共享，因此我们可以在`subdir/CMakeLists.txt`文件中访问它并输出它的值。
+
+  总之，您可以将变量定义为`CACHE`变量，以便在不同的CMakeLists.txt文件中共享它们。
+
+  
+
+- 设置环境变量:
+
+  ```cmake
+  set(ENV{<variable>} [<value>])
+  ```
+
+  调用 `$ENV{<variable>}`返回设置的值。
+
+  如果在ENV{<variable>}之后没写任何值，或者<value>是一个空字符串，那么这条命令将会清空这个环境变量所对应的值。
 
 ##### include_directories
 
@@ -1098,6 +1124,8 @@ set(CMAKE_BUILD_TYPE Release)
 ```cmake
 # 设置c++11标准
 set(CMAKE_CXX_STANDARD 11)
+or
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 ```
 
 

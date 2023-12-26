@@ -17,10 +17,6 @@ cmake --install buildThrift
 #cmake --install buildThrift --prefix installThrift
 ```
 
-
-
-
-
 [Debian/Ubuntu install](https://thrift.apache.org/docs/install/debian.html)
 
 [Building from source](https://thrift.apache.org/docs/BuildingFromSource)
@@ -36,3 +32,13 @@ https://thrift.apache.org/docs/idl
 https://thrift.apache.org/docs/types
 
 https://diwakergupta.github.io/thrift-missing-guide/#_types
+
+
+
+源码：
+
+https://blog.csdn.net/winwill2012/category_9269194.html
+
+https://blog.csdn.net/lwwl12/article/details/109093894
+
+https://www.kancloud.cn/digest/thrift/118992

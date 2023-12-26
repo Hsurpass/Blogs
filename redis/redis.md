@@ -764,7 +764,11 @@ set <key> <val> [nx] [EX seconds | PX milliseconds]
    }
    ```
 
-   
+2. 使用布隆过滤器判断
+
+
+
+
 
 ## 缓存击穿（缓存失效）
 
@@ -785,7 +789,7 @@ set <key> <val> [nx] [EX seconds | PX milliseconds]
    }
    ```
 
-   
+3. 分布式锁？？
 
 ## 缓存雪崩
 

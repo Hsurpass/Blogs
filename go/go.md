@@ -51,6 +51,29 @@ https://goproxy.io/zh/
 
 https://goproxy.cn/
 
+
+
+# go环境变量
+
+## GOPATH
+
+如果使用了模块在pkg/mod存放一些我们`go install/get`或者 `go mod tidy`下来的包，我们称之为模块缓存，如果想清理这些模块缓存使用`go clean -modcache`
+
+### 设置局部GOPATH
+
+```bash
+#linux:
+export GOPATH=$HOME/workspace/my_project_path/gopath
+#windows:
+set GOPATH=%USERPROFILE%\go
+```
+
+在设置完GOPATH之后，你将会发现在指定的目录下出现了三个子目录：src、pkg和bin。其中，src目录用于存放Go项目的源代码，pkg目录用于存放编译好的包文件，bin目录用于存放可执行文件。你可以按照这种目录结构组织你的代码，以便更好地管理和维护。
+
+
+
+
+
 # go
 
 ## 基本类型
@@ -261,6 +284,10 @@ https://go-zh.org/doc/
 [runoob go教程](https://www.runoob.com/go/go-tutorial.html)
 
 [500 + Go 语言开源项目合集（2021版）](https://zhuanlan.zhihu.com/p/424624289?utm_id=0)
+
+https://topgoer.com/
+
+[Golang标准库文档](http://word.topgoer.com/)
 
 
 

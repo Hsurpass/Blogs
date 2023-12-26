@@ -27,6 +27,8 @@
 
 取消ssl验证：git config --global http.sslVerify false
 
+https://docs.github.com/zh/repositories/creating-and-managing-repositories/renaming-a-repository
+
 ## 设置name和email
 
 `git config --global user.name "your name"`

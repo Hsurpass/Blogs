@@ -1,3 +1,5 @@
+mysql能分布式安装吗？怎么配置？
+
 # 安装
 
 ## linux上安装
@@ -230,3 +232,9 @@ mysql> grant system_user on *.* to 'root';
 ```
 
 https://www.jianshu.com/p/cc67e1dd9162
+
+
+
+sql优化
+
+https://www.bilibili.com/video/BV1Y5411c7F4/?spm_id_from=333.999.0.0&vd_source=c4b5fa82418420c778a8366bb840293d
