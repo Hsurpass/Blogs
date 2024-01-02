@@ -143,7 +143,7 @@ docker load < myubuntu.tar
 
 # 容器
 
-## docker create
+## docker create(创建容器)
 
 创建一个容器并不启用它
 
@@ -153,7 +153,7 @@ docker create  --name myrunoob  nginx:latest
 
 
 
-## docker run
+## docker run(创建容器)
 
 新建一个容器，启动后并进入。
 
@@ -165,7 +165,7 @@ docker run -t -i ubuntu:15.10 /bin/bash
 
 - -i: 交互式操作
 
-- -d: 使容器在后台运行，并且不会进入容器。
+- -d: 使容器在后台运行，并且不会进入容器。(守护进程)
 
 - ubuntu:15.10：指定使用15.10版本的ubuntu镜像来启动容器。
 
@@ -205,6 +205,14 @@ docker run -t -i ubuntu:15.10 /bin/bash
   docker run -d -p 127.0.0.1:5000:5000/udp training/webapp python app.py
   ```
 
+- -v：数据卷（共享文件夹）：宿主机与容器之间共享数据，容器与容器之间共享数据。
+
+  ```
+  docker run -it -v /root/docker/data:/root/docker/data ubuntu:15.10
+  ```
+
+   
+
 - --network
 
   将容器连接到指定的网络。
@@ -213,11 +221,21 @@ docker run -t -i ubuntu:15.10 /bin/bash
   $ docker run -itd --name test1 --network test-net ubuntu /bin/bash #运行一个容器test1并连接到网络test-net上
   ```
 
-  
+
+## 数据卷容器
+
+```bash
+#创建数据卷容器
+docker run -it --name=c1 -v /volume centos:7
+#根据数据卷容器创建新容器
+docker run -it --name=c2 --volumes-from c1 centos:7
+```
 
 
 
-## docker ps
+
+
+## docker ps(查看容器)
 
 查看都有哪些容器
 
@@ -256,7 +274,7 @@ sudo docker stop $(docker ps -q)
 
 
 
-## docker exec
+## docker exec(进入容器)
 
 退出容器时不会使容器退出。
 
@@ -268,7 +286,7 @@ sudo docker exec -it 容器ID /bin/bash
 
 退出容器时会使容器退出。推荐使用docker exec.
 
-## docker rm
+## docker rm(删除容器)
 
 删除停止的容器，如果容器还在运行，使用`docker stop`停止。
 
@@ -284,6 +302,12 @@ sudo docker ps -a | awk '{print $1}' | xargs docker rm
 ```bash
 docker rm $(docker ps -a -q)
 ```
+
+
+
+## 退出容器
+
+exit
 
 
 
