@@ -1,3 +1,19 @@
+http://www.bryh.cn/a/29976.html
+
+https://blog.csdn.net/Chasingthewinds/article/details/130344853
+
+https://blog.51cto.com/u_16213660/7280009
+
+https://dev.mysql.com/doc/c-api/5.7/en/c-api-basic-interface-usage.html
+
+https://dev.mysql.com/doc/connector-cpp/8.2/en/connector-cpp-installation-binary.html#connector-cpp-installation-binary-linux
+
+https://blog.csdn.net/qq_39638989/article/details/126229189
+
+https://blog.csdn.net/xunmeng2002/article/details/127852016
+
+https://blog.csdn.net/qq_44918555/article/details/125153569
+
 mysql能分布式安装吗？怎么配置？
 
 # 安装
@@ -5,13 +21,14 @@ mysql能分布式安装吗？怎么配置？
 ## linux上安装
 
 ```bash
+# https://dev.mysql.com/doc/mysql-apt-repo-quick-guide/en/
 sudo apt update
 sudo apt install mysql-server
 mysql --version	# 查看mysql版本
 sudo systemctl start mysql   or  sudo service mysql start # 启动mysql
 sudo systemctl status mysql  or  sudo service mysql status # 查看mysql状态
-sudo systemctl stop mysql or  sudo service mysql stop # 停止mysql
-sudo systemctl restart mysql   or  sudo service mysql restart # 重启mysql
+sudo systemctl stop mysql    or  sudo service mysql stop # 停止mysql
+sudo systemctl restart mysql or  sudo service mysql restart # 重启mysql
 sudo service --status-all # 查看所有服务状态
 
 mysqladmin -u root -p shutdown #停止mysql服务
@@ -46,6 +63,7 @@ https://dev.mysql.com/doc/refman/8.0/en/default-privileges.html
 1. 设置root@%密码
 
    ```mysql
+   mysql #登录服务器
    mysql> alter user 'root'@'%' identified by '1111'; # %表示远端所有地址可以连接mysql服务
    ```
 
@@ -154,6 +172,47 @@ Please provide the password for 'test@localhost': ****
 
 https://dev.mysql.com/downloads/shell/
 
+
+
+## mysql connector
+
+### windows
+
+windows下的vs2019配置
+
+（假设mysql的默认安装路径为：C:\Program Files\MySQL\MySQL Server 8.0）
+
+1. VC++目录->包含目录。 C/C++—》常规—》附录包含目录：
+
+   C:\Program Files\MySQL\MySQL Server 8.0\include
+
+2. VC++目录->库目录。链接—》常规—》附加库目录：
+
+   C:\Program Files\MySQL\MySQL Server 8.0\lib
+
+3. 调试->环境
+
+   Path=C:\Program Files\MySQL\MySQL Server 8.0\lib;C:\Program Files\MySQL\MySQL Server 8.0\bin;
+
+4. 连接器->输入->附加依赖项
+
+   libmysql.lib (c++驱动同理)
+
+
+
+### linux
+
+```bash
+sudo apt install libmysqlcppconn-dev # c++ 驱动
+
+sudo apt install mysql-client
+sudo apt install libmysqlclient-dev #C 驱动
+```
+
+
+
+
+
 # 数据库
 
 ## 查看有哪些数据库
@@ -175,6 +234,20 @@ show databases
 # 数据库对象
 
 ## 表
+
+在线修改表结构
+
+gh-ost
+
+pt-osc
+
+facebook-osc
+
+online ddl
+
+native ddl
+
+
 
 ### 约束
 
@@ -238,3 +311,27 @@ https://www.jianshu.com/p/cc67e1dd9162
 sql优化
 
 https://www.bilibili.com/video/BV1Y5411c7F4/?spm_id_from=333.999.0.0&vd_source=c4b5fa82418420c778a8366bb840293d
+
+
+
+
+
+数据类型
+
+建表
+
+删表
+
+
+
+插入数据
+
+更新数据
+
+删除数据
+
+查询数据
+
+
+
+多表查询
