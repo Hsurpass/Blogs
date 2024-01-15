@@ -1,5 +1,3 @@
-http://www.bryh.cn/a/29976.html
-
 https://blog.csdn.net/Chasingthewinds/article/details/130344853
 
 https://blog.51cto.com/u_16213660/7280009
@@ -65,6 +63,7 @@ https://dev.mysql.com/doc/refman/8.0/en/default-privileges.html
    ```mysql
    mysql #登录服务器
    mysql> alter user 'root'@'%' identified by '1111'; # %表示远端所有地址可以连接mysql服务
+   # mysql> set password for 'root'@'localhost'=password('1111'); # error
    ```
 
 2. 刷新权限
@@ -88,7 +87,8 @@ https://dev.mysql.com/doc/refman/8.0/en/default-privileges.html
 
    ```mysql
    mysql> select user, host from user where user='root'; # 查看root访问权限
-   mysql> update user set host='%' where user='root' # 设置root访问权限为所有ip，<风险>
+   mysql> update user set host='%' where user='root' # 设置root访问权限为所有ip，<风险> 最好改为
+   mysql> update user set host='localhost' where user='root'
    ```
 
 5. 开放3306端口远程访问权限
@@ -215,25 +215,49 @@ sudo apt install libmysqlclient-dev #C 驱动
 
 # 数据库
 
-## 查看有哪些数据库
-
 ```mysql
-show databases
+show databases;          # 查看有哪些数据库
+create database db-name; # 创建数据库
+drop database db-name;   # 删除数据库
+drop database if exists db-name;   # 删除数据库
+use mysql;               # 选择数据库
 ```
-
-## 创建数据库
-
-
-
-## 删除数据库
-
-
-
-
 
 # 数据库对象
 
 ## 表
+
+```sql
+show tables;              # 查看有哪些表
+desc table table-name     # 查看表结构
+describe table table-name # 查看表结构
+drop table table-name     # 删除表
+```
+
+创建表
+
+```sql
+create table table-name (
+	字段1 类型 [约束]
+    字段2 类型 [约束]
+    字段n 类型 [约束]
+)
+create table table-name (id int, name char) # 创建表
+
+ALTER table class RENAME student; # 重命名表
+```
+
+修改表结构（列操作）
+
+```sql
+alter table table-name modify field varchar(12) # 修改字段类型
+ALTER TABLE table_name CHANGE old_column_name new_column_name data_type; # 重命名字段 CHANGE关键字后面必须指定新的列名和数据类型。这种操作会影响到已有的索引、外键等依赖于该字段的对象，因此在进行修改之前应先确认相关信息并做好备份工作。
+
+alter table table-name add column newfield tinyint;     # 添加一个新的字段(列)
+alter table table-name drop column newfield;            # 删除一个字段(列)
+```
+
+
 
 在线修改表结构
 
@@ -246,6 +270,71 @@ facebook-osc
 online ddl
 
 native ddl
+
+
+
+### 数据类型
+
+#### 整数
+
+| 类型         | 大小  | 范围(有符号)        | 范围(无符号)   |
+| ------------ | ----- | ------------------- | -------------- |
+| tinyint      | 1字节 | [-128,127]          | [0, 255]       |
+| smallint     | 2字节 | [-32768, 32767]     | [0, 65535]     |
+| mediumint    | 3字节 | [-2^23^, 2^23^ - 1] | [0, 2^24^ - 1] |
+| int或integer | 4字节 | [-2^31^, 2^31^ - 1] | [0, 2^32^ - 1] |
+| bigint       | 8字节 | [-2^63^, 2^63^]     | [0, 2^64^]     |
+
+int(n)：注意括号的n表示**显示长度**，并不影响实际占用的存储长度（还是4）。
+
+#### 浮点数
+
+| 类型    | 大小                                    | 范围(有符号)                                                 | 范围(无符号)   |
+| ------- | --------------------------------------- | ------------------------------------------------------------ | -------------- |
+| float   | 4字节                                   | (-3.402 823 466 E+38，-1.175 494 351E-38)，0，(1.175 494 351 E-38，3.402823 466 351 E+38) |                |
+| double  | 8字节                                   |                                                              |                |
+| decimal | 对DECIMAL(M,D)，如果M>D，为M+2否则为D+2 | 依赖于M和D的值,例如DECIMAL(5, 2) 范围为-999.99到999.99，占用7个字 节，小数点与符号各占用一个字节 | 依赖于M和D的值 |
+
+float(总长度， 小数点后保留的位数)：float(3,2):1.23
+
+double(总长度，小数点后保留的位数)：double(5,2)：123.45
+
+#### 字符串
+
+| 类型       | 大小                                        | 用途                                  |
+| ---------- | ------------------------------------------- | ------------------------------------- |
+| char(n)    | n的取值范围：1-255字节。总长度为n           | 定长字符串，知道固定长度的时候用CHAR  |
+| varchar(n) | n的取值范围：1-65535字节。总长度为n+1(‘\0’) | 变长字符串，经常变化的字段用varchar   |
+|            |                                             |                                       |
+| tinytext   | 0-255字节                                   | 短文本字符串                          |
+| text       | 0-65535字节                                 | 长文本数据，能用varchar的地方不用text |
+| mediumtext | 0 ~ 2^24^ -1字节                            | 中等长度文本数据                      |
+| longtext   | 0 ~ 2^32^ - 1字节                           | 极大文本数据                          |
+|            |                                             |                                       |
+| tinyblob   | 0 ~ 255字节                                 | 不超过255个字符的二进制字符串         |
+| blob       | 0 ~ 65535字节                               |                                       |
+| mediumblob | 0 ~ 2^24^ -1字节                            |                                       |
+| longblob   | 0 ~ 2^32^ -1字节                            |                                       |
+
+char和varchar超过n后，字符串会被截断。
+
+从官方文档中我们可以得知当varchar大于某些数值的时候，其会自动转换为text，大概规则如下：
+
+-   大于varchar（255）变为 tinytext
+-   大于varchar（500）变为 text
+-   大于varchar（20000）变为 mediumtext
+
+
+
+#### 日期和时间
+
+| 类型      | 大小(字节) | 范围                                      | 格式                | 用途                                |
+| --------- | ---------- | ----------------------------------------- | ------------------- | ----------------------------------- |
+| DATE      | 3          | 1000-01-01~9999-12-31                     | YYYY-MM-DD          | 只存储日期                          |
+| TIME      | 3          | '-838:59:59' ~ '838:59:59'                | HH:MM:SS            | 只存储时间                          |
+| YEAR      | 1          | 1901 ~ 2155                               | YYYY                | 只存储年份                          |
+| DATETIME  | 8          | 1000-01-01 00:00:00 ~ 9999-12-31 23:59:59 | YYYY-MM-DD HH:MM:SS | 存储日期和时间                      |
+| TIMESTAMP | 4          | 1970-01-01 00:00:00/2037 年某时           | YYYYMMDD            | 存储从1970/1/1 0:0:0 到现在的时间戳 |
 
 
 

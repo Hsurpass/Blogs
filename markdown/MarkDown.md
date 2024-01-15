@@ -32,7 +32,11 @@ $\color{silver}{汉字格式}$
 
 [关于如何在markdown文本中书写数学符号和公式（Latex）](https://blog.csdn.net/june_young_fan/article/details/85071437)
 
-[[MathJax basic tutorial and quick reference](https://math.meta.stackexchange.com/questions/5020/mathjax-basic-tutorial-and-quick-reference)
+[MathJax basic tutorial and quick reference](https://math.meta.stackexchange.com/questions/5020/mathjax-basic-tutorial-and-quick-reference)
+
+x^2^
+
+x~0~
 
 
 
