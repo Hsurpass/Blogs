@@ -897,3 +897,5 @@ https://gitee.com/dotnetchina/SmartSQL
 [sqlite中文](http://www.sqlite.net.cn/)
 
 [sqlite 在线IDE](https://sqliteonline.com/)
+
+[SQlite源码分析](https://huili.github.io/index.html)

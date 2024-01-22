@@ -335,3 +335,38 @@ git config --global http.postBuffer 524288000
 ```
 
 如果不行就是服务那边做了大小限制。
+
+
+
+## ssh:connect to host github.com port 22: Connection timed out
+
+```bash
+cd ~/.ssh
+vi config # 没有则创建
+
+Host github.com
+#User Github账号名
+Hostname ssh.github.com
+#PreferredAuthentications publickey
+#IdentityFile ~/.ssh/id_rsa
+Port 443
+
+Host gitlab.com
+Hostname altssh.gitlab.com
+#User git
+Port 443
+#PreferredAuthentications publickey
+#IdentityFile ~/.ssh/id_rsa
+
+# 保存退出
+# 检查是否连接成功
+ssh -T git@github.com
+```
+
+
+
+https://blog.csdn.net/weixin_54412689/article/details/132390393
+
+https://blog.csdn.net/hjy_mysql/article/details/131596257
+
+https://blog.csdn.net/weixin_45072910/article/details/115216741

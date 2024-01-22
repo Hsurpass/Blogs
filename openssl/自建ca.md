@@ -3,6 +3,7 @@
 ```bash
 # 创建一个新的私钥文件 ca.key
 openssl genpkey -algorithm RSA -out ca.key -aes256
+or
 openssl genrsa -out ca.key 2048	
 
 # 创建一个新的证书请求文件 ca.csr

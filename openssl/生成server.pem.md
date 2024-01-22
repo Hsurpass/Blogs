@@ -7,7 +7,7 @@
    运行以下命令以创建一个名为`server.key`的私钥文件：
 
    ```bash
-   openssl genpkey -algorithm RSA -out server.key
+   openssl genpkey -algorithm RSA -out server.key  # *
    or
    openssl genrsa -out server.key 2048		# 生成一个2048位的RSA私钥
    
@@ -21,7 +21,9 @@
    ```bash
    openssl req -new -x509 -key server.key -out server.crt -days 365 -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
    or
-   openssl req -new -key server.key -out cert.csr
+   openssl req -new -key server.key -out cert.csr # *
+   openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt # *
+   
    
    openssl x509 -text -in server.crt #查看证书信息
    openssl x509 -in server.crt -noout -dates #查看证书有效时间
