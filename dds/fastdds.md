@@ -1,5 +1,19 @@
 
 
+安装
+
+- 通过install.sh安装
+
+  ```bash
+  https://www.eprosima.com/index.php?option=com_ars&view=browses&layout=normal # 下载
+  sudo ./install.sh --build-cores 4 --install-prefix $PWD/fastdds_install --install-examples # --install-prefix后面的路径必须是绝对路径
+  sudo ./uninstall.sh --install-prefix [绝对路径] # 默认是/usr/local
+  ```
+
+  https://fast-dds.docs.eprosima.com/en/latest/installation/binaries/binaries_linux.html
+
+
+
 
 
 # reference
