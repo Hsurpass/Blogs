@@ -95,13 +95,19 @@ sudo docker commit -m="666" -a="hcy" 9b4e778b2924 hchy/hello-new:v1
 
 1. 创建一个[Dockerfile](#Dockerfile)
 2. 执行 `sudo docker build -t xxx/ubuntu:20.04 .`
-   - -t: 指定要创建的目标镜像名
+   - -t(--tag): 指定要创建的目标镜像名
    
    - . ：Dockerfile文件所在的目录，可以指定绝对路径。docker build 命令得知这个路径后，会将路径下的**所有内容**打包。
    
      **注意**：上下文路径下不要放无用的文件，因为会一起打包发送给 docker 引擎，如果文件过多会造成过程缓慢。
 
+-   --no-cache:
 
+    ```bash
+    docker build --no-cache -t myImage:myTag myPath/
+    ```
+
+    Docker 建议您定期重建 Docker 映像，以防止已解决的已知漏洞。重建时，请使用该选项 `--no-cache` 来避免缓存命中并确保全新下载。
 
 ## docker tag
 
@@ -161,11 +167,11 @@ docker create  --name myrunoob  nginx:latest
 docker run -t -i ubuntu:15.10 /bin/bash 
 ```
 
-- -t: 分配一个终端
+- -t: 表示分配一个伪终端（pseudo-TTY）。
 
-- -i: 交互式操作
+- -i: 表示保持标准输入打开，以便可以与容器进行交互。
 
-- -d: 使容器在后台运行，并且不会进入容器。(守护进程)
+- -d (--detach): **使容器在后台运行**，并且不会进入容器。(守护进程)
 
 - ubuntu:15.10：指定使用15.10版本的ubuntu镜像来启动容器。
 
@@ -180,6 +186,8 @@ docker run -t -i ubuntu:15.10 /bin/bash
   ```
 
 - --name string：为容器添加一个名字。
+
+- --rm: 指定在容器退出时自动删除容器。这样可以确保在容器退出后不会留下无用的容器占用存储空间。
 
 - -P: Publish all exposed ports to random ports. 将所有公开的端口发布到随机端口。将容器内部使用的网络端口随机映射到我们使用的主机上。
 
@@ -205,13 +213,27 @@ docker run -t -i ubuntu:15.10 /bin/bash
   docker run -d -p 127.0.0.1:5000:5000/udp training/webapp python app.py
   ```
 
+  因为本地程序无法直接连接到docker内的服务，所以要把docker内的端口映射到外面
+
+  ![image-20240209173557100](image/image-20240209173557100.png)
+
+  ![image-20240209173859619](image/image-20240209173859619.png)
+
 - -v：数据卷（共享文件夹）：宿主机与容器之间共享数据，容器与容器之间共享数据。
 
-  ```
+  ```bash
   docker run -it -v /root/docker/data:/root/docker/data ubuntu:15.10
   ```
 
-   
+   例：
+
+  ```bash
+  docker run --rm -ti -v "$PWD:/opt/workspace" ghcr.io/opendds/opendds:latest-release
+  -v "$PWD:/opt/workspace": 这个参数用于将主机的当前工作目录（由 $PWD 变量表示）挂载到容器内的 /opt/workspace 目录。这样做的目的是将主机上的文件和目录共享到容器中，以便在容器内进行操作。
+  ghcr.io/opendds/opendds:latest-release: 这是指定要运行的 Docker 镜像的名称和标签。在这个例子中，它指定了从 GitHub Container Registry 中获取 opendds 镜像的 latest-release 标签。这意味着它将从 GitHub Container Registry 下载最新的 OpenDDS 镜像并在容器中运行。
+  ```
+
+  
 
 - --network
 
@@ -245,6 +267,8 @@ docker run -it --name=c2 --volumes-from c1 centos:7
 
 ## docker start
 
+如果某个容器状态是已经退出(status: Exited)，可以使用`docker start 容器id`来启动容器
+
 开启所有容器
 
 ```bash
@@ -275,6 +299,11 @@ sudo docker stop $(docker ps -q)
 
 
 ## docker exec(进入容器)
+
+```bash
+docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+               选项      容器ID     命令   参数...
+```
 
 退出容器时不会使容器退出。
 
@@ -365,6 +394,16 @@ sudo docker export b8fb0b91c64d > ubuntu.tar
 
 
 
+## docker cp
+
+```bash
+# 从容器中将文件拷贝到主机上
+docker cp <container_name_or_id>:/path/to/container/file /path/to/host/file
+
+```
+
+
+
 
 
 # docker网络
@@ -412,15 +451,6 @@ apt install iputils-ping
 
 
 
-
-# Dockerfile
-
-
-
-
-
-
-
 # 制作自己的ubuntu镜像
 
 1. 拉取官方Ubuntu镜像。
@@ -464,7 +494,8 @@ docker push <registry-url>/<image-name>:<tag>
 例如，如果要将镜像上传到名为`myrepo`的仓库，并使用标签`14.04`，则可以使用以下命令：
 
 ```bash
-docker login -u myusername -p mypassword myrepo.comdocker push myrepo.com/my-ubuntu:14.04
+docker login -u myusername -p mypassword myrepo.com
+docker push myrepo.com/my-ubuntu:14.04
 ```
 
 
