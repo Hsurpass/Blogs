@@ -217,6 +217,20 @@ sudo apt install libmysqlclient-dev #C 驱动
 
 
 
+## 拉取mysql的docker镜像
+
+```bash
+docker pull mysql
+docker run  -id --name=test_mysql -p 3306:3306 
+ -v ~/mysql/conf:/etc/mysql/conf.d # 把docker中的配置文件目录映射到本机目录
+ -v ~/mysql/logs:/var/log/mysql 
+ -v ~/mysql/data:/var/lib/mysql
+ -e MYSQL_ROOT_PASSWORD=mypassword #初始化一个密码
+ mysql:5.6 # j
+```
+
+
+
 
 
 # 数据库

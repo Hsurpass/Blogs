@@ -26,3 +26,34 @@ sudo mongod --bind_ip_all
 ```
 
 https://www.mongodb.com/docs/manual/reference/configuration-options/#net-options
+
+
+
+安装mongodb驱动
+
+1.   通过命令安装
+
+     ```bash
+     sudo apt install libmongoc-dev
+     sudo apt install libbson-dev
+     ```
+
+     
+
+2.   通过编译源码安装
+
+     ```bash
+     sudo apt-get install libzstd-dev
+     sudo apt-get install libsasl2-dev
+     sudo apt-get install libsnappy-dev
+     
+     cmake -B build
+     cmake --build build -j2
+     ```
+
+     
+
+
+
+
+
