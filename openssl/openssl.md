@@ -3,7 +3,7 @@
 https://www.openssl.org/source/
 
 ```bash
-./config --prefix= # 默认安装在 /usr/local 下面
+./config --prefix=$PWD/_install # 默认安装在 /usr/local 下面, 必须是绝对路径
 make
 sudo make install
 sudo make uninstall
