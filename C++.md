@@ -238,7 +238,24 @@ cout << a << b << ra << endl;   // 200 200 200
 #### 引用与指针的区别：
 
 1. 引用定义时必须初始化，指针在定义时可以为NULL；
+
 2. 引用初始化完成后不能改变其指向，指针可以改变。
+
+3. sizeof的值不同
+
+    ```c++
+    // 64位机器
+    int a =1;
+    int &b = a; 	    // 4 引用所指向对象的类型的大小 int
+    const long &c = a;	// 8 引用所指向对象的类型的大小 long
+    int *p = &a;	    // 8 指针本身的大小
+    
+    cout << sizeof(b) << endl; 
+    cout << sizeof(p) << endl;
+    cout << sizeof(c) << endl;
+    ```
+
+    
 
 引用也不是完全不能改变指向的，**类内的引用可以改变指向**，类内的引用被c++编译器编译为指针。[reference.cpp](https://github.com/Hsurpass/ElegantTest/blob/main/test_cpp/reference/reference.cpp)
 
