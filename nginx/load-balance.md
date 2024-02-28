@@ -38,6 +38,10 @@ upstream serverlist {
 
 ### 随机分配
 
+
+
+
+
 ## 动态算法
 
 ### 最少连接(least connections)
