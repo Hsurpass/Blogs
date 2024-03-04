@@ -10,7 +10,8 @@
   sudo ./uninstall.sh --install-prefix [绝对路径] # 默认是/usr/local
   
   sudo apt install libtinyxml2-dev
-  sudo apt install openjdk-11-jdk
+  # sudo apt install openjdk-11-jdk
+  sudo apt install openjdk-8-jdk
   ```
   
   https://fast-dds.docs.eprosima.com/en/latest/installation/binaries/binaries_linux.html

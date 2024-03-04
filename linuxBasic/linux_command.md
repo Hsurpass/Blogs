@@ -11,6 +11,9 @@ apt-cache search vim	# 查询软件列表
 apt-get install qt5-default qtcreator qt5-doc #安装软件 
 apt-get remove vim 	#卸载软件 
 apt --help
+
+apt-cache depends maven # 查看maven都依赖哪些软件
+apt-rdepends -r maven
 ```
 
 ## 安装软件包
