@@ -1019,6 +1019,10 @@ mount -t mqueue none /dev/mqueue
 
 ### 线程的创建，使用和回收
 
+#### LWP
+
+
+
 
 
 #### detach
@@ -1451,3 +1455,68 @@ https://gcc.gnu.org/onlinedocs/libstdc++/libstdc++-html-USERS-4.3/a01696.html
 
 
 
+## #include <sched.h>
+
+### sched_setaffinity
+
+"线程的亲和性（affinity）"指的是将一个线程绑定到特定的CPU核心上执行的能力。通过设置线程的亲和性，可以确保线程始终在特定的CPU核心上执行，而不会在不同的核心之间切换。这有助于提高线程的性能和降低延迟，因为线程可以利用特定核心的缓存和资源，避免在不同核心之间切换造成的性能损失。
+
+在多核系统中，操作系统通常会自动将线程分配到可用的CPU核心上执行。但有时候，通过设置线程的亲和性，可以更好地控制线程的执行位置，以优化性能和资源利用。affinity的设置可以通过操作系统提供的API来实现，如Linux的sched_setaffinity()函数。
+
+### sched_setscheduler
+
+"用于此线程的调度策略"指的是操作系统在调度线程时采用的策略。在多线程编程中，操作系统需要决定如何分配CPU时间给不同的线程，以实现多任务并发执行。不同的调度策略会影响线程的执行顺序、优先级和时间片分配等方面。
+
+常见的调度策略包括：
+
+1.  **先来先服务（First-Come-First-Serve，FCFS）**：按照线程到达的顺序进行调度。
+2.  **最短作业优先（Shortest Job First，SJF）**：优先调度执行时间最短的线程。
+3.  **优先级调度（Priority Scheduling）**：根据线程的优先级确定执行顺序。
+4.  **时间片轮转（Round Robin）**：每个线程执行一个时间片后切换到下一个线程。
+5.  **实时调度（Real-Time Scheduling）**：保证实时任务在规定的时间内完成。
+
+```
+int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param);
+```
+
+其中，参数含义如下：
+
+-   `pid`：要设置调度策略的线程或进程的ID。如果传入0，则表示设置当前线程的调度策略。
+
+-   ```
+    policy
+    ```
+
+    ：要设置的调度策略，可以是以下值之一：
+
+    -   `SCHED_FIFO`：先进先出调度策略。
+    -   `SCHED_RR`：时间片轮转调度策略。
+    -   `SCHED_OTHER`：普通调度策略。
+
+-   `param`：指向struct sched_param结构体的指针，用于设置调度参数，如优先级等。不同的调度策略可能需要不同的参数设置。
+
+
+
+### pthread_setschedparam
+
+"线程的优先级"指的是操作系统对线程进行调度时考虑的一个重要因素。线程的优先级决定了其在竞争CPU资源时的执行顺序，优先级高的线程会被优先调度执行，而优先级低的线程则可能需要等待。
+
+在Linux系统中，线程的优先级通常通过nice值来表示，取值范围一般为-20到19，其中-20表示最高优先级，19表示最低优先级。更负的nice值表示更高的优先级。nice值为0表示默认优先级。
+
+可以使用以下命令查看线程的优先级：
+
+```
+ps -eo pid,ni,cmd
+```
+
+该函数可以设置线程的调度策略和调度参数，包括优先级。
+
+```
+int pthread_setschedparam(pthread_t thread, int policy, const struct sched_param *param);
+```
+
+其中，参数含义如下：
+
+-   `thread`：要设置优先级的线程的pthread_t标识符。
+-   `policy`：要设置的调度策略，可以是`SCHED_FIFO`、`SCHED_RR`或`SCHED_OTHER`。
+-   `param`：指向struct sched_param结构体的指针，用于设置调度参数，包括优先级。

@@ -1060,6 +1060,27 @@ message("EXECUTE_PROCESS Output val is: ${OUT}, return val: ${RET} ")
 
 
 
+##### file
+
+```cmake
+file({GLOB | GLOB_RECURSE} <out-var> [...] <globbing-expr>...)
+
+# 设置源文件目录
+set(SRC_DIR "./src")
+# 使用 file(GLOB ...) 命令获取子文件夹下的所有 .cpp 文件
+file(GLOB SRC_FILES
+    "${SRC_DIR}/*.cpp"
+    "${SRC_DIR}/*/*.cpp"  # 只能获取一层的子文件夹
+)
+
+# 递归获取所有子文件夹下的 .cpp 文件 GLOB_RECURSE获取多层子文件夹
+file(GLOB_RECURSE SRC_FILES
+    "${SRC_DIR}/*.cpp"
+)
+```
+
+
+
 
 
 
@@ -1073,6 +1094,18 @@ message("EXECUTE_PROCESS Output val is: ${OUT}, return val: ${RET} ")
 `ADD_DEFINITIONS(-DENABLE_DEBUG -DABC)`，参数之间用空格分隔。如果你的代码中定义了
 
 `#ifdef ENABLE_DEBUG #endif`，这个代码块就会生效。如果要添加其他的编译器开关，可以通过CMAKE_C_FLAGS变量和CMAKE_CXX_FLAGS变量设置。
+
+```cmake
+# 定义一个CMAKE变量来控制是否开启宏
+option(ENABLE_DEBUG "Enable debug mode" OFF) # cmake -DENABLE_DEBUG=ON 开启
+
+# 根据变量的值来添加宏定义
+if(ENABLE_DEBUG)
+    add_definitions(-DDEBUG) # == gcc -DDEBUG xxx.c
+endif()
+```
+
+
 
 ##### CMAKE_C_FLAGS  
 
@@ -1251,6 +1284,16 @@ CMAKE的补丁等级，比如2.4.6中的6
 ###### WIN32
 
 在所有win32平台为TRUE，包括cygwin
+
+
+
+##### CMAKE_VERBOSE_MAKEFILE
+
+```cmake
+set(CMAKE_VERBOSE_MAKEFILE on) # 编译输出编译信息
+```
+
+
 
 
 
