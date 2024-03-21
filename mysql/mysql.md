@@ -66,6 +66,8 @@ https://dev.mysql.com/doc/refman/8.0/en/default-privileges.html
    mysql #登录服务器
    mysql> alter user 'root'@'%' identified by '1111'; # %表示远端所有地址可以连接mysql服务
    # mysql> set password for 'root'@'localhost'=password('1111'); # error
+   # mysql> alter user 'root'@'%' identified with mysql_native_password by '1111'; # unverified mysql > 5.7.9
+   # mysql> update user set authentication_string=PASSWORD("1111") where user='root'; # unverified mysql < 5.7.9
    ```
 
 2. 刷新权限
@@ -347,7 +349,9 @@ int(n)：注意括号的n表示**显示长度**，并不影响实际占用的存
 | ------- | --------------------------------------- | ------------------------------------------------------------ | -------------- |
 | float   | 4字节                                   | (-3.402 823 466 E+38，-1.175 494 351E-38)，0，(1.175 494 351 E-38，3.402823 466 351 E+38) |                |
 | double  | 8字节                                   |                                                              |                |
-| decimal | 对DECIMAL(M,D)，如果M>D，为M+2否则为D+2 | 依赖于M和D的值,例如DECIMAL(5, 2) 范围为-999.99到999.99，占用7个字 节，小数点与符号各占用一个字节 | 依赖于M和D的值 |
+| decimal | 对DECIMAL(M,D)，如果M>D，为M+2否则为D+2 | 依赖于M和D的值,例如DECIMAL(5, 2) 范围为-999.99到999.99，占用7个字节，小数点与符号各占用一个字节 | 依赖于M和D的值 |
+
+`decimal(5,2)`表示一个包含5位数字的十进制数，其中小数点后有2位小数。这意味着这个字段可以存储的数值范围是从-999.99到999.99。
 
 float(总长度， 小数点后保留的位数)：float(3,2):1.23
 

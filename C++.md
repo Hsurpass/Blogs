@@ -161,16 +161,13 @@ int* p2 = new(buffer + 10*sizeof(double)) int[10];// 在p1后面又创建了10�
 ### const
 
 1. 修饰**变量**：该变量不可改变。
-
 2. 修饰**指针**：`const int *p` : p所指向的值不可变；  `int* const p`:  p这个地址不可变。
-
 3. 修饰**引用**：常量引用，常用作函数形参，避免了拷贝且不能对其修改。
-
 4. const修饰**成员函数**：只能用const对象访问，不可在成员函数内改变成员变量。嵌套调用的函数也只能是const的。
-
 5. const修饰**类对象**：const对象只能调用const成员函数，不能调用非const成员函数。非const对象两者都能调用，**如果有const构成函数重载，则优先调用非const成员函数**。
-
 6. const可以作为函数重载的条件。
+
+const和static不能同时修饰类成员函数，因为const修饰成员函数表示不能修改对象内的成员函数（有this值指针），static修饰成员函数表示该函数属于类（没有this指针），二者相矛盾。
 
 ### 宏定义#define与const的区别
 
@@ -241,7 +238,7 @@ cout << a << b << ra << endl;   // 200 200 200
 
 2. 引用初始化完成后不能改变其指向，指针可以改变。
 
-3. sizeof的值不同
+3. sizeof的值不同：==sizeof(指针)是指针的大小，sizeof(引用)是变量本身的大小。==
 
     ```c++
     // 64位机器
@@ -491,9 +488,63 @@ A<6> a;  or  A<6>* pa = new A<6>(); delete pa;
 
 2. 效率更高，少了一次调用默认构造和赋值。
 
-3. ==引用类型成员==要用初始化列表，因为引用必须在定义时初始化。 
+3. ==引用类型成员==必须要用初始化列表，因为引用必须在定义时初始化。 
+
+   ```c++
+   class MyClass {  
+   public:  
+       MyClass(int& ref) : myRef(ref) {}  
+   private:  
+       int& myRef;  
+   };
+   ```
 
 4. ==const成员==必须要用初始化列表，因为const也是在定义时初始化，且const变量不可更改。	
+
+   ```c++
+   class MyClass {  
+   public:  
+       MyClass(int value) : myConstVar(value) {}  
+   private:  
+       const int myConstVar;  
+   };
+   ```
+
+5. ==没有默认构造函数==的类类型的成员变量
+
+   ```c++
+   class OtherClass {  
+   public:  
+       OtherClass(int value) : otherValue(value) {}  
+   private:  
+       int otherValue;  
+   };  
+     
+   class MyClass {  
+   public:  
+       MyClass(int value) : myOtherClassObj(value) {}  
+   private:  
+       OtherClass myOtherClassObj;  
+   };
+   ```
+
+6. 基类的成员变量
+
+   ```c++
+   class Base {  
+   public:  
+       Base(int value) : baseValue(value) {}  
+   private:  
+       int baseValue;  
+   };
+     
+   class Derived : public Base {  
+   public:  
+       Derived(int value) : Base(value) {}  
+   };
+   ```
+
+   
 
 #### 6大构造/赋值
 
@@ -625,6 +676,57 @@ pb->func();// B::func() 和静态类型有关
 多层次的继承，例：B继承自A，C继承自B。
 
 构造顺序：先父类，再成员变量，最后子类。
+
+析构顺序：子类，成员变量，父类。
+
+```c++
+class Base1 {  
+public:  
+    Base1() { std::cout << "Base1 constructor\n"; }  
+    ~Base1() { std::cout << "Base1 destructor\n"; }  
+};  
+  
+class Base2 {  
+public:  
+    Base2() { std::cout << "Base2 constructor\n"; }  
+    ~Base2() { std::cout << "Base2 destructor\n"; }  
+};  
+  
+class Member {  
+public:  
+    Member() { std::cout << "Member constructor\n"; }  
+    ~Member() { std::cout << "Member destructor\n"; }  
+};  
+  
+class Derived : public Base1, public Base2 {  
+private:  
+    Member m;  
+    int x;  
+  
+public:  
+    Derived() : x(0) { std::cout << "Derived constructor\n"; }  
+    ~Derived() { std::cout << "Derived destructor\n"; }  
+};  
+  
+int main() {  
+    Derived d;  
+    return 0;  
+}
+```
+
+```c++
+Base1 constructor  
+Base2 constructor  
+Member constructor  
+Derived constructor  
+ 
+Derived destructor  
+Member destructor  
+Base2 destructor  
+Base1 destructor
+```
+
+
 
 #### 多继承
 

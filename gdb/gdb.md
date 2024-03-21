@@ -62,21 +62,27 @@ display: 在break打断点之后使用display，就不用每次在断点停下�
 
 ### 调试多线程
   - 查看线程
+    
     - `info threads`
     
   - 将程序执行流锁定在当前线程, 禁止上下文切换
+    
     - `set scheduler-locking on`
     
   - 不锁定任何线程，所有线程都执行
+    
     - `set scheduler-locking off`
     
   - 组织其他线程在当前线程单步调试时抢占当前线程, 当next、continue、until、finish等其他线程才会执行
+    
     - `set scheduler-locking step`：在两个线程函数分别打两个断点，执行next命令的时候会从当前线程跳到另一个线程的断点处，所谓step就是在线程间单步跳转，如果另一个线程没有断点，则会一直往下执行。
     
   - 显示当前线程scheduler-locking状态
+    
     - `show scheduler-locking`
     
   - 切换线程
+    
     - `thread id` 
     
   - 所有线程都执行命令
