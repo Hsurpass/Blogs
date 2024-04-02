@@ -50,13 +50,12 @@ Docker 按顺序在 Dockerfile 中运行指令。Dockerfile 必须以 `FROM` 指
         # ...
         ```
 
-        
-
     
 
-    -   ARG与FROM交互
-
-        ```dockerfile
+    
+-   ARG与FROM交互
+    
+    ```dockerfile
         ARG  CODE_VERSION=latest
         FROM base:${CODE_VERSION}
         CMD  /code/run-app
@@ -64,10 +63,10 @@ Docker 按顺序在 Dockerfile 中运行指令。Dockerfile 必须以 `FROM` 指
         FROM extras:${CODE_VERSION}
         CMD  /code/run-extras
         ```
-
-        第一个FROM可以使用在它前面出现的所有ARG变量。由于在第一个FROM之前声明的变量不在构建阶段，所以第二个FROM不能使用这些变量。要想使用：
-
-        ```dockerfile
+    
+    第一个FROM可以使用在它前面出现的所有ARG变量。由于在第一个FROM之前声明的变量不在构建阶段，所以第二个FROM不能使用这些变量。要想使用：
+    
+    ```dockerfile
         ARG VERSION=latest
         FROM busybox:$VERSION
         ARG VERSION
@@ -76,12 +75,13 @@ Docker 按顺序在 Dockerfile 中运行指令。Dockerfile 必须以 `FROM` 指
 
 
     **`ARG` 变量不会像变量那样 `ENV` 持久化到构建的映像中。但是， `ARG` 变量确实以类似的方式影响生成缓存。**
-
+    
     ARG的作用域：
-
+    
     预定义的ARG：
 
-    
+
+​    
 
 -   CMD:指定默认命令
 

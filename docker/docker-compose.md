@@ -35,23 +35,23 @@ services: 		# 一个services下可以有多个service
 例如，一个使用 "3.1" 版本的 Docker Compose 配置文件可能会包含一些 "3.1" 版本所支持的特性和语法，而这些特性和语法可能在较旧的版本中不可用。
 
 ```bash
-// 创建实例 | 执行这个命令就创建出 .yml 里面配置的 image 实例，有点像 docker run
-// 创建实例后，我们可以用 docker-compose stop / docker-compose start 启动和暂停实例
+# 创建实例 | 执行这个命令就创建出 .yml 里面配置的 image 实例，有点像 docker run
+# 创建实例后，我们可以用 docker-compose stop / docker-compose start 启动和暂停实例
 docker-compose up -d
 
-// 删除实例
+# 删除实例
 docker-compose down
 
-// 列出目前正在运行相关容器服务
+# 列出目前正在运行相关容器服务
 docker-compose ps
 
-// 启动
+# 启动
 docker-compose start
 
-// 暂时
+# 暂时
 docker-composr stop
 
-// 重启
+# 重启
 docker-compose restart
 ```
 

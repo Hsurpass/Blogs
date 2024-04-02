@@ -31,6 +31,10 @@ sudo systemctl stop mysql    or  sudo service mysql stop # 停止mysql
 sudo systemctl restart mysql or  sudo service mysql restart # 重启mysql
 sudo service --status-all # 查看所有服务状态
 
+systemctl is-enabled mysql   # 查看mysql是否开机自动启动后
+sudo systemctl enable mysql  # 打开mysql开机自动启动
+sudo systemctl disable mysql # 关闭mysql开机自动启动
+
 mysqladmin -u root -p shutdown #停止mysql服务
 ```
 

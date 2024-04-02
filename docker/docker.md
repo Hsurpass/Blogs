@@ -1,10 +1,30 @@
+# 安装
 
+## wsl上安装docker（windows）
+
+```
+下载 Docker Desktop Installer.exe
+双击运行 选择 'Use WSL 2 instead of Hyper-V' 安装
+启动
+```
+
+
+
+[WSL 2 上的 Docker 远程容器入门](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers)
+
+[Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
+
+
+
+## 在linux上安装
+
+[Install Docker Desktop on Linux](https://docs.docker.com/desktop/install/linux-install/)
+
+[Install Docker Desktop on Ubuntu](https://docs.docker.com/desktop/install/ubuntu/)
 
 # 仓库
 
 仓库中存放镜像，类似于github中存放代码。
-
-
 
 # 镜像
 
@@ -189,6 +209,8 @@ docker run -t -i ubuntu:15.10 /bin/bash
 
 - --rm: 指定在容器退出时自动删除容器。这样可以确保在容器退出后不会留下无用的容器占用存储空间。
 
+-  --restart string：当容器退出时应用重启策略(默认为“no”)。
+
 - -P: Publish all exposed ports to random ports. 将所有公开的端口发布到随机端口。将容器内部使用的网络端口随机映射到我们使用的主机上。
 
   ```bash
@@ -222,16 +244,24 @@ docker run -t -i ubuntu:15.10 /bin/bash
 - -v：数据卷（共享文件夹）：宿主机与容器之间共享数据，容器与容器之间共享数据。
 
   ```bash
-  docker run -it -v /root/docker/data:/root/docker/data ubuntu:15.10
+  docker run -it -v /root/host/data:/root/docker/data ubuntu:15.10
   ```
 
    例：
 
   ```bash
   docker run --rm -ti -v "$PWD:/opt/workspace" ghcr.io/opendds/opendds:latest-release
-  -v "$PWD:/opt/workspace": 这个参数用于将主机的当前工作目录（由 $PWD 变量表示）挂载到容器内的 /opt/workspace 目录。这样做的目的是将主机上的文件和目录共享到容器中，以便在容器内进行操作。
-  ghcr.io/opendds/opendds:latest-release: 这是指定要运行的 Docker 镜像的名称和标签。在这个例子中，它指定了从 GitHub Container Registry 中获取 opendds 镜像的 latest-release 标签。这意味着它将从 GitHub Container Registry 下载最新的 OpenDDS 镜像并在容器中运行。
+  # -v "$PWD:/opt/workspace": 这个参数用于将主机的当前工作目录（由 $PWD 变量表示）挂载到容器内的 /opt/workspace 目录。这样做的目的是将主机上的文件和目录共享到容器中，以便在容器内进行操作。
+  #ghcr.io/opendds/opendds:latest-release: 这是指定要运行的 Docker 镜像的名称和标签。在这个例子中，它指定了从 GitHub Container Registry 中获取 opendds 镜像的 latest-release 标签。这意味着它将从 GitHub Container Registry 下载最新的 OpenDDS 镜像并在容器中运行。
   ```
+
+  执行docker run创建容器时没有使用-v 参数挂载目录，还能在进入容器后挂载目录吗？
+
+  答：**不能**。在执行`docker run`命令创建容器时，如果没有使用`-v`或`--volume`参数挂载目录，那么在容器创建之后，是无法在进入容器后再挂载目录的。`-v`参数用于在创建容器时挂载主机上的目录到容器内的目录，实现文件和数据的共享。
+
+  如果需要在容器运行时挂载目录，可以考虑使用 [docker cp](# docker cp) 命令将文件或目录复制到容器中，或者通过其他方式（如FTP、SCP等）将文件或目录传输到容器中。但请注意，这些方式并不能实现目录的挂载，而是简单的文件或目录复制。
+
+  因此，如果需要在容器内访问主机上的目录，建议在创建容器时就使用`-v`参数进行挂载。如果容器已经创建且没有挂载目录，那么可能需要重新创建容器并挂载所需的目录。
 
   
 
@@ -290,7 +320,7 @@ sudo docker stop $(docker ps -a | grep "xxx" | awk '{print $1}')	#root权限 "xx
 sudo docker ps -a | awk '{print $1}' | xargs docker stop	#root权限
 ```
 
-停止所有容器：
+停止所有容器：	
 
 ```bash
 sudo docker stop $(docker ps -q)
@@ -322,7 +352,7 @@ sudo docker exec -it 容器ID /bin/bash
 批量删除容器
 
 ```bash
-sudo docker rm $(docker ps -a | grep "xxx" | awk '{print $1}')	#root权限 "xxx"可以是Exited
+sudo docker rm $(sudo docker ps -a | grep "xxx" | awk '{print $1}')	#root权限 "xxx"可以是Exited
 sudo docker ps -a | awk '{print $1}' | xargs docker rm
 ```
 
@@ -390,7 +420,9 @@ sudo docker export b8fb0b91c64d > ubuntu.tar
 
 ## docker inspect
 
-查看容器的配置和状态信息
+```bash
+sudo docker inspect <container_id>	#查看容器的配置和状态信息
+```
 
 
 
@@ -399,7 +431,8 @@ sudo docker export b8fb0b91c64d > ubuntu.tar
 ```bash
 # 从容器中将文件拷贝到主机上
 docker cp <container_name_or_id>:/path/to/container/file /path/to/host/file
-
+# 从主机上将文件拷贝到容器中
+docker cp /path/to/host/file <container_name_or_id>:/path/to/container/file
 ```
 
 
@@ -462,7 +495,7 @@ docker pull ubuntu
 2. 创建一个新的Docker容器并在其中安装软件。
 
 ```bash
-docker run -d --name my-ubuntu-container ubuntuapt-get updateapt-get install -y <package-name>
+docker run -d --name my-ubuntu-container ubuntu apt-get update apt-get install -y <package-name>
 ```
 
 3. 将Docker容器导出为镜像。

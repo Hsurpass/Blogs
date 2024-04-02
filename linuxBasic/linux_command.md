@@ -214,6 +214,13 @@ head -n 10 xx.txt
 
 LSB是Linux Standard Base的缩写， **lsb_release命令** 用来显示Linux发行版的相关信息。
 
+```bash
+sudo apt install lsb-release
+lsb_release -a
+cat /etc/os-release # 这个命令会输出一个包含操作系统识别信息的文件内容，其中也包含了Ubuntu的版本信息。
+cat /etc/issue
+```
+
 # lsof
 
 list open files：列出当前系统打开文件的工具。
