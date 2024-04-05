@@ -12,6 +12,7 @@ minikube
 kubectl version # 查看 kubectl 是否被配置为与你的集群通信
 kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1 # 创建一个deployment
 kubectl get deployments # 查看有哪些ployment
+kubectl delete deployments/kubernetes-bootcamp # 删除一个deployment
 ```
 
 使用kubectl proxy查看应用
@@ -113,21 +114,65 @@ kubectl get pods -l version=v1
 扩容
 
 ```bash
+kuctl get rs # 查看副本个数
 kubectl scale deployments/kubernetes-bootcamp --replicas=4
 # 或者
 kubectl edit deployment kubernetes-bootcamp # 编辑deployment的配置文件中的replicas字段
 
-kubectl get pods -o wide # 
+kubectl get pods -o wide # 显示每个pod的ip
 kubectl describe deployments/kubernetes-bootcamp
 ```
 
 缩容
 
 ```bash
-kubectl scale deployments/kubernetes-bootcamp --replicas=2
-
+kubectl scale deployments/kubernetes-bootcamp --replicas=2 
+# 或者
+kubectl edit deployment kubernetes-bootcamp # 修改replicas
+kubectl get pods -o wide # 显示每个pod的ip
+kubectl get pods -o wide -l app=kubernetes-bootcamp
 ```
 
 
 
 ## 更新应用程序
+
+```bash
+kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=jocatalin/kubernetes-bootcamp:v2
+# 或者
+kubectl apply -f xxx.yaml
+
+kubectl rollout status deployments/kubernetes-bootcamp # 查看更新状态 如：deployment "kubernetes-bootcamp" successfully rolled out
+kubectl describe deployments/kubernetes-bootcamp # 查看镜像是否更新为v2
+```
+
+
+
+## 回滚
+
+```bash
+kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=gcr.io/google-samples/kubernetes-bootcamp:v10 # v10镜像是没有的， 所以pod的状态是ImagePullBackOff，需要回滚。
+kubectl rollout undo deployments/kubernetes-bootcamp # 回滚到上个版本。
+```
+
+
+
+## 清理本地集群
+
+```bash
+kubectl delete services/kubernetes-bootcamp
+kubectl delete deployments/kubernetes-bootcamp
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

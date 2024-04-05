@@ -502,11 +502,10 @@ https://linux.cn/article-11367-1.html
 
 - sudo passwd root 
 
-  su
+  su/su root ：切换用户，但是没有切换环境变量
 
-  su -
+  su -：切换用户，且环境变量一并切换。
 
-  su root
 
 
 
