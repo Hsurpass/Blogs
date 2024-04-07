@@ -6,7 +6,31 @@ minikube
 
 
 
-## 部署一个应用
+安装kubectl,kubeadm,kubelet
+
+[安装 kubeadm | Kubernetes](https://kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+
+```bash
+snap install kubectl --classic
+snap install kubeadm --classic
+snap install kubelet --classic 	 
+```
+
+安装kind
+
+[kind – Quick Start (k8s.io)](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-go-install)
+
+```bash
+snap install go --classic
+go install sigs.k8s.io/kind@v0.22.0 # go install通常会将kind二进制文件放在go env GOPATH下的bin目录中
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+
+
+
+
+## 部署一个应用 kubectl apply
 
 ```bash
 kubectl version # 查看 kubectl 是否被配置为与你的集群通信
@@ -34,19 +58,19 @@ kubectl proxy代理的是api-server还是代理的pod?
 
 - `kubectl proxy`命令代理的是 Kubernetes API Server，而不是代理的 Pod。kubectl proxy命令通过创建一个本地的==HTTP服务器==来提供对API Server的访问，该服务器将API请求转发到API Server，并将响应返回给客户端。这意味着kubectl proxy充当了用户和API Server之间的桥梁，用户可以通过kubectl proxy访问API Server上的资源对象，如Pod、Service等。
 
-查看pod内容器日志
+### 查看pod内容器日志 kubectl logs
 
 ```bash
 kubectl logs "$POD_NAME"
 ```
 
-在pod内容器执行命令
+### 在pod内容器执行命令 kubectl exec 
 
 ```bash
 kubectl exec "$POD_NAME" -- env
 ```
 
-进入pod内容器
+### 进入pod内容器 kubectl exec -it
 
 ```bash
 kubectl exec -it "$POD_NAME" -- bash
@@ -57,7 +81,7 @@ curl http://localhost:8080 # 向nodejs程序发请求
 
 
 
-## 创建service暴露pod内部的应用
+## 创建service暴露pod内部的应用 kubectl expose
 
 ### service
 
@@ -109,7 +133,26 @@ kubectl get pods -l version=v1
 
 
 
-## 扩容和缩容
+### 临时映射端口到外部  kubectl port-forward
+
+```bash
+NAME             TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+frontend         ClusterIP   10.97.28.230    <none>        80/TCP     19s
+```
+
+把ClusterIp类型的service端口映射到外部8080：
+
+```bash
+kubectl port-forward svc/frontend 8080:80
+```
+
+
+
+
+
+
+
+## 扩容和缩容 kubectl scale
 
 扩容
 
@@ -148,7 +191,7 @@ kubectl describe deployments/kubernetes-bootcamp # 查看镜像是否更新为v2
 
 
 
-## 回滚
+## 回滚 kubectl rollout undo
 
 ```bash
 kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=gcr.io/google-samples/kubernetes-bootcamp:v10 # v10镜像是没有的， 所以pod的状态是ImagePullBackOff，需要回滚。
@@ -157,7 +200,7 @@ kubectl rollout undo deployments/kubernetes-bootcamp # 回滚到上个版本。
 
 
 
-## 清理本地集群
+## 清理本地集群 kubectl delete
 
 ```bash
 kubectl delete services/kubernetes-bootcamp
