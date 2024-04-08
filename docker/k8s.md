@@ -215,6 +215,13 @@ kubectl delete deployments/kubernetes-bootcamp
 
 
 
+# 配置文件
+
+```yaml
+```
+
+
+
 
 
 
