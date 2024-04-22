@@ -68,6 +68,32 @@ sudo docker-compose up
 
 
 
+例：一个博客系统启动时需要先启动数据库(A), 再启动身份验证服务(B)，最后启动web服务(C)
+
+```bash
+version: "3.8"
+services:
+  A:
+   image: "a image"
+   deploy:
+     resources:
+       limits:
+         cpus: "0.5" #限制cpu使用率为50%
+         memory: 256M #限制内存使用量为256MB
+  B:
+    image: "b iamge"
+    depends_on:
+     - A
+  C:
+    image: "c image"
+    depends_on: 
+     - B
+```
+
+
+
+
+
 
 
 reference:

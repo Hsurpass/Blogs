@@ -64,7 +64,7 @@ kubectl proxy代理的是api-server还是代理的pod?
 kubectl logs "$POD_NAME"
 ```
 
-### 在pod内容器执行命令 kubectl exec 
+### 在pod内容器执行命令 kubectl exec
 
 ```bash
 kubectl exec "$POD_NAME" -- env
@@ -83,14 +83,21 @@ curl http://localhost:8080 # 向nodejs程序发请求
 
 ## 创建service暴露pod内部的应用 kubectl expose
 
+```bash
+kubectl create service nginx-service # ? 怎么和deployment关联
+```
+
+
+
 ### service
 
-service有以下几种类型：
+service有以下几种类型： 
 
 - ClusterIp（默认）：在集群的内部 IP 上公开 Service。这种类型使得 Service 只能从集群内访问。
-- NodePort：使用 NAT 在集群中每个选定 Node 的相同端口上公开 Service 。使用`<NodeIP>:<NodePort>` 从集群外部访问 Service。**是 ClusterIP 的超集**。
-- LoadBalancer：在当前云中创建一个外部==负载均衡==器（如果支持的话），并为 Service 分配一个固定的外部IP。**是 NodePort 的超集**。
-- ExternalName：
+- NodePort：**节点端口类型**： 使用 NAT 在集群中每个选定 Node 的相同端口上公开 Service 。使用`<NodeIP>:<NodePort>` 从集群外部访问 Service。**是 ClusterIP 的超集**。
+- LoadBalancer：**负载均衡类型**： 在当前云中创建一个外部==负载均衡==器（如果支持的话），并为 Service 分配一个固定的外部IP。**是 NodePort 的超集**。
+- ExternalName：**外部名称类型**：将服务映射到一个外部**域名**上。
+- Headless：**无头类型**，主要用于DNS解析和服务发现。
 
 service通过 label 和 selector 来匹配一组pod。
 
@@ -217,10 +224,65 @@ kubectl delete deployments/kubernetes-bootcamp
 
 # 配置文件
 
+<img src="image/image-20240415101248782.png" alt="image-20240415101248782" style="zoom:67%;" />
+
 ```yaml
+apiVersion: apps/v1 # k8sapi版本  group/version
+kind: Deployment # 创建资源对象的类型，还有如：service, ConfigMap
+metadata: # 资源对象的元数据, 比如名称，标签，命名空间
+  name: nginx_deployment 
+spec:	# specification deployment的配置信息
+  selector:
+    matchLabels:
+      app: nginx # 选择的label
+  replicas: 3 # 副本集，创建3个pod
+  template: # pod的配置信息
+    metadata:
+      labels:
+        app: nginx
+    spec: 
+      containers:
+        - name: nginx
+          image: nginx:1.25 # 镜像名称
+          ports:
+            - containerPort: 80 # 对外暴露的端口：80
+      
+```
+
+service:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  # type: ClusterIp # 默认是ClusterIp
+  selector:
+    app: nginx # label
+  ports:
+  - protocol: TCP
+    port: 80 # 对外公开的端口
+    targetPort: 80 # pod内服务的端口
 ```
 
 
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort # 默认是ClusterIp
+  selector:
+    app: nginx # label
+  ports:
+  - protocol: TCP
+    port: 80 # 对外公开的端口
+    targetPort: 80 # pod内服务的端口
+    nodePort: 30080 # 范围30000 ~ 32767之间
+```
 
 
 
