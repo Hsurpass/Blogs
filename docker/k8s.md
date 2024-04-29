@@ -218,6 +218,17 @@ kubectl delete deployments/kubernetes-bootcamp
 
 
 
+# kubectl get 
+
+```bash
+kubectl get all # 查看所有资源对象
+kubectl get deployment
+kubectl get services/svc
+kubectl get pod
+kubectl get replicaset/rs
+kubectl get namespace/ns
+```
+
 
 
 
@@ -230,7 +241,7 @@ kubectl delete deployments/kubernetes-bootcamp
 apiVersion: apps/v1 # k8sapi版本  group/version
 kind: Deployment # 创建资源对象的类型，还有如：service, ConfigMap
 metadata: # 资源对象的元数据, 比如名称，标签，命名空间
-  name: nginx_deployment 
+  name: nginx-deployment # 名字不能用下划线，否则会报错
 spec:	# specification deployment的配置信息
   selector:
     matchLabels:
@@ -251,6 +262,8 @@ spec:	# specification deployment的配置信息
 
 service:
 
+内部service: （ClusterIp）
+
 ```yaml
 apiVersion: v1
 kind: Service
@@ -266,7 +279,7 @@ spec:
     targetPort: 80 # pod内服务的端口
 ```
 
-
+外部服务：（Nodeport）
 
 ```yaml
 apiVersion: v1
@@ -283,6 +296,38 @@ spec:
     targetPort: 80 # pod内服务的端口
     nodePort: 30080 # 范围30000 ~ 32767之间
 ```
+
+curl http://localhost:30080
+
+# minikube
+
+安装
+
+https://minikube.sigs.k8s.io/docs/start/
+
+```bash
+minikube start # 启动本地k8s集群 --image-mirror-country=cn 指定镜像源为国内
+minikube status # 获取本地k8s集群状态
+minikube stop # 停止本地k8s集群
+minikube delete # 删除本地k8s集群
+minikube dashboard # 访问在minikube集群中运行的k8s dashboard
+minikube pause # 暂停k8s集群
+minikube unpause #恢复k8s集群
+```
+
+# Portainer
+
+web容器管理器
+
+```bash
+# 在master节点上安装portainer，并将其暴露在NodePort 30777上
+kubectl apply -n portainer -f https://downloads.portainer.io/ce2-19/portainer.yaml
+或者
+# 使用Helm安装Portainer https://helm.sh/
+helm upgrade --install --create-namespace -n portainer portainer portainer/portainer --set tls.force=true
+```
+
+然后直接访问 `https://localhost:30779/` 或者 `http://localhost:30777/` 就可以了。
 
 
 
