@@ -118,9 +118,32 @@ c++filt _Z5printIiJiEEvRKT_DpRKT0_	# 根据函数符号反推回函数
 
 ## 参数
 - **-A<显示行数> 或 --after-context=<显示行数>** : print NUM lines of leading context  (除了显示符合范本样式的那一列之外，并显示该行之后的内容。)
+
 - **-B<显示行数> 或 --before-context=<显示行数>** :  print NUM lines of trailing context (除了显示符合样式的那一行之外，并显示该行之前的内容。)
+
+- -C：显示匹配行及其**前后**的指定行数。
+
 - **-E 或 --extended-regexp** : PATTERN is an extended regular expression (将样式为延伸的正则表达式来使用。)
+
+    ```bash
+    grep -E "^m" test.txt # 找到以m开头的行
+    grep -E "^m" test.txt -i # 找到以m开头的行,忽略大小写
+    grep -E "[0-9]" test.txt #模糊匹配 带数字的字段
+    grep -E "^1[3-9][0-9]{9}" # 匹配电话号码 
+    	# ^1代表以1开头
+    	# [3-9]: 第二个数字从3到9之间匹配
+    	# [0-9]: 第三个数字从0到9之间匹配
+    	# {9}: 表示匹配9次，因为电话号码11位，9+3
+    ```
+
+    
+
+- -c：只显示匹配行的计数。
+
 - **-i 或 --ignore-case** : ignore case distinctions (忽略字符大小写的差别。)
+
+- -l：只列出包含匹配字符串的文件名。
+
 - **-n 或 --line-number** :print line number with output lines (在显示符合样式的那一行之前，标示出该行的列数编号。)
 
 
@@ -128,6 +151,7 @@ c++filt _Z5printIiJiEEvRKT_DpRKT0_	# 根据函数符号反推回函数
 - **-P 或 --perl-regexp** : PATTERN is a Perl regular expression
 - **-r 或 --recursive**: like --directories=recurse (此参数的效果和指定"-d recurse"参数相同。)
 - **-v 或 --invert-match** : select non-matching lines (显示不包含匹配文本的所有行。)
+- -w：匹配整个单词。
 
 
 

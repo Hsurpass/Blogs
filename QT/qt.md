@@ -1,5 +1,39 @@
 
 
+qt.qpa.plugin: Could not load the Qt platform plugin "wayland" in "" even though it was found.
+
+```bash
+sudo apt install qtwayland5
+```
+
+
+
+信号与槽
+
+自定义信号与槽
+
+原生c++对象之间的通信很麻烦，自定义信号与槽进行通信是Qt中最常用的开发技术，当是自定义信号与槽函数的时候，需要注意这些细节：
+
+-   只有继承至QObject的派生类才能使用信号槽。
+-   必须在头文件添加宏Q_OBJECT。
+-   关键字signals:指定声明信号区域。
+-   关键字[public protect private] slot:指定申明槽函数区域。
+
+```c++
+class A : public QObject
+{
+	Q_OBJECT
+public:
+	A();
+signals:
+	void mysignal(int);
+public slots:
+	void myslot();
+};
+```
+
+需要注意的是：有些开发者喜欢在cpp中定义一个class，但是Q_OBJECT 这个宏只能在头文件中才能被展开。
+
 
 
 qtquickexamples
