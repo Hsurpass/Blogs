@@ -1295,6 +1295,16 @@ set(CMAKE_VERBOSE_MAKEFILE on) # 编译输出编译信息
 
 
 
+##### CMAKE_EXPORT_COMPILE_COMMANDS
+
+```bash
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+or
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 
+```
+
+
+
 
 
 ### 3. CMake Generators

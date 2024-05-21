@@ -32,7 +32,7 @@ $HOME/.vscode-server/extensions/ms-vscode.cpptools-1.16.3-linux-x64/LLVM/bin/cla
 
 
 
-
+![image-20240515102110419](/home/user/.config/Typora/typora-user-images/image-20240515102110419.png)
 
 # reference
 

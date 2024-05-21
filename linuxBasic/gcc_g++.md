@@ -173,6 +173,44 @@ C_INCLUDE_PATH：指明c头文件的搜索路径。
 
 CPLUS_INCLUDE_PATH：指明c++头文件的搜索路径。  
 
+
+
+
+
+# ubuntu安装gcc-9和g++-9
+
+在Ubuntu上安装gcc-9和g++-9，您可以按照以下步骤进行操作：
+
+1. 首先，确保您的系统已经更新到最新的软件包列表。运行以下命令：
+
+```bash
+sudo apt update
+```
+
+1. 安装gcc-9和g++-9：
+
+```bash
+sudo apt install gcc-9 g++-9
+```
+
+1. 确认安装成功：
+
+```bash
+gcc-9 --version
+g++-9 --version
+```
+
+这将显示您安装的gcc-9和g++-9的版本信息。您可以使用gcc-9和g++-9命令来编译C和C++代码。
+
+如果您需要将gcc-9和g++-9设置为默认的编译器，可以运行以下命令：
+
+```bash
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
+```
+
+这将设置gcc-9和g++-9为默认的编译器。您可以随时使用update-alternatives命令来切换默认的gcc和g++版本。
+
 # reference
 
 https://www.cnblogs.com/bigfi/p/9487427.html

@@ -11,3 +11,13 @@ https://blog.csdn.net/hhy321/article/details/136292688
 https://www.jianshu.com/u/b3867e775bb0
 
 https://www.jianshu.com/p/b19823ac8fe9
+
+
+
+https://docs.conan.io/1/creating_packages/getting_started.html
+
+https://www.cnblogs.com/xl2432/p/11873394.html
+
+https://pypi.org/project/conan/
+
+https://blog.csdn.net/10km/article/details/122987204
