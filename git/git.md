@@ -65,7 +65,9 @@ https://docs.github.com/zh/repositories/creating-and-managing-repositories/renam
 
 `-m`:后面输入的是本次提交的说明
 
--amend: 覆盖上次提交
+-amend: 覆盖上次提交 https://blog.csdn.net/qq_17011423/article/details/104648075
+
+
 
 ## 查看修改的地方
 

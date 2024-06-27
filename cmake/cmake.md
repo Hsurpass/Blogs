@@ -1077,6 +1077,12 @@ file(GLOB SRC_FILES
 file(GLOB_RECURSE SRC_FILES
     "${SRC_DIR}/*.cpp"
 )
+
+# 排除特定文件
+file(GLOB_RECURSE EXCLUDE_FILES ${SRC_DIR}/unitest*)
+
+# 从源文件列表中移除排除的文件
+list(REMOVE_ITEM SRC_FILES ${EXCLUDE_FILES})
 ```
 
 

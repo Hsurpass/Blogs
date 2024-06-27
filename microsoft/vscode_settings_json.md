@@ -69,7 +69,13 @@
 
 
 
+# 打开文件大小限制
 
+![image-20240612120237228](/home/user/me/Blogs/microsoft/vscode_settings_json/image/image-20240612120237228.png)
+
+```json
+workbench.editorLargeFileConfirmation
+```
 
 
 

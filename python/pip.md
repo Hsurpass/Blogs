@@ -128,6 +128,11 @@ pip freeze              #查看所有已安装的包以freeze的格式输出（a
 
 ##### 永久更换镜像源
 
+**pip.conf的位置**：
+
+- 在Linux或macOS系统中，pip.conf通常位于`~/.pip/pip.conf`、`~/.config/pip/pip.conf`或`/etc/pip.conf`。
+- 在Windows系统中，pip.conf通常位于`%APPDATA%\pip\pip.ini`或`%HOME%\pip\pip.ini`。
+
 ###### 方法一
 
 - windows
@@ -153,12 +158,31 @@ pip freeze              #查看所有已安装的包以freeze的格式输出（a
 
   2. 在pip.conf配置文件中，添加配置内容：
 
-     ```
+     ```python
      [global]
      timeout = 6000
      index-url = https://mirrors.aliyun.com/pypi/simple/
+     extra-index-url = https://some-other-index.com/simple
+     [install]
      trusted-host = mirrors.aliyun.com
      ```
+
+​				`index-url`是pip查找Python包的基本索引源。
+
+​				`--extra-index-url`是pip用于查找Python包的额外索引源。
+
+​			注意，你可以添加多个`extra-index-url`，只需要在每个URL前添加`extra-index-url =`即可。例如：
+
+```bash
+[global]  
+index-url = https://pypi.org/simple  
+extra-index-url =   
+    https://some-other-index1.com/simple  
+    https://some-other-index2.com/simple
+```
+
+
+
 
 
 ###### 方法二
@@ -187,6 +211,10 @@ python -m pip config set install.trusted-host 'mirrors.aliyun.com'
   pqi ls
   #4、切换源
   pqi use username(如aliyun)
+  
+  # 添加源
+  pqi add name https://some-other-index1.com/simple 
+  
   ```
   
   
