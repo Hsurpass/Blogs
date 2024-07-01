@@ -2,12 +2,13 @@
 
 # 服务端
 
+安装其他版本: 
+https://www.postgresql.org/download/linux/ubuntu/
+
 ```shell
 sudo apt update
 # 安装ubuntu自带版本
 sudo apt install postgresql postgresql-client # postgresql-contrib
-# 安装其他版本
-# https://www.postgresql.org/download/linux/ubuntu/
 
 sudo service postgresql status
 sudo service postgresql start
