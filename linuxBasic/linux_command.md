@@ -613,12 +613,32 @@ time + 可执行程序：可以统计程序的运行时间
 
 # ulimit
 
-永久修改 ulimit参数，修改`/etc/security/limits.conf`
+永久修改 ulimit参数，修改`/etc/security/limits.conf`  ~/.bashrc
 
 程序崩溃时，系统默认不会生成core文件
 
 - -a: 查看系统参数。
 - -c : ulimit -c unlimited 把core文件的大小设置为无限制。(临时修改)
+
+设置 core 文件存储路径:
+
+```bash
+cat /proc/sys/kernel/core_pattern # 查看当前 core 文件的存放路径和命名模式
+
+mkdir -p ~/core # /tmp/core 
+sudo sh -c 'echo "kernel.core_pattern=/home/user/core/core-%e-%s-%u-%g-%p-%t" >> /etc/sysctl.conf' # 设置永久生效
+sudo sysctl -p # 使更改立即生效
+gdb ./segfault /tmp/core_segfault.XXXX 
+bt
+```
+
+- `%p` - 进程 ID
+- `%u` - 用户 ID
+- `%g` - 组 ID
+- `%s` - 生成 core 文件的信号编号
+- `%t` - core 文件生成时的时间戳
+- `%h` - 主机名
+- `%e` - 程序名
 
 
 # whatis

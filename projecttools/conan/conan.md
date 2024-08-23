@@ -21,3 +21,8 @@ https://www.cnblogs.com/xl2432/p/11873394.html
 https://pypi.org/project/conan/
 
 https://blog.csdn.net/10km/article/details/122987204
+
+```bash
+conda create --name myenv python=3.8
+```
+

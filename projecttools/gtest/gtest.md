@@ -30,5 +30,6 @@ g++ example.cc -o example -lgtest -lpthread
 # 如果只想执行某个测试，可以使用--gtest_filter="xxx.xxx" 传参，例如：
 # ./a.out  --gtest_filter="Add_Test*"
 # ./a.out  --gtest_filter="Add_Test.positive"
+./a.out --gtest_list_t
 ```
 

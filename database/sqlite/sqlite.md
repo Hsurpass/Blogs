@@ -890,6 +890,28 @@ https://www.runoob.com/sqlite/sqlite-pragma.html
 
 https://gitee.com/dotnetchina/SmartSQL
 
+
+
+# API
+
+## sqlite3_prepare_v2
+
+```sql
+int sqlite3_prepare_v2(  
+  sqlite3 *db,            /* 指向 SQLite 数据库的连接 */  
+  const char *zSql,       /* 要编译的 SQL 文本 */  
+  int nByte,              /* SQL 文本的最大字节长度 */  
+  sqlite3_stmt **ppStmt,  /* OUT: 指向新准备好的语句对象的指针 */  
+  const char **pzTail     /* OUT: 指向 SQL 文本中第一个未被编译的字节的指针 */  
+);
+```
+
+关于第3个参数 `nByte`，它指定了 `zSql` 字符串中 SQL 语句的字节长度。这个长度可以是 SQL 语句的实际字节数，也可以是一个特殊的值 `-1`。
+
+当 `nByte` 被设置为 `-1` 时，它告诉 `sqlite3_prepare_v2` 函数自动计算 `zSql` 字符串的长度，即直到遇到第一个空字符（`'\0'`）为止。这通常是最方便的方法，因为它允许你直接将 C 字符串（以空字符结尾的字符串）传递给函数，而不需要显式地计算其长度。
+
+简而言之，`nByte` 设置为 `-1` 表示“自动检测长度”，基于 C 字符串的常规约定（即以空字符结尾）来确定 SQL 文本的长度。这样做的好处是简化了 API 的使用，因为你不需要在调用 `sqlite3_prepare_v2` 之前手动计算 SQL 字符串的长度。
+
 # reference
 
 [sqlite官网 英文](https://www.sqlite.org/index.html)

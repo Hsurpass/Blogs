@@ -10,3 +10,7 @@ https://repo.anaconda.com/archive/
 
 
 
+```bash
+conda create --name myenv python=3.8
+```
+
