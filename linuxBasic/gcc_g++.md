@@ -207,9 +207,18 @@ g++-9 --version
 ```bash
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100
 sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
+
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 200
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 200
 ```
 
-这将设置gcc-9和g++-9为默认的编译器。您可以随时使用update-alternatives命令来切换默认的gcc和g++版本。
+这将设置gcc-9和g++-9为默认的编译器。您可以随时使用update-alternatives命令来切换默认的gcc和g++版本。100代表优先级。
+
+如果你有以下版本和优先级：
+
+- `gcc-9`，优先级 `100`
+- `gcc-8`，优先级 `50`
+- `gcc-7`，优先级 `200`
 
 # reference
 

@@ -560,6 +560,22 @@ https://linux.cn/article-11367-1.html
   tail -n 10 xxx.txt
   ```
 
+
+
+# tar
+
+```bash
+tar -zcvf Project.tar.gz --exclude=Project/logs --exclude=Project/temp Project
+```
+
+这里的命令参数解释如下：
+
+- `-z`：表示使用gzip进行压缩。
+- `-c`：表示创建一个新的归档文件。
+- `-v`：表示在创建归档文件的过程中显示详细信息（可选，但有助于了解哪些文件被打包）。
+- `-f`：指定归档文件的名称，后面紧跟归档文件的名称。
+- `--exclude`：指定需要排除的文件或目录，可以多次使用以排除多个项目。
+
 # tcpdump
 
 - -c: 仅抓取指定数量的数据包。
@@ -623,6 +639,7 @@ time + 可执行程序：可以统计程序的运行时间
 设置 core 文件存储路径:
 
 ```bash
+vi /etc/sysctl.conf
 cat /proc/sys/kernel/core_pattern # 查看当前 core 文件的存放路径和命名模式
 
 mkdir -p ~/core # /tmp/core 

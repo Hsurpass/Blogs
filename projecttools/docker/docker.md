@@ -274,7 +274,7 @@ docker run -t -i ubuntu:15.10 /bin/bash
   ```
 
 
-## 数据卷容器
+## 数据卷容器(volume)
 
 ```bash
 #创建数据卷容器
@@ -486,6 +486,15 @@ apt install iputils-ping
 
 # 制作自己的ubuntu镜像
 
+```bash
+docker commit -a "xxx" -m "test" 23c3b7d70a03(容器) test:0.1
+docker login
+docker tag test:0.1 joyoo/test:0.1
+docker push joyoo/test:0.1
+```
+
+
+
 1. 拉取官方Ubuntu镜像。
 
 ```bash
@@ -533,7 +542,120 @@ docker push myrepo.com/my-ubuntu:14.04
 
 
 
+############################################################################
 
+
+
+使用 Docker 制作镜像并上传到镜像仓库（如 Docker Hub）的大致步骤如下：
+
+### 1. 编写 `Dockerfile`
+Dockerfile 是用来定义镜像内容的文件。
+
+一个简单的 `Dockerfile` 示例：
+
+```Dockerfile
+# 使用基础镜像
+FROM ubuntu:20.04
+
+# 设置镜像作者信息
+LABEL maintainer="you@example.com"
+
+# 安装一些软件包
+RUN apt-get update && apt-get install -y curl
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制本地文件到镜像中
+COPY . /app
+
+# 暴露端口
+EXPOSE 8080
+
+# 运行命令
+CMD ["bash"]
+```
+
+### 2. 构建镜像
+在 Dockerfile 所在的目录下执行以下命令，构建镜像：
+
+```bash
+docker build -t your_image_name:tag .
+```
+
+`your_image_name` 是你希望给镜像取的名字，`tag` 是你给镜像打的标签（例如 `v1.0`）。最后的 `.` 表示当前目录。
+
+例如：
+
+```bash
+docker build -t myapp:v1.0 .
+```
+
+### 3. 运行镜像
+在构建完镜像后，可以使用以下命令运行它：
+
+```bash
+docker run -d -p 8080:8080 your_image_name:tag
+```
+
+例如：
+
+```bash
+docker run -d -p 8080:8080 myapp:v1.0
+```
+
+### 4. 登录到 Docker Hub
+要上传镜像到 Docker Hub，首先需要登录。如果你还没有 Docker Hub 账号，可以在 [Docker Hub](https://hub.docker.com) 上创建一个账号。
+
+使用以下命令登录：
+
+```bash
+docker login
+```
+
+系统会提示你输入 Docker Hub 的用户名和密码。
+
+### 5. 给镜像打标签
+为了上传到 Docker Hub，你需要给镜像打上 Docker Hub 仓库的标签：
+
+```bash
+docker tag your_image_name:tag dockerhub_username/repository_name:tag
+```
+
+例如：
+
+```bash
+docker tag myapp:v1.0 mydockerhub/myapp:v1.0
+```
+
+### 6. 上传镜像到 Docker Hub
+使用以下命令将镜像推送到 Docker Hub：
+
+```bash
+docker push dockerhub_username/repository_name:tag
+```
+
+例如：
+
+```bash
+docker push mydockerhub/myapp:v1.0
+```
+
+### 7. 在 Docker Hub 上验证
+登录到 Docker Hub 查看你刚刚上传的镜像，确认是否成功。
+
+---
+
+总结：
+
+1. 编写 `Dockerfile`
+2. 构建镜像：`docker build -t your_image_name:tag .`
+3. 运行镜像：`docker run -d -p 8080:8080 your_image_name:tag`
+4. 登录 Docker Hub：`docker login`
+5. 给镜像打标签：`docker tag your_image_name:tag dockerhub_username/repository_name:tag`
+6. 上传镜像：`docker push dockerhub_username/repository_name:tag`
+
+这样就可以将你的镜像制作并上传到 Docker Hub。
 
 
 
