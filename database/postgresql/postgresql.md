@@ -3,6 +3,9 @@
 # 服务端
 
 安装其他版本: 
+
+https://www.postgresql.org/download/
+
 https://www.postgresql.org/download/linux/ubuntu/
 
 ```shell
@@ -48,7 +51,8 @@ https://www.postgresql.org/docs/current/app-psql.html
 sudo -i -u postgres
 # 进入PostgreSQL命令行界面：
 psql
-psql -U postgres -d postgres -h 127.0.0.1 -p 5432 # -U:指定用户 -d: 指定数据库，默认是postgresql
+# or  direct
+psql -U postgres -d postgres -h 127.0.0.1 -p 5432 # -U:指定用户 -d: 指定数据库，默认是postgresql carizon
 
 \l # 查看现有数据库
 \c 数据库名 # 切换数据库 
@@ -56,6 +60,7 @@ psql -U postgres -d postgres -h 127.0.0.1 -p 5432 # -U:指定用户 -d: 指定�
 \password postgres # 修改postgres数据库密码
 \conninfo # 查看连接信息
 \du # 查看用户权限
+\dt # 列出当前数据库中的所有表，以及这些表的所有者和访问权限
 
 CREATE USER myuser WITH PASSWORD 'password'; # 创建用户
 GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser; # 为用户分配权限
@@ -115,6 +120,35 @@ https://www.pgadmin.org/download/pgadmin-4-apt/
 
 
 
+## JSON
+
+```sql
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    data JSONB
+);
+```
+
+
+
+```sql
+CREATE TABLE <table_name> (
+	id SERIAL PRIMARY KEY,
+	title VARCHAR(200),
+    content TEXT,
+    tags TEXT[] # 数组类型， 如：存储一篇文章的所有标签。
+);
+INSERT INTO <table_name> (field1, field2, field3) VALUES (value1, value2, value3);
+
+UPDATE <table_name> SET <age = 10> WHERE name = "a";
+
+DELETE FROM <table_name> WHERE id = 1;
+```
+
+
+
+
+
 
 
 
@@ -137,7 +171,21 @@ CREATE EXTENSION postgis_topology;
 SELECT PostGIS_Version();
 ```
 
-![image-20240627210052650](/home/user/me/Blogs/database/postgresql/postgresql/image/image-20240627210052650.png)
+![image-20240627210052650](/home/user/me/Blogs/database/postgresql/image/image-20240627210052650.png)
+
+
+
+
+
+
+
+## function
+
+### st_geomfromtext
+
+
+
+### st_geogfromtext
 
 
 
@@ -147,11 +195,14 @@ SELECT PostGIS_Version();
 
 
 
+# storage engine
+
+https://zhuanlan.zhihu.com/p/622596175?utm_id=0
 
 
 
 
 
+# reference 
 
-
-
+https://www.postgresql.org/docs/current/index.html
