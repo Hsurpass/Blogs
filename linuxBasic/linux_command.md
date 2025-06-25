@@ -66,6 +66,26 @@ apt-get check // 检查是否有损坏的依赖
 
 
 
+# awk
+
+```bash
+cat xxx.txt | awk 'NR==1' # 输出文件第一行  or cat xxx.txt | head -n 1
+ps -eLf | awk 'NR==1 || /a.out/' # 输出第一行和包含a,out的行。
+# NR 是一个内置变量，表示当前处理的“输入记录号”，也就是当前行号。
+# NR 是 Number of Records 的缩写。
+# 当 awk 逐行处理输入时，NR 会自动递增，从 1 开始。
+# 第一行时，NR==1 为真；
+# 第二行时，NR==2 为真；
+# 以此类推。
+
+# /pattern/ 是用来匹配包含 pattern 的行。 这是 awk 语法中正则表达式模式匹配的写法。
+awk 'NR>1'  # 打印第一行以外的其他行
+awk 'NR==3' # 打印第三行
+awk 'NR<=3' # 打印前3行  head -n 3
+```
+
+
+
 # cut
 
 

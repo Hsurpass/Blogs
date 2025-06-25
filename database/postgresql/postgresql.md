@@ -205,4 +205,11 @@ https://zhuanlan.zhihu.com/p/622596175?utm_id=0
 
 # reference 
 
-https://www.postgresql.org/docs/current/index.html
+[PostgreSQL Documentation](https://www.postgresql.org/docs/current/index.html)
+
+[Postgres存储引擎](https://zhuanlan.zhihu.com/p/622596175?utm_id=0)
+
+[【PostgreSQL】从零开始:（一）初识PostgreSQL](https://circle-dba.blog.csdn.net/article/details/134957163)
+
+https://circle-dba.blog.csdn.net/category_12524941_2.html
+
