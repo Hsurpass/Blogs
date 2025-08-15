@@ -22,6 +22,12 @@ https://pypi.org/project/conan/
 
 https://blog.csdn.net/10km/article/details/122987204
 
+[[conan使用(二)--创建私有仓库 ]](https://www.cnblogs.com/xl2432/p/11896466.html)
+
+https://docs.conan.io/1/
+
+https://docs.conan.io/2/
+
 ```bash
 conda create --name myenv python=3.8
 ```
