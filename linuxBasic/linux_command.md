@@ -158,6 +158,8 @@ c++filt _Z5printIiJiEEvRKT_DpRKT0_	# 根据函数符号反推回函数
 
     
 
+- **-a or --text**: 强制 `grep` 将文件当作文本文件处理 
+
 - -c：只显示匹配行的计数。
 
 - **-i 或 --ignore-case** : ignore case distinctions (忽略字符大小写的差别。)
