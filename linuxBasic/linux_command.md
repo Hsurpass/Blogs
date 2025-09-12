@@ -545,6 +545,13 @@ scp local_file remote_ip:remote_file
   sudo sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' sources.list
   ```
 
+example:
+
+```bash
+# 在文件中的没一行批量添加后缀
+sed -i 's/$/::TEXT,/' dir/*_bk.txt # ::TEXT, 是所添加的
+```
+
 
 
 ## references:
