@@ -224,6 +224,87 @@ Git的版本库里存了很多东西，其中最重要的就是称为stage（或
 
 删除远程分支： `git branch -d -r/--remotes origin/dev `
 
+合并分支：
+
+```bash
+git checkout main
+git merge "分支名" --no-ff -m "message"
+# 推送到远程仓库
+git push origin main
+# 如果已经执行了合并但忘记添加消息，可以使用：
+git commit --amend -m "新的提交消息"
+# 或者使用编辑器修改：
+git commit --amend
+```
+
+**注意事项:**
+
+- 只有当合并需要创建提交时（非快速前进合并），`-m` 参数才有效
+- 快速前进合并不会创建新的提交，因此不需要提交消息
+- 建议使用 `--no-ff` 来保留分支合并的历史记录
+
+`--no-ff` 是 Git 合并时的一个重要选项，全称是 **--no-fast-forward**（禁用快速前进）。
+
+**什么是快速前进合并（Fast-Forward Merge）？**
+
+当要合并的分支的提交历史是当前分支的直接延续时，Git 默认会执行快速前进合并。
+
+**示例场景：**
+
+```bash
+main: A --- B --- C
+                ↓
+feature:        D --- E
+```
+
+如果从 feature 分支合并到 main 分支，Git 可以直接将 main 分支的指针移动到 E 提交，不需要创建新的合并提交。
+
+**`--no-ff` 的作用**
+
+`--no-ff` 强制 Git **总是创建一个新的合并提交**，即使可以进行快速前进合并。
+
+**使用 `--no-ff` 后的结果：**
+
+```bash
+main: A --- B --- C --- F (合并提交)
+                       ↘
+feature:               D --- E
+```
+
+**更好的历史可读性**
+
+```bash
+# 查看日志时的区别
+git log --oneline --graph
+
+# 使用 --no-ff 的效果：
+# *   6a3b1d0 (HEAD -> main) 合并功能分支
+# |\  
+# | * 8f2e1a1 (feature-branch) 功能提交 E
+# | * a1b2c3d 功能提交 D
+# |/  
+# * 1234567 主分支提交 C
+
+# 不使用 --no-ff 的效果：
+# * 8f2e1a1 (HEAD -> main) 功能提交 E
+# * a1b2c3d 功能提交 D
+# * 1234567 主分支提交 C
+```
+
+**配置为默认行为：**
+
+```bash
+# 设置当前仓库的默认合并行为
+git config merge.ff false
+
+# 或者设置为全局默认
+git config --global merge.ff false
+```
+
+
+
+
+
 ## 删除文件
 
 `git rm readme.txt`
