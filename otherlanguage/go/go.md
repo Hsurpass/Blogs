@@ -7,9 +7,26 @@ tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
 
 vi ~/.bashrc
 GOROOT=/usr/local/go/bin
-export PATH=$PATH:$GOROOT
+export PATH=$GOROOT:$PATH
+
 
 go version
+
+# https://goproxy.cn/ # go env -w GO111MODULE=auto
+## or
+# https://proxy.golang.com.cn/zh/
+# https://goproxy.io/
+
+ctrl + shift + p
+>Go: Install/Update Tools
+
+ctrl + ,
+go: format tool # select goimports
+go: lint tool # select staticcheck
+Go: Use Language Server # select
+
+mkdir mygo_workspace && cd mygo_workspace 
+go mod init mygo(模块名) # 生成gomod go1.11解决依赖问题 
 ```
 
 reference:
@@ -26,15 +43,20 @@ https://go-zh.org/doc/install
 
 1. vscode 在安装 go 插件后会在页面的右下角显示 **The "gopls" command is not available. Run "go install -v golang.org/x/tools/gopls@latest" to install.**
 
+   ```bash
+   #GOPROXY默认值
+   GOPROXY='https://proxy.golang.org,direct'
+   ```
+   
    解决：
-
+   
    ```bash
    go env -w GO111MODULE=on
    go env -w GOPROXY=https://goproxy.io,direct
    or
    go env -w GOPROXY=https://proxy.golang.com.cn,direct
    or
-   go env -w GOPROXY=https://goproxy.cn,direct
+   go env -w GOPROXY=https://goproxy.cn,direct # ping goproxy.cn
    ```
 
 GO111MODULE 开启或关闭模块支持，它有三个可选值：`off`、`on`、`auto`，默认值是 `auto`：
@@ -71,6 +93,29 @@ set GOPATH=%USERPROFILE%\go
 在设置完GOPATH之后，你将会发现在指定的目录下出现了三个子目录：src、pkg和bin。其中，src目录用于存放Go项目的源代码，pkg目录用于存放编译好的包文件，bin目录用于存放可执行文件。你可以按照这种目录结构组织你的代码，以便更好地管理和维护。
 
 
+
+| 命令                     | 作用                             | 使用场景                |
+| :----------------------- | :------------------------------- | :---------------------- |
+| `go mod tidy`            | 整理依赖，添加缺失的，删除未用的 | 日常维护，保持干净      |
+| `go mod download`        | 下载依赖到本地缓存               | 快速下载，不修改 go.mod |
+| `go get package@version` | 添加特定版本的依赖               | 明确要添加的依赖        |
+| `go mod vendor`          | 创建 vendor 目录                 | 离线部署                |
+
+```bash
+# 1. 初始化新项目
+go mod init myproject
+
+# 2. 编写代码，添加 import
+# 3. 整理依赖
+go mod tidy
+
+# 4. 检查变化
+git diff go.mod go.sum
+
+# 5. 提交到版本控制
+git add go.mod go.sum # 校验和：更新 go.sum 文件确保安全性
+git commit -m "更新依赖"
+```
 
 
 
