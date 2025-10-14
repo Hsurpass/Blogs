@@ -191,9 +191,90 @@ SELECT PostGIS_Version();
 
 
 
+修改表结构
+
+```bash
+```
 
 
 
+
+
+查询记录一某两个字段和记录二某两个字段相等的记录。
+
+```sql
+SELECT t1.*, t2.*
+FROM table1 t1
+JOIN table1 t2
+  ON t1.a = t2.a AND t1.b = t2.b
+WHERE t1.id != t2.id
+
+SELECT *
+FROM table1 t1
+WHERE EXISTS (
+    SELECT 1 FROM table1 t2
+    WHERE t1.a = t2.a AND t1.b = t2.b AND t1.id <> t2.id
+)
+```
+
+“自连接 vs EXISTS”查询差异问题。
+
+## 原因分析
+
+### 第一条（JOIN）
+
+- 这是**自连接**，每对满足条件的 `(t1, t2)` 都会返回一行。
+- 如果有3条记录的 `from_link_id, to_link_id` 相同，则会产生 3×2=6 行（每行都和其他两条配对，除了自己）。
+- 总之，**会有重复的 t1 记录**，因为每个 t1 可能和多个 t2 匹配。
+
+### 第二条（EXISTS）
+
+- 这是**筛选 t1**，只返回 t1 的表结构，每条 t1 只会在结果中出现一次。
+- 只要存在**至少一条不同 id 的记录**（from_link_id, to_link_id 都相同），就选它。
+- **不会有重复**，每条 t1 只可能出现 0 或 1 次。
+
+------
+
+## 举例说明
+
+假设有如下数据：
+
+| id   | a    | b    |
+| ---- | ---- | ---- |
+| 1    | 100  | 200  |
+| 2    | 100  | 200  |
+| 3    | 100  | 200  |
+| 4    | 300  | 400  |
+
+- 用 JOIN，结果是 (1,2), (1,3), (2,1), (2,3), (3,1), (3,2) 共6条。
+- 用 EXISTS，id 为1、2、3的记录都至少有一个“兄弟”，所以只返回3条（id=1,2,3）。
+
+------
+
+## 总结
+
+- **JOIN**：结果数 = 某组内记录数的==排列组合==（会重复，行数多）。
+- **EXISTS**：结果数 = 满足条件的 t1 记录数（每条只出现一次）。
+
+------
+
+### 如果你只关心“有无重复组的记录”，用第二种（EXISTS）；
+
+如果你想看“所有配对”，用第一种（JOIN）。
+
+如需“唯一重复组”所有成员，且无重复，可用(distinct)：
+
+```sql
+SELECT DISTINCT t1.*
+FROM table1 t1
+JOIN table1 t2
+  ON t1.from_link_id = t2.from_link_id AND t1.to_link_id = t2.to_link_id
+WHERE t1.id != t2.id
+```
+
+------
+
+**核心原因：JOIN会重复行，EXISTS不会。**
 
 # storage engine
 
