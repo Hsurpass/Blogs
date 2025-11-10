@@ -44,6 +44,15 @@ EOF
     -e 's/^(gdb) //' \
     -e '/^#/p' \
     -e '/^Thread/p'
+#set width 0
+#set height 0
+#set pagination no
+#$backtrace
+#EOF
+/bin/sed -n \
+    -e 's/^\((gdb) \)*//' \
+    -e '/^#/p' \
+    -e '/^Thread/p'
 ```
 
 保存到/usr/bin

@@ -439,6 +439,17 @@ struct test
 
 https://www.zhihu.com/question/29859828/answer/46024313
 
+1. Tcmalloc
+2. asan或valgrind + massif visualizer 
+   1. 使用Valgrind 和asan都会有个问题，运行效率低、内存使用比较多，且需要进程能正常退出
+3. heaptrack https://github.com/KDE/heaptrack
+   1. 优点：
+      - 不需要对既有模块代码进行侵入式修改
+      - 没有额外内存增加
+      - 可以使用heaptrack启动程序，也可以直接attach到正在运行的程序进行内存监控
+      - 可视化比较好
+      - 未来也可以在CD中使用heaptrackk_print命令去dump并分析内存泄漏
+
 
 
 ### 内存碎片

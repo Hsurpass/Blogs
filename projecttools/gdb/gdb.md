@@ -16,7 +16,15 @@ gdb ./redis-cli
 set args -h xxx -p xxx -a xxx  (不用加“”)
 ```
 
+gdb调试core文件
 
+```bash
+gdb a.out core.xxx
+```
+
+bt: 查看崩溃栈
+
+frame[函数栈id]: frame 7 切换栈帧
 
 查看虚函数表：
 
@@ -27,6 +35,8 @@ info vtbl 类对象指针或引用
 watch: `watch i`监控变量，当值发生变化时会停下来，并产生一个 watchpoint,类似vs中watch，停止监控和删除断点一样`del 1`。
 
 display: 在break打断点之后使用display，就不用每次在断点停下来后再手动输入命令`p i`查看了。
+
+
 
 
 
@@ -92,6 +102,7 @@ display: 在break打断点之后使用display，就不用每次在断点停下�
     
     ```bash
     thread apply all next #所有线程执行next命令
+    thread apply all bt # 查看所有的堆栈信息
     ```
     
   - 部分线程执行命令

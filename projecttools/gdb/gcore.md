@@ -1,0 +1,1 @@
+如果cpu 飙升【或者想采集一下程序状态信息】，可以用sudo gcore [pid], 会生成一个core文件，然后再使用gdb/file 看栈信息。注意下权限，可以用root权限生成。**同时记录下线程id**信息，`top -Hp [pid]`。
