@@ -81,6 +81,26 @@ ubuntu/cortex                    Cortex provides storage for Prometheus. Long…
 sudo docker pull ubuntu:20.04	#不指定tag,则拉取最新的，即ubuntu:latest
 ```
 
+拉取镜像并运行容器
+
+```bash
+#!/bin/bash
+
+if [ -z $1 ]; then
+    echo "Please input version number."
+    exit 1
+fi
+echo $1
+
+docker pull xxx.xxx.com/docker/xxx_exe:$1
+docker run 
+	--add-host www.xxx.com:10.0.1.15 # 运行容器前指定域名映射 
+	-it 
+	--name xxx_v$1 
+	-v /home/user/local/share:/app/share 
+	xxx.xxx.com/docker/xxx_exe:$1 /bin/bash
+```
+
 
 
 ## docker rmi
@@ -433,6 +453,19 @@ sudo docker inspect <container_id>	#查看容器的配置和状态信息
 docker cp <container_name_or_id>:/path/to/container/file /path/to/host/file
 # 从主机上将文件拷贝到容器中
 docker cp /path/to/host/file <container_name_or_id>:/path/to/container/file
+```
+
+```bash
+#!/bin/bash
+
+if [ -z $1 ]; then
+    echo "Please input container id."
+    exit 1
+fi
+echo $1
+
+docker cp $1:/app/output .
+
 ```
 
 
