@@ -169,6 +169,7 @@ CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
 # 验证安装
 SELECT PostGIS_Version();
+select postgis_full_version();	
 ```
 
 ![image-20240627210052650](/home/user/me/Blogs/database/postgresql/image/image-20240627210052650.png)

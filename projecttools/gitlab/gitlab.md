@@ -14,3 +14,10 @@ sudo docker run -d
 	gitlab/gitlab-ce:latest
 ```
 
+
+
+
+
+reference:
+
+https://docs.gitlab.cn/docs/jh/ci/#step-1-create-a-.gitlab-ci.yml-file
